@@ -1,0 +1,100 @@
+⚡ FLASK WEATHER DASHBOARD - QUICK REFERENCE
+============================================
+
+📋 DAGLIG ANVÄNDNING
+--------------------
+
+Starta appen:
+  cd ~/Dokument/Github/flask_weather
+  source venv/bin/activate
+  python3 app.py
+
+Stoppa appen:
+  Ctrl+C
+
+Deaktivera venv:
+  deactivate
+
+
+🔧 VANLIGA KOMMANDON
+--------------------
+
+Aktivera venv:
+  source venv/bin/activate
+
+Installera/uppdatera dependencies:
+  pip install -r requirements.txt
+
+Kontrollera installerade paket:
+  pip list
+
+Uppgradera Flask:
+  pip install --upgrade Flask
+
+Uppgradera requests:
+  pip install --upgrade requests
+
+
+🌐 WEBBADRESSER
+---------------
+
+Dashboard:
+  http://localhost:8036
+
+API Endpoints:
+  http://localhost:8036/api/current
+  http://localhost:8036/api/forecast
+  http://localhost:8036/api/daily
+  http://localhost:8036/api/pressure_trend
+  http://localhost:8036/api/weather-effects-config
+
+Kiosk-läge (fullskärm):
+  chromium-browser --kiosk --disable-infobars http://localhost:8036
+
+
+🐛 FELSÖKNING
+-------------
+
+Problem: ModuleNotFoundError: No module named 'flask'
+Fix:     source venv/bin/activate
+
+Problem: Svenska tecken (åäö) visas fel
+Fix:     export LANG=sv_SE.UTF-8
+         export LC_ALL=sv_SE.UTF-8
+
+Problem: "timestamp year 57851 is out of range"
+Fix:     bash fix_timestamp.sh
+
+Problem: venv finns inte
+Fix:     python3 -m venv venv
+         source venv/bin/activate
+         pip install -r requirements.txt
+
+
+📁 VIKTIGA FILER
+----------------
+
+app.py              - Huvudapplikation
+config.py           - Konfiguration
+requirements.txt    - Python dependencies
+smhi_client.py      - SMHI API-klient
+netatmo_client.py   - Netatmo API-klient
+tokens.json         - Netatmo tokens (auto-genererad)
+pressure_history.json - Tryckhistorik (auto-genererad)
+
+
+🔄 STARTA OM FRÅN SCRATCH
+--------------------------
+
+rm -rf venv
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+
+📚 MER INFORMATION
+------------------
+
+Se: INSTALL.txt (komplett installationsguide)
+Se: TIMESTAMP_FIX_INSTRUCTIONS.txt (timestamp-fix)

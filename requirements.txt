@@ -1,0 +1,33 @@
+# Flask Weather Dashboard - Python Dependencies
+# ==============================================================================
+# Uppdaterad: 2025-11-21
+# Python version: >=3.8
+
+# === WEB FRAMEWORK ===
+Flask>=3.0.0,<4.0.0
+# Flask web framework för API och HTML rendering
+
+# === HTTP REQUESTS ===
+requests>=2.31.0,<3.0.0
+# HTTP-bibliotek för SMHI och Netatmo API-anrop
+
+# === UV-INDEX (CAMS via Copernicus ADS) ===
+cdsapi>=0.7.0,<1.0.0
+# Copernicus Climate/Atmosphere Data Store API client
+# Krävs för UV-index från CAMS (Copernicus Atmosphere Monitoring Service)
+# Kräver ~/.cdsapirc konfigurationsfil med Personal Access Token
+
+netCDF4>=1.6.0,<2.0.0
+# NetCDF4 för att läsa CAMS UV-data (returneras som .nc-filer)
+# Används för att extrahera UV-index från CAMS-prognoser
+
+# === OPTIONAL: PRODUCTION WSGI SERVER ===
+# Kommentera in om du vill köra med production server istället för Flask dev server
+# gunicorn>=21.0.0,<22.0.0
+# waitress>=2.1.0,<3.0.0
+
+# === DEVELOPMENT (valfritt) ===
+# Kommentera in för utveckling:
+# pytest>=7.4.0,<8.0.0
+# black>=23.0.0,<24.0.0
+# pylint>=3.0.0,<4.0.0

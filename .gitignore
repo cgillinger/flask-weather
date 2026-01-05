@@ -1,0 +1,75 @@
+# =========================
+# Sensitive files
+# =========================
+config.py
+reference/config.py
+configbak.json
+tokens.json
+reference/tokens.json
+.env
+.env.local
+*.key
+*.secret
+*.pem
+*.crt
+
+# =========================
+# Cache & generated data
+# =========================
+pressure_history.json
+sun_cache.json
+weather_cache.json
+cache/
+screenshots/
+logs/
+*.log
+
+# =========================
+# Backups
+# =========================
+backup/
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+build/
+dist/
+*.egg-info/
+venv/
+env/
+.venv/
+
+# =========================
+# Test / tooling
+# =========================
+.coverage*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# =========================
+# OS / editors
+# =========================
+.DS_Store
+Thumbs.db
+.directory
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =========================
+# Explicit includes
+# =========================
+!config.example.py
+!reference/config.example.py
+!backup/README.md
+
+uv_test.nc
+requirements (1).txt

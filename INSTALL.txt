@@ -1,0 +1,239 @@
+📦 FLASK WEATHER DASHBOARD - INSTALLATION & VENV SETUP
+=======================================================
+
+SYSTEMKRAV:
+-----------
+- Python 3.8 eller senare
+- pip (Python package manager)
+- 50 MB ledigt diskutrymme
+
+
+FÖRSTA GÅNGEN INSTALLATION:
+============================
+
+1. INSTALLERA SYSTEMPAKET (om de saknas):
+   -----------------------------------------
+   # Ubuntu/Debian:
+   sudo apt update
+   sudo apt install python3 python3-pip python3-venv
+
+   # Verifiera installation:
+   python3 --version    # Ska visa Python 3.8+
+   pip3 --version       # Ska visa pip version
+
+
+2. SKAPA PROJEKTKATALOG OCH VIRTUAL ENVIRONMENT:
+   -----------------------------------------------
+   cd ~/Dokument/Github/flask_weather
+   
+   # Skapa venv (första gången):
+   python3 -m venv venv
+   
+   # Aktivera venv:
+   source venv/bin/activate
+   
+   # Du ska nu se (venv) i din prompt:
+   # (venv) användare@dator:~/Dokument/Github/flask_weather$
+
+
+3. INSTALLERA PYTHON-PAKET:
+   -------------------------
+   # Se till att venv är aktiverat först!
+   # (du ska se (venv) i prompten)
+   
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   
+   # Verifiera installation:
+   pip list
+   
+   # Ska visa:
+   # Flask     3.x.x
+   # requests  2.x.x
+   # + diverse dependencies
+
+
+4. KONFIGURERA LOCALE (UTF-8 SUPPORT):
+   ------------------------------------
+   # Kontrollera nuvarande locale:
+   locale
+   
+   # Om LANG är tom eller POSIX, installera Swedish locale:
+   sudo locale-gen sv_SE.UTF-8
+   sudo update-locale LANG=sv_SE.UTF-8
+   
+   # Lägg till i ~/.bashrc (valfritt, för permanent fix):
+   echo 'export LANG=sv_SE.UTF-8' >> ~/.bashrc
+   echo 'export LC_ALL=sv_SE.UTF-8' >> ~/.bashrc
+   source ~/.bashrc
+
+
+5. TESTA INSTALLATION:
+   --------------------
+   # Se till att venv är aktiverat:
+   source venv/bin/activate
+   
+   # Kör appen:
+   python3 app.py
+   
+   # Öppna i webbläsare:
+   http://localhost:8036
+   
+   # Stoppa appen:
+   Ctrl+C
+
+
+DAGLIG ANVÄNDNING:
+==================
+
+1. AKTIVERA VIRTUAL ENVIRONMENT:
+   ------------------------------
+   cd ~/Dokument/Github/flask_weather
+   source venv/bin/activate
+   
+   # Du ska nu se (venv) i prompten
+
+
+2. STARTA APPEN:
+   -------------
+   python3 app.py
+   
+   # För kiosk-läge (fullskärm):
+   chromium-browser --kiosk --disable-infobars http://localhost:8036
+
+
+3. STOPPA APPEN:
+   -------------
+   Ctrl+C
+
+
+4. DEAKTIVERA VIRTUAL ENVIRONMENT:
+   --------------------------------
+   deactivate
+   
+   # (venv) försvinner från prompten
+
+
+UPPDATERA DEPENDENCIES:
+=======================
+
+# Aktivera venv först:
+source venv/bin/activate
+
+# Uppdatera alla paket:
+pip install --upgrade -r requirements.txt
+
+# Eller uppdatera specifikt paket:
+pip install --upgrade Flask
+
+
+FELSÖKNING:
+===========
+
+PROBLEM: "ModuleNotFoundError: No module named 'flask'"
+LÖSNING: Du har glömt aktivera venv
+         → cd ~/Dokument/Github/flask_weather
+         → source venv/bin/activate
+
+PROBLEM: Svenska tecken (åäö) visas som Ã¥Ã¤Ã¶
+LÖSNING: Locale är inte UTF-8
+         → export LANG=sv_SE.UTF-8
+         → export LC_ALL=sv_SE.UTF-8
+         → python3 app.py
+
+PROBLEM: "command not found: python3"
+LÖSNING: Python inte installerat
+         → sudo apt install python3 python3-pip
+
+PROBLEM: venv aktiveras inte (inget (venv) i prompt)
+LÖSNING: Kontrollera sökväg
+         → ls -la venv/bin/activate
+         → Om filen saknas: python3 -m venv venv
+
+
+STARTA OM FRÅN SCRATCH:
+=======================
+
+# Radera venv och börja om:
+cd ~/Dokument/Github/flask_weather
+rm -rf venv
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+
+PRODUKTION (SYSTEMD SERVICE):
+==============================
+
+Om du vill köra appen som systemd-service för autostart:
+
+1. Skapa service-fil:
+   sudo nano /etc/systemd/system/flask-weather.service
+
+2. Innehåll:
+   [Unit]
+   Description=Flask Weather Dashboard
+   After=network.target
+
+   [Service]
+   Type=simple
+   User=DIN_ANVÄNDARE
+   WorkingDirectory=/home/DIN_ANVÄNDARE/Dokument/Github/flask_weather
+   Environment="LANG=sv_SE.UTF-8"
+   Environment="LC_ALL=sv_SE.UTF-8"
+   ExecStart=/home/DIN_ANVÄNDARE/Dokument/Github/flask_weather/venv/bin/python3 app.py
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+
+3. Aktivera service:
+   sudo systemctl daemon-reload
+   sudo systemctl enable flask-weather
+   sudo systemctl start flask-weather
+   
+4. Kontrollera status:
+   sudo systemctl status flask-weather
+   
+5. Stoppa service:
+   sudo systemctl stop flask-weather
+
+
+VIKTIGA FILER:
+==============
+
+requirements.txt    - Python dependencies
+config.py          - Applikationskonfiguration  
+tokens.json        - Netatmo API tokens (skapas automatiskt)
+pressure_history.json - Tryckhistorik (skapas automatiskt)
+sun_cache.json     - Sol-data cache (skapas automatiskt)
+
+
+STRUKTUR:
+=========
+
+flask_weather/
+├── venv/              # Virtual environment (skapas av dig)
+├── backup/            # Automatiska backups (skapas av app)
+├── reference/         # Config och data-filer
+│   ├── config.py     # Huvudkonfiguration
+│   └── data/         # API-klienter
+├── static/           # CSS, JS, bilder
+│   ├── css/
+│   └── js/
+├── templates/        # HTML templates (om de finns)
+├── app.py           # Huvudapplikation
+├── requirements.txt # Detta dokument
+└── INSTALL.txt      # Denna fil
+
+
+SUPPORT:
+========
+
+Vid problem, kontrollera:
+1. Är venv aktiverat? (ser du (venv) i prompten?)
+2. Rätt Python-version? (python3 --version)
+3. Alla dependencies installerade? (pip list)
+4. Korrekt locale? (locale | grep LANG)
+5. Applikationsloggar? (se terminal-output)

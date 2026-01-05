@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="google" content="notranslate">
+    <title>Väder Dashboard - {{ location_name }}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
+    
+    <!-- PWA metadata -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Väder Stockholm">
+    <meta name="application-name" content="Väder Stockholm">
+    
+    <!-- Weather Icons CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons-wind.min.css">
+    
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    
+    <!-- WeatherEffects CSS -->
+    {% if weather_effects_enabled %}
+    <link rel="stylesheet" href="/static/css/weather-effects.css">
+    {% endif %}
+</head>
+<body class="theme-{{ theme }}" translate="no">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Laddar väderdata...</div>
+        </div>
+    </div>
+
+    <div class="viewport-center">
+        <div class="dashboard-container">
+            
+            <!-- ========== TOP ZONE: NU & HÄR ========== -->
+            <div class="top-zone">
+                
+                <!-- TIME UNIT -->
+                <div class="time-unit">
+                    <div class="circular-clock-container">
+                        <!-- 60 LED-prickar för sekunder -->
+                        <div class="clock-dots-container"></div>
+                        
+                        <!-- Digital tid och datum -->
+                        <div class="clock-digital-display">
+                            <div class="clock-time">--:--</div>
+                            <div class="clock-date">Laddar...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WEATHER UNIT -->
+                <div class="weather-unit">
+                    <!-- LOCATION UNIT -->
+                    <div class="location-unit">
+                        <div class="position-text">STOCKHOLM</div>
+                        <div class="position-underline"></div>
+                    </div>
+
+                    <!-- TEMP UNIT -->
+                    <div class="temp-unit" id="temp-unit">
+                        <!-- PROGNOS COLUMN -->
+                        <div class="prognos-column">
+                            <div class="main-temperature" id="smhi-temperature">--.-°</div>
+                            <div class="smhi-label" id="smhi-label">PROGNOS</div>
+                        </div>
+
+                        <!-- FAKTISK COLUMN -->
+                        <div class="faktisk-column" id="netatmo-temperature-section">
+                            <div class="netatmo-temp-small" id="netatmo-temperature-small">--.-°</div>
+                            <div class="netatmo-label">FAKTISK</div>
+                            <!-- Vinddata läggs till här av JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- SOL-TIDER SUB-UNIT -->
+                    <div class="sun-times">
+                        <div class="sun-time" id="sunrise-time">
+                            <i class="wi wi-sunrise sun-icon" style="color: #ff9500;"></i>
+                            <span>06:30</span>
+                        </div>
+                        <div class="sun-time" id="sunset-time">
+                            <i class="wi wi-sunset sun-icon" style="color: #ff6b35;"></i>
+                            <span>20:15</span>
+                        </div>
+                    </div>
+
+                    <!-- ICON UNIT -->
+                    <div class="icon-unit">
+                        <div class="weather-icon" id="smhi-weather-icon">
+                            <i class="wi wi-day-sunny weather-main-icon"></i>
+                        </div>
+                        <div class="weather-description" id="smhi-description">Växlande molnighet</div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- ========== MID ZONE: FAKTA ========== -->
+            <div class="mid-zone">
+                <div class="data-points-grid" id="weather-details-grid">
+                    
+                    <!-- Luftfuktighet -->
+                    <div class="data-point" id="smhi-humidity">
+                        50% Luftfuktighet
+                    </div>
+
+                    <!-- Barometer -->
+                    <div class="data-point barometer-detail" id="barometer-detail">
+                        <span class="barometer-icon-container" id="barometer-icon"></span>
+                        <div class="barometer-info">
+                            <div class="barometer-pressure-line" id="barometer-pressure-line">-- hPa</div>
+                            <div class="barometer-trend-line" id="barometer-trend-line">Trend: Samlar data...</div>
+                            <div class="barometer-desc-line" id="barometer-desc-line" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Luftkvalitet -->
+                    <div class="data-point air-quality-container" id="air-quality-container">
+                        <span id="air-quality">400 ppm Luftkvalitet</span>
+                    </div>
+
+                    <!-- UV Index -->
+                    <div class="data-point uv-index-container" id="uv-index-container" style="display: none;">
+                        <i class="fas fa-sun uv-icon" id="uv-icon"></i>
+                        <span id="uv-index-text">UV -- (Låg risk)</span>
+                    </div>
+
+                    <!-- Ljudnivå (Netatmo) -->
+                    <div class="data-point noise-level-container netatmo-hidden" id="noise-level-container" style="display: none;">
+                        <i class="fas fa-volume-up" style="color: #9575cd;"></i>
+                        <span id="noise-level">-- dB Ljudnivå</span>
+                    </div>
+                    
+                    <!-- Nederbörd (Netatmo) -->
+                    <div class="data-point rain-data-container netatmo-hidden" id="rain-data-container" style="display: none;">
+                        <i class="wi wi-raindrops" style="color: #4fc3f7;"></i>
+                        <span id="rain-data">0 mm Nederbörd</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== BOTTOM ZONE: FRAMÅT ========== -->
+            <div class="bottom-zone">
+                
+                <!-- 12H-PROGNOS UNIT -->
+                <div class="hourly-forecast-unit">
+                    <h2 class="section-title">12-timmarsprognos</h2>
+                    <div class="hourly-forecast" id="hourly-forecast">
+                        <div class="forecast-placeholder">Laddar prognos...</div>
+                    </div>
+                </div>
+
+                <!-- 5-DAGAR UNIT -->
+                <div class="daily-forecast-unit">
+                    <h2 class="section-title">5-dagarsprognos</h2>
+                    <div class="daily-forecast-content">
+                        <div class="daily-forecast" id="daily-forecast">
+                            <div class="forecast-placeholder">Laddar prognos...</div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- Status Section (dold) -->
+            <div class="status-section" style="display: none;">
+                <div class="status-text" id="status-text">Laddar väderdata...</div>
+                <div class="data-source-indicator" id="data-source-indicator" style="display: none;">
+                    <small id="data-source-text">Datakälla: SMHI + Netatmo</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Modules - KORREKTA SÖKVÄGAR -->
+    <script src="/static/js/dashboard/formatters-dashboard.js"></script>
+    <script src="/static/js/dashboard/wind-calculations.js"></script>
+    <script src="/static/js/dashboard/dom-helpers.js"></script>
+    <script src="/static/js/dashboard-components/weather-icon-renderer.js"></script>
+    <script src="/static/js/dashboard-components/fontawesome-renderer.js"></script>
+    <script src="/static/js/dashboard-components/circular-clock.js"></script>
+    <script src="/static/js/dashboard-components/barometer-display.js"></script>
+    <script src="/static/js/dashboard-components/uv-display.js"></script>
+    <script src="/static/js/dashboard-components/rain-display.js"></script>
+    <script src="/static/js/dashboard-data/intelligent-data-source.js"></script>
+    <script src="/static/js/dashboard-components/ui-adaptation-engine.js"></script>
+    <script src="/static/js/dashboard-data/fetch-api-client.js"></script>
+    <script src="/static/js/dashboard-views/current-weather-view.js"></script>
+    <script src="/static/js/dashboard-views/forecast-view.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    
+    {% if weather_effects_enabled %}
+    <script src="/static/js/weather-effects.js"></script>
+    {% endif %}
+</body>
+</html>
