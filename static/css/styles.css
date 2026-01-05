@@ -1,0 +1,949 @@
+/**
+ * @file styles.css
+ * @version 3.0.0
+ * @lastModified 2026-03-28
+ * @description Weather Dashboard huvudstilmall - CENTRALISERAD färghantering
+ * @dependencies colors.css
+ * @author Flask Weather Dashboard Team
+ * 
+ * 1920×1080 Kiosk-optimerad (N156HCA-E5B IPS)
+ * v2.3.0: Utökad padding för .weather-description - bättre kontrast mot stor ikon
+ * v2.2.0: 5-dagarsprognos nu vertikalt centrerad i vita ramen
+ * v2.1.0: Alla färgdefinitioner flyttade till colors.css - NOLL duplicering
+ */
+
+/* === IMPORTERA CENTRALISERAD FÄRGPALETT === */
+@import url('colors.css');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100%;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== VIEWPORT & DASHBOARD CONTAINER ========== */
+.viewport-center {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-container {
+    width: 98vw;
+    height: 98vh;
+    display: grid;
+    grid-template-rows: 55fr 7fr 38fr;
+    gap: clamp(0.5rem, 0.7vw, 0.9rem);
+    padding: clamp(0.5rem, 0.7vw, 0.9rem);
+}
+
+/* ========== LOADING OVERLAY ========== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+/* ========== TOP ZONE: NU & HÄR ========== */
+.top-zone {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* FORM: Symmetri klocka-ikon */
+    gap: clamp(0.5rem, 0.7vw, 1rem);
+    align-items: stretch;
+}
+
+/* ========== TIME UNIT ========== */
+.time-unit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circular-clock-container {
+    position: relative;
+    width: clamp(18rem, 26vw, 30rem);
+    height: clamp(18rem, 26vw, 30rem);
+    max-width: 98%;
+    max-height: 98%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: var(--clock-bg);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clock-dots-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.clock-dot {
+    position: absolute;
+    /* OBS: margin-left/top måste alltid vara exakt halva bredden/höjden,
+       annars hamnar prickringen ur centrum */
+    width: clamp(6px, 0.6vw, 10px);
+    height: clamp(6px, 0.6vw, 10px);
+    border-radius: 50%;
+    background: var(--clock-dot-inactive);
+    transition: all 0.3s ease;
+    left: 50%;
+    top: 50%;
+    margin-left: calc(-1 * clamp(3px, 0.3vw, 5px));
+    margin-top: calc(-1 * clamp(3px, 0.3vw, 5px));
+}
+
+.clock-dot.active {
+    background: var(--clock-dot-active);
+    box-shadow: 0 0 8px var(--clock-dot-active);
+    transform: scale(1.3);
+}
+
+.clock-digital-display {
+    text-align: center;
+    z-index: 10;
+}
+
+.clock-time {
+    font-size: clamp(4rem, 7vw, 8rem);
+    font-weight: 900;
+    color: var(--clock-time-color);
+    text-shadow: 0 3px 12px rgba(255, 51, 51, 0.4);
+    letter-spacing: 0.05em;
+    line-height: 1;
+}
+
+.clock-date {
+    font-size: clamp(1.1rem, 1.8vw, 2.2rem);
+    font-weight: 600;
+    color: var(--clock-date-color);
+    margin-top: 0.3rem;
+}
+
+/* ========== WEATHER UNIT ========== */
+.weather-unit {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* Symmetriska kolumner */
+    grid-template-rows: auto auto auto !important;
+    gap: clamp(0.4rem, 0.6vw, 0.8rem);
+    align-items: start;
+    align-self: center;
+    /*
+    Layout:
+    [ Location ]  [ Icon ]
+    [ Temp     ]  [ Icon ]
+    [ Sun      ]  [      ]
+    */
+}
+
+/* ========== LOCATION UNIT ========== */
+.location-unit {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: fit-content;
+    margin-bottom: clamp(-0.5rem, -0.3vw, -0.2rem); /* FORM: Negativ margin, närmare temp */
+}
+
+.position-text {
+    font-size: clamp(0.7rem, 0.95vw, 1.1rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+}
+
+.position-underline {
+    height: 2px;
+    width: 100%; /* FORM: Nu 100% av .location-unit = textens bredd */
+    background: var(--accent-secondary);
+    margin: 0.3rem 0 0;
+}
+
+/* ========== TEMP UNIT ========== */
+.temp-unit {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: clamp(1.8rem, 3.5vw, 4.5rem);
+    align-items: flex-start;
+    margin-bottom: clamp(0.3rem, 0.5vw, 0.7rem);
+    margin-top: clamp(0.8rem, 1.2vw, 1.6rem); /* FORM: Margin top för justering mot klocksiffror */
+}
+
+/* FAKTISK COLUMN (Netatmo - primär/stor, visas först) */
+.faktisk-column {
+    text-align: center;
+}
+
+.main-temperature {
+    font-size: clamp(5.2rem, 9.8vw, 11.7rem);
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1; /* Bättre vertical alignment för minus */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.netatmo-label {
+    font-size: clamp(0.8rem, 1.1vw, 1.3rem);
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.3rem;
+}
+
+/* PROGNOS COLUMN (SMHI - sekundär/liten, visas efter) */
+.prognos-column {
+    text-align: center;
+    position: relative;
+    top: -0.8rem;
+}
+
+.smhi-temp-small {
+    font-size: clamp(3.5rem, 6.5vw, 7.8rem); /* ~30% uppskaling */
+    font-weight: 800;
+    color: var(--accent-secondary);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.smhi-label {
+    font-size: clamp(0.7rem, 0.95vw, 1.1rem);
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.2rem;
+}
+
+/* Väderleverantör under PROGNOS - diskret grå parentes, t.ex. "(SMHI)" */
+.smhi-provider {
+    font-size: clamp(0.6rem, 0.75vw, 0.9rem);
+    font-weight: 400;
+    color: var(--text-secondary);
+    opacity: 0.55;
+    letter-spacing: 0.05em;
+    margin-top: 0.1rem;
+}
+
+/* Vind under faktisk (läggs till av JS) */
+.netatmo-wind-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    margin-top: 0.5rem;
+    font-size: clamp(0.75rem, 1vw, 1.2rem);
+    color: var(--accent-secondary);
+}
+
+.wind-under-faktisk {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: clamp(0.3rem, 0.5vw, 0.7rem);
+    font-size: clamp(0.8rem, 1.1vw, 1.3rem);
+    font-weight: 600;
+    color: #ffffff; /* Vit text */
+}
+
+/* ========== SOL-TIDER SUB-UNIT ========== */
+.sun-times {
+    grid-column: 1 !important;
+    grid-row: 3 !important;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: clamp(1.2rem, 2vw, 2.5rem);
+}
+
+.sun-time {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.4rem, 0.6vw, 0.7rem);
+    font-size: clamp(0.8rem, 1.1vw, 1.3rem);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sun-icon {
+    font-size: clamp(1.3rem, 1.8vw, 2.2rem);
+}
+
+/* ========== ICON UNIT ========== */
+.icon-unit {
+    grid-column: 2 !important;
+    grid-row: 1 / -1 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-right: 0; /* FORM: Ingen extra padding, kolumnen är redan symmetrisk */
+}
+
+.weather-icon {
+    margin-bottom: 0.3rem;
+}
+
+.weather-main-icon {
+    font-size: clamp(11rem, 17vw, 22rem);
+    color: var(--accent-primary);
+}
+
+.weather-description {
+    font-size: clamp(0.95rem, 1.3vw, 1.6rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    /* Svart bakgrund med rundade hörn - v2.2.0: Utökad padding för bättre kontrast */
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 0.5rem 1.6rem;  /* Dubbel horisontell padding för mer svart yta */
+    border-radius: 8px;
+    display: inline-block;
+    position: relative;
+    z-index: 10;
+}
+
+/* Single temperature mode (SMHI-only eller Netatmo ej tillgänglig) */
+.temp-unit.single-temperature-mode .prognos-column {
+    display: none;
+}
+
+/* I single-temperature-mode: SMHI visas i faktisk-kolumnen som primär */
+.temp-unit.single-temperature-mode .faktisk-column {
+    text-align: center;
+}
+
+/* ========== MID ZONE: FAKTA ========== */
+.mid-zone {
+    display: flex;
+    align-items: center;
+}
+
+.data-points-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important; /* 4 lika kolumner */
+    gap: clamp(0.6rem, 0.9vw, 1.2rem);
+    width: 100%;
+}
+
+.data-points-grid > * {
+    /* Alla barn tar 1 kolumn vardera */
+}
+
+/* UI-degradering (ui-adaptation-engine.js sätter klasserna - CSS:en
+   saknades tidigare så de hade ingen effekt): utan Netatmo döljs
+   CO2/luftkvalitet (ingen datakälla i prognosläge) och rutnätet
+   fördelar kvarvarande rutor jämnt istället för att lämna tomma
+   kolumner. Netatmo-lägets layout är helt oförändrad. */
+.netatmo-hidden {
+    display: none !important;
+}
+
+.data-points-grid.smhi-only-mode {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr)) !important;
+}
+
+.data-point {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: clamp(0.6rem, 0.9vw, 1.1rem);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: clamp(0.5rem, 0.7vw, 0.9rem);
+    font-size: clamp(0.9rem, 1.2vw, 1.4rem);
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.data-point:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+}
+
+.data-point i {
+    font-size: clamp(1.4rem, 2vw, 2.5rem);
+}
+
+/* Barometer special layout */
+.barometer-detail {
+    justify-content: flex-start;
+}
+
+.barometer-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(2.2rem, 2.8vw, 3.2rem);
+    height: clamp(2.2rem, 2.8vw, 3.2rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.barometer-icon-container.rising {
+    background: rgba(45, 125, 50, 0.2);
+    color: var(--barometer-rising);
+}
+
+.barometer-icon-container.falling {
+    background: rgba(211, 47, 47, 0.2);
+    color: var(--barometer-falling);
+}
+
+/* Snabbt-stegen: kraftigare fyllning som markör för snabb väderomställning */
+.barometer-icon-container.rising-fast {
+    background: rgba(45, 125, 50, 0.4);
+    color: var(--barometer-rising);
+}
+
+.barometer-icon-container.falling-fast {
+    background: rgba(211, 47, 47, 0.4);
+    color: var(--barometer-falling);
+}
+
+.barometer-icon-container.stable {
+    background: rgba(102, 102, 102, 0.2);
+    color: var(--barometer-stable);
+}
+
+.barometer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.barometer-pressure-line {
+    font-weight: 700;
+    font-size: clamp(1rem, 1.3vw, 1.5rem);
+    white-space: nowrap;
+}
+
+.barometer-trend-line {
+    font-size: clamp(0.75rem, 1vw, 1.2rem);
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.barometer-desc-line {
+    display: none;
+}
+
+/* UV färgschema */
+/* ========== BOTTOM ZONE: FRAMÅT ========== */
+.bottom-zone {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 50/50 fördelning */
+    gap: clamp(0.5rem, 0.7vw, 0.9rem);
+    align-items: stretch;
+    overflow: hidden;
+}
+
+/* ========== 12H-PROGNOS UNIT ========== */
+.hourly-forecast-unit {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.hourly-forecast-unit .section-title {
+    font-size: clamp(1rem, 1.4vw, 1.7rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: clamp(0.2rem, 0.3vw, 0.5rem);
+    flex-shrink: 0;
+}
+
+.hourly-forecast {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(5rem, 7.5vw, 8.5rem), 1fr)); /* Fyller hela bredden */
+    gap: clamp(0.5rem, 0.7vw, 0.9rem);
+    padding: 0.3rem;
+    flex: 1;
+}
+
+.forecast-card {
+    /* Grid child - inga flex properties */
+    min-height: auto;
+    padding: clamp(0.3rem, 0.5vw, 0.7rem);
+    background: #000000;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: clamp(0.6rem, 0.9vw, 1.1rem);
+    display: grid;
+    grid-template-rows: auto auto auto auto auto;
+    align-items: center;
+    justify-items: center;
+    gap: clamp(0.2rem, 0.3vw, 0.5rem);
+    text-align: center;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.forecast-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.forecast-time {
+    grid-row: 1;
+    font-size: clamp(1.5rem, 2vw, 2.4rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0;
+    line-height: 1;
+}
+
+.forecast-icon {
+    grid-row: 2;
+    font-size: clamp(2.5rem, 3.8vw, 4.3rem);
+    min-height: clamp(3.2rem, 5vw, 5.8rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    line-height: 1;
+}
+
+
+.daily-partly-cloudy-color {
+    color: #90caf9 !important; /* Ljusblå */
+}
+
+.forecast-temp {
+    grid-row: 3;
+    font-size: clamp(2rem, 2.8vw, 3.5rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-top: 0;
+    line-height: 1;
+}
+
+.forecast-wind,
+.forecast-precipitation {
+    font-size: clamp(0.7rem, 0.9vw, 1.1rem);
+    color: var(--text-secondary);
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+}
+
+.forecast-wind {
+    grid-row: 4;
+}
+
+.forecast-precipitation {
+    grid-row: 5;
+}
+
+/* FORM: Vindtext enrads horisontell layout */
+.forecast-wind-consistent {
+    grid-row: 4;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+}
+
+.forecast-wind-header {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.forecast-wind-text {
+    display: inline;
+    font-size: clamp(1.2rem, 1.6vw, 2rem);
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.wind-line1,
+.wind-line2 {
+    white-space: nowrap;
+}
+
+/* ========== 5-DAGAR UNIT ========== */
+.daily-forecast-unit {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.daily-forecast-unit .section-title {
+    font-size: clamp(1rem, 1.4vw, 1.7rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: clamp(0.2rem, 0.3vw, 0.5rem);
+    flex-shrink: 0;
+}
+
+.daily-forecast-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.daily-forecast {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* v2.2.0: Centrera innehåll vertikalt - lika tom yta över & under */
+    gap: clamp(0.25rem, 0.35vw, 0.5rem); /* -17% krympning */
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 4px solid rgba(255, 255, 255, 0.6); /* Tjockare ram */ /* FORM: Tjockare ram */
+    border-radius: clamp(0.6rem, 0.9vw, 1.1rem);
+    padding: clamp(0.4rem, 0.6vw, 0.8rem);
+}
+
+.daily-forecast-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr 1fr;
+    gap: 0.7rem;
+    align-items: center;
+    padding: clamp(0.3rem, 0.4vw, 0.55rem) clamp(0.5rem, 0.7vw, 0.9rem); /* -15% krympning */
+    background: #000000; /* Helt svart */
+    border: none;
+    border-radius: clamp(0.5rem, 0.7vw, 0.9rem);
+    min-height: clamp(2rem, 2.5vw, 3rem);
+    transition: all 0.3s ease;
+}
+
+.daily-forecast-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+}
+
+.daily-icon {
+    font-size: clamp(2rem, 2.8vw, 3.3rem);
+    text-align: center;
+}
+
+.daily-temp {
+    font-size: clamp(1.1rem, 1.5vw, 1.9rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.daily-weekday,
+.daily-date {
+    font-size: clamp(0.95rem, 1.3vw, 1.6rem);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.daily-weekday {
+    text-align: center;
+}
+
+.daily-date {
+    text-align: right;
+}
+
+/* ========== PLACEHOLDER ========== */
+.forecast-placeholder {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* ========== STATUS SECTION (dold) ========== */
+.status-section {
+    display: none !important;
+}
+
+/* ========== SCROLLBARS ========== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========== RESPONSIVE (iPad) ========== */
+@media (max-width: 1024px) {
+    .top-zone {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+    }
+    
+    .weather-unit {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+    }
+    
+    .icon-unit {
+        grid-column: 1;
+        grid-row: 4;
+    }
+    
+    .bottom-zone {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+    }
+}
+/* ===============================================
+   ULTRA-AGGRESSIV FIX - MAXIMAL SPECIFICITET
+   Lägg till i SLUTET av styles.css
+   =============================================== */
+
+/* FORCE TOP ZONE GRID */
+.dashboard-container > .top-zone {
+    display: grid !important;
+    grid-template-columns: 1fr 2fr !important;
+    grid-template-rows: auto !important;
+    gap: clamp(0.5rem, 0.7vw, 1rem) !important;
+    align-items: stretch !important;
+}
+
+/* FORCE WEATHER UNIT GRID */
+.top-zone > .weather-unit {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* SYMMETRI: Lika kolumner som top-zone */
+    grid-template-rows: auto auto auto !important;
+    gap: clamp(0.4rem, 0.6vw, 0.8rem) !important;
+}
+
+/* FORCE LOCATION PLACEMENT */
+.weather-unit > .location-unit {
+    grid-column: 1 / 2 !important;
+    grid-row: 1 / 2 !important;
+    display: block !important;
+}
+
+/* FORCE TEMP UNIT PLACEMENT AND FLEX */
+.weather-unit > .temp-unit {
+    grid-column: 1 / 2 !important;
+    grid-row: 2 / 3 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: clamp(1.8rem, 3.5vw, 4.5rem) !important;
+    align-items: flex-start !important;
+}
+
+/* FORCE FAKTISK AND PROGNOS AS FLEX CHILDREN */
+.temp-unit > .faktisk-column {
+    display: block !important;
+    flex: 0 0 auto !important;
+    grid-column: unset !important;
+    grid-row: unset !important;
+}
+
+.temp-unit > .prognos-column {
+    display: block !important;
+    flex: 0 0 auto !important;
+    grid-column: unset !important;
+    grid-row: unset !important;
+    position: relative !important;
+    top: -0.8rem !important;
+}
+
+/* Override: i single-temperature-mode ska prognos-kolumnen döljas */
+.temp-unit.single-temperature-mode > .prognos-column {
+    display: none !important;
+}
+
+/* FORCE SUN TIMES PLACEMENT */
+.weather-unit > .sun-times {
+    grid-column: 1 / 2 !important;
+    grid-row: 3 / 4 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+}
+
+/* FORCE ICON UNIT PLACEMENT */
+.weather-unit > .icon-unit {
+    grid-column: 2 / 3 !important;
+    grid-row: 1 / 4 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* FORCE MID ZONE */
+.dashboard-container > .mid-zone {
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* FORCE BOTTOM ZONE */
+.dashboard-container > .bottom-zone {
+    display: grid !important;
+    grid-template-columns: 1.5fr 1fr !important;
+    grid-template-rows: auto !important;
+    gap: clamp(0.5rem, 0.7vw, 0.9rem) !important;
+}
+
+
+/* === STALENESS-INDIKATOR ===
+   Visas av fetch-api-client.js när väderdata inte kan uppdateras,
+   så att kioskskärmen aldrig visar gammal data utan att det syns */
+.stale-indicator {
+    position: fixed;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(180, 60, 30, 0.92);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: clamp(0.8rem, 1.2vw, 1.1rem);
+    z-index: 9000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* === IKONPAKET: SVG-ikoner ===
+   Ikon-slotten är storleksauktoritet: layoutboxen är ALLTID exakt 1em
+   (som en fontglyf) och hårt takad till slottens yta - inget ikonpaket
+   kan spränga layouten. display:block tar bort inline-bildens
+   baslinjeluft (som annars gör prognosraderna högre än med font-ikoner).
+   Visuell finjustering per paket sker med transform: scale() via
+   --icon-scale (sätts av icon-packs.js) - transform påverkar aldrig
+   layoutflödet. */
+img.svg-weather-icon {
+    display: block;
+    width: 1em;
+    height: 1em;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 auto;
+    object-fit: contain;
+    transform: scale(calc(var(--icon-scale, 1) * var(--slot-scale, 1)));
+    user-select: none;
+}
+
+/* Slot-multiplikatorer: små slottar (prognosrader) behöver rita ikonen
+   större än sin 1em-layoutbox för att SVG:ernas viewBox-luft inte ska
+   göra dem pyttesmå. Påverkar bara SVG-paket - font-glyfer berörs inte.
+   Ritas med transform, kan aldrig ändra radhöjder eller layout. */
+.daily-icon img.svg-weather-icon {
+    --slot-scale: 1.5;
+}
+
+.forecast-icon img.svg-weather-icon {
+    --slot-scale: 1.2;
+}
+
+/* Paketspecifika slot-justeringar (html[data-icon-pack] sätts av
+   icon-packs.js). amedia-meteo ritar sitt innehåll nättare än övriga
+   SVG-paket: hero och 12-timmarskorten behöver extra boost, medan
+   femdygnsraden redan är rätt med paketets scale × 1.5. */
+[data-icon-pack="amedia-meteo"] img.svg-weather-icon.weather-main-icon {
+    --slot-scale: 1.25;
+}
+
+[data-icon-pack="amedia-meteo"] .forecast-icon img.svg-weather-icon {
+    --slot-scale: 1.35;
+}
+
+/* kickstand-weather (fontpaket): tunna linjeglyfer med luft i teckenrutan
+   ritar smått i alla slottar - boosta visuellt med transform, som för
+   SVG-paketen. inline-block krävs för att transform ska bita på <i>;
+   layoutboxen (fontstorleken) är oförändrad så inget kan förskjutas. */
+[data-icon-pack="kickstand-weather"] i.weather-main-icon,
+[data-icon-pack="kickstand-weather"] .forecast-icon i,
+[data-icon-pack="kickstand-weather"] .daily-icon i {
+    display: inline-block;
+    transform: scale(1.3);
+}
+
+/* weather-icons: skur-glyferna (wi-day-showers m.fl.) målar regndroppar
+   UNDER sin teckenruta (ink overflow) - vid två regndagar i rad flyter
+   femdygnsikonerna visuellt ihop. Krymp glyfen inom sin oförändrade
+   layoutbox så dropparna ryms i raden. */
+[data-icon-pack="weather-icons"] .daily-icon i {
+    display: inline-block;
+    transform: scale(0.82);
+}

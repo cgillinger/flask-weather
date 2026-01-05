@@ -1,0 +1,152 @@
+/*
+ * Filename: colors.css
+ * Version: 1.2.0
+ * Last updated: 2025-01-11
+ * Purpose: Centraliserad färgpalett för Flask Weather Dashboard
+ * Dependencies: None
+ * Used by: styles.css, weather-effects.css, ColorManager.js
+ * 
+ * VIKTIGT: Detta är den enda platsen där färger definieras.
+ * Alla andra filer läser från dessa CSS-variabler.
+ * 
+ * v1.2.0 ÄNDRINGAR:
+ * - Konsekvent UV-gul (#FDD835) för: sol, halvklart, vind-gul
+ * - Logik: Samma gula nyans för alla "måttliga/solrelaterade" indikatorer
+ * - Vindskala fortsatt SMHI-standard (exakta m/s-intervall)
+ */
+
+/* ===============================================
+   CENTRALISERAD FÄRGPALETT
+   Flask Weather Dashboard
+   =============================================== */
+
+:root {
+    /* ========== BASFÄRGER (Befintliga) ========== */
+    --bg-primary: #0f0f0f;           /* Nästan svart bakgrund */
+    --bg-secondary: #1a1a1a;         /* Mörkgrå bakgrund */
+    --text-primary: #ffffff;         /* Vit text */
+    --text-secondary: #b0b0b0;       /* Ljusgrå text */
+    --accent-primary: #4A9EFF;       /* Ljusblå accent */
+    --accent-secondary: #6eb6ff;     /* Ännu ljusare blå accent */
+    
+    /* ========== TEMPERATUR-SKALA (Naturliga associationer) ========== */
+    --temp-freezing: #3b82f6;        /* < 0°C - Isblå "frozen blue" */
+    --temp-cold: #06b6d4;            /* 0-10°C - Cyan "cold water" */
+    --temp-cool: #10b981;            /* 10-20°C - Grön "spring green" */
+    --temp-mild: #f59e0b;            /* 20-25°C - Gul/Amber "warm sunlight" */
+    --temp-warm: #ef4444;            /* >25°C - Röd "heat red" */
+    
+    /* ========== UV-INDEX (WHO/WMO Standard) ========== */
+    --uv-low: #4CAF50;               /* UV 0-2 - Grön (säkert) */
+    --uv-moderate: #FDD835;          /* UV 3-5 - Gul (var försiktig) */
+    --uv-high: #FB8C00;              /* UV 6-7 - Orange (skydd krävs) */
+    --uv-very-high: #E53935;         /* UV 8-10 - Röd (extra skydd) */
+    --uv-extreme: #8E24AA;           /* UV 11+ - Lila (undvik solen) */
+    
+    /* ========== KLOCKA (Radioklocka-referens) ========== */
+    --clock-bg: rgba(20, 20, 20, 0.95);
+    --clock-border: rgba(255, 51, 51, 0.6);
+    --clock-time-color: #ff3333;     /* Röd - radioklocka */
+    --clock-date-color: #e0e0e0;     /* Ljusgrå datum */
+    --clock-dot-inactive: rgba(255, 255, 255, 0.2);
+    --clock-dot-active: #ff3333;     /* Samma röd som tiden */
+    
+    /* ========== SOL UPP/NEDGÅNG ========== */
+    --sun-sunrise: #ff9500;          /* Orange - morgonsol */
+    --sun-sunset: #ff6b35;           /* Djupare orange/röd - solnedgång */
+    
+    /* ========== BAROMETER-TREND (Befintliga) ========== */
+    --barometer-rising: #2d7d32;     /* Grön - stigande (positivt väder) */
+    --barometer-falling: #d32f2f;    /* Röd - fallande (försämrat väder) */
+    --barometer-stable: #666666;     /* Grå - stabilt (neutral) */
+    
+    /* ========== LUFTKVALITET (Använder UV-färger) ========== */
+    --air-good: var(--uv-low);       /* Grön - bra luftkvalitet */
+    --air-moderate: var(--uv-moderate); /* Gul - måttlig luftkvalitet */
+    --air-poor: var(--uv-very-high); /* Röd - dålig luftkvalitet */
+    
+    /* ========== VÄDERIKONER (Färgglada för signage) ========== */
+    --weather-sun: #FDD835;          /* UV-gul - konsekvent med UV/luftkvalitet (v1.2.0) */
+    --weather-partly-cloudy: #FDD835; /* UV-gul - samma som sol (v1.2.0) */
+    --weather-cloudy: #9E9E9E;       /* Grå - molnigt */
+    --weather-rain: #4A9EFF;         /* Blå - regn (matchar accent-primary) */
+    --weather-thunder: #9C27B0;      /* Lila - åska (elektrisk) */
+    --weather-snow: #E3F2FD;         /* Isblå/vit - snö */
+    --weather-sleet: #00BCD4;        /* Cyan - snöblandat regn */
+    
+    /* ========== VINDIKONER (SMHI Beaufort-standard v1.2.0) ========== */
+    --wind-calm: #10b981;            /* Grön - B0-3 (0-5.4 m/s) Lugnt→Måttlig */
+    --wind-moderate: #FDD835;        /* UV-gul - B4-6 (5.5-13.8 m/s) Måttlig→Frisk (v1.2.0) */
+    --wind-strong: #fb923c;          /* Orange - B7-9 (13.9-24.4 m/s) Hård vind */
+    --wind-storm: #ef4444;           /* Röd - B10-12 (24.5+ m/s) Storm→Orkan */
+    
+    /* ========== WEATHER EFFECTS ========== */
+    --rain-color: rgba(0, 170, 255, 1);        /* Regn-partiklar */
+    --rain-color-light: rgba(0, 170, 255, 0.8); /* Regn i ljust tema */
+    --snow-color: #ffffff;                      /* Snöflingor - ren vit */
+    --snow-sparkle: rgba(173, 216, 230, 0.9);   /* Snö-sparkle - lätt isblå */
+}
+
+/* ========== TEMA-OVERRIDES ========== */
+
+/* Ljust tema - mindre intensiva effekter */
+.theme-light {
+    --rain-color: var(--rain-color-light);
+}
+
+/* Mörkt tema - behåller standard-färger (inga overrides behövs) */
+.theme-dark {
+    /* Använder :root-värden som standard */
+}
+
+/* ========== CSS-KLASSER FÖR FÄRGKODNING ========== */
+
+/* UV-index klasser (används i HTML) */
+.uv-low { color: var(--uv-low) !important; }
+.uv-moderate { color: var(--uv-moderate) !important; }
+.uv-high { color: var(--uv-high) !important; }
+.uv-very_high { color: var(--uv-very-high) !important; }
+.uv-extreme { color: var(--uv-extreme) !important; }
+
+/* Temperatur-klasser (används av ColorManager) */
+.temp-freezing { color: var(--temp-freezing); }
+.temp-cold { color: var(--temp-cold); }
+.temp-cool { color: var(--temp-cool); }
+.temp-mild { color: var(--temp-mild); }
+.temp-warm { color: var(--temp-warm); }
+
+/* Väderikon-klasser (används av WeatherIconRenderer) */
+.weather-sun-color { color: var(--weather-sun); }
+.weather-partly-cloudy-color { color: var(--weather-partly-cloudy); }
+.weather-cloudy-color { color: var(--weather-cloudy); }
+.weather-rain-color { color: var(--weather-rain); }
+.weather-thunder-color { color: var(--weather-thunder); }
+.weather-snow-color { color: var(--weather-snow); }
+.weather-sleet-color { color: var(--weather-sleet); }
+
+/* Vindikon-klasser (används av ColorManager) */
+.wind-calm { color: var(--wind-calm); }
+.wind-moderate { color: var(--wind-moderate); }
+.wind-strong { color: var(--wind-strong); }
+.wind-storm { color: var(--wind-storm); }
+
+/* Luftkvalitet-klasser (används av FontAwesomeRenderer) */
+.air-good { color: var(--air-good); }
+.air-moderate { color: var(--air-moderate); }
+.air-poor { color: var(--air-poor); }
+
+/* ========== SLUTKOMMENTAR ========== */
+/* 
+ * För att lägga till nya färger:
+ * 1. Definiera CSS-variabel i :root
+ * 2. Skapa CSS-klass om färgen används i HTML/JS
+ * 3. Uppdatera ColorManager.js om färgen används dynamiskt
+ * 4. Dokumentera färgen i COLOR_PALETTE.md
+ * 
+ * v1.2.0 ÄNDRINGSLOGG:
+ * - Konsekvent UV-gul (#FDD835) för sol, halvklart, vind-gul
+ * - Logik: En gul nyans för alla "måttliga/varnings-nivåer"
+ * - Sol-ikoner: #fafd0f → #FDD835 (UV-gul)
+ * - Halvklart: #FFA500 → #FDD835 (från orange till UV-gul)
+ * - Vind-gul: #fafd0f → #FDD835 (UV-gul)
+ */

@@ -1,0 +1,195 @@
+# =============================================================================
+# Weather Dashboard .gitignore
+# Säkerställer att känsliga filer ALDRIG hamnar på GitHub
+# =============================================================================
+
+# =============================================================================
+# 🔐 KÄNSLIGA KONFIGURATIONSFILER - HÖGSTA PRIORITET
+# =============================================================================
+
+config.py
+reference/config.py
+configbak.json
+tokens.json
+reference/tokens.json
+*.key
+*.secret
+.env
+.env.local
+
+# =============================================================================
+# 💾 PROJEKTGENERERADE CACHE- OCH DATAFILER
+# =============================================================================
+
+pressure_history.json
+sun_cache.json
+struktur.txt
+weather_cache.json
+flask.log
+*.log
+logs/
+
+# =============================================================================
+# 🗂️ BACKUP-KATALOG (Håll lokal development-historik privat)
+# =============================================================================
+
+backup/
+backups/
+
+# =============================================================================
+# 🐍 PYTHON STANDARD EXCLUDES
+# =============================================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+*.egg-info/
+.Python
+venv/
+env/
+ENV/
+.venv/
+pipenv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# =============================================================================
+# 🖥️ OPERATIVSYSTEM-SPECIFIKA FILER
+# =============================================================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon*
+._*
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+.directory
+.Trash-*
+
+# =============================================================================
+# 🛠️ IDE OCH EDITOR-SPECIFIKA FILER
+# =============================================================================
+
+.vscode/
+*.code-workspace
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+\#*\#
+.\#*
+
+# =============================================================================
+# 🌐 WEB-UTVECKLING TEMPORÄRA FILER
+# =============================================================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.css.map
+.sass-cache/
+
+# =============================================================================
+# 📊 DATABAS OCH DATAANALYS FILER
+# =============================================================================
+
+*.db
+*.sqlite
+*.sqlite3
+temp_*.csv
+analysis_*.xlsx
+
+# =============================================================================
+# 🔧 UTVECKLINGS- OCH TEST-FILER
+# =============================================================================
+
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+.cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# =============================================================================
+# 📱 RASPBERRY PI SPECIFIKA FILER
+# =============================================================================
+
+/boot/config.txt.backup
+/etc/wpa_supplicant/wpa_supplicant.conf.backup
+pi_credentials.txt
+
+# =============================================================================
+# 🚀 DEPLOYMENT OCH PRODUKTION
+# =============================================================================
+
+.dockerignore
+Dockerfile.local
+*.service.local
+*.pem
+*.crt
+*.key
+
+# =============================================================================
+# ✅ EXPLICITA INKLUDERINGAR (Trots wildcard-regler ovan)
+# =============================================================================
+
+!config.example.py
+!reference/config.example.py
+!backup/README.md
+
+# =============================================================================
+# 📝 UTVECKLARNOTERINGAR
+# =============================================================================
+
+TODO.personal.md
+NOTES.private.md
+DEBUG.*.txt
+
+# =============================================================================
+# 🔍 VERIFIERINGSKOMMANDO
+# =============================================================================
+
+# git add . && git status
+# git ls-files --others --ignored --exclude-standard
+# git check-ignore config.py tokens.json pressure_history.json
+
+# =============================================================================
+# 🧹 EXTRA SKYDD FÖR SYNLOGY OCH BACKUPNAMNGIVNING
+# =============================================================================
+
+# Synology DSM: systemmappar med metadata
+@eaDir/
+
+# Alla backupmappar skapade enligt standardnamngivning
+backup/script_update_*/
+backup/architecture_*/
+backup/display_update_*/
+backup/config_update_*/
+backup/hotfix_*/
+backup/experimental_*/
+
+# Generellt wildcard om konventionen ändras
+backup/*_*/
+backup/**
+start_flask_weather.sh
+cache/
+.cdsapirc

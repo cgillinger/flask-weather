@@ -1,0 +1,101 @@
+.
+├── app.py
+├── backup
+│   ├── animated_icons_20250703_163311
+│   │   ├── config_manager.py
+│   │   ├── config.py
+│   │   ├── dashboard.js
+│   │   ├── README_backup.txt
+│   │   └── ui-updaters.js
+│   ├── animated_icons_backend_20250702_124659
+│   │   └── app.py
+│   ├── architecture_20250703_142016
+│   │   └── app.py
+│   ├── config_update_20250630_192450
+│   ├── dashboard_fix_20250701_161945
+│   │   └── dashboard.js
+│   ├── dashboard_svg_integration_20250702_142127
+│   │   └── dashboard.js
+│   ├── display_update_20250613_195222
+│   ├── display_update_20250613_195746
+│   ├── display_update_20250702_094121
+│   │   └── styles.css
+│   ├── display_update_20250703_114316
+│   │   └── weather-effects.css
+│   ├── fas3_ui_degradering_20250630_142951
+│   ├── script_update_20250630_191715
+│   ├── template_fix_20250701_161016
+│   │   └── index.html
+│   ├── weathereffects_clearfix_20250701_163338
+│   │   └── weather-effects.js
+│   ├── weather_effects_integration_20250701_142958
+│   │   ├── app.py
+│   │   ├── config.py
+│   │   ├── dashboard.js
+│   │   └── index.html
+│   └── weather_effects_thunder_20250702_120106
+│       └── weather-effects.js
+├── core
+│   ├── config_manager.py
+│   ├── __init__.py
+│   ├── weather_state.py
+│   └── weather_updater.py
+├── filer.txt
+├── fix_timestamp.sh
+├── flask.log
+├── pressure_history.json
+├── pressure_trend_diagnosis.py
+├── project_structure.txt
+├── readme.md
+├── reference
+│   ├── config_example.py
+│   ├── config.py
+│   ├── config.pyZone - kopia.Identifier
+│   └── data
+│       ├── __init__.py
+│       ├── netatmo_client.py
+│       ├── pressure_history.json
+│       ├── smhi_client.py
+│       ├── tokens.json
+│       └── utils.py
+├── requirements.txt
+├── screenshots
+│   ├── icon.png
+│   ├── screenshot1.png
+│   ├── screenshot2.png
+│   └── Thumbs.db
+├── start_flask_weather.sh
+├── static
+│   ├── apple-touch-icon.png
+│   ├── assets
+│   │   ├── css
+│   │   ├── icons
+│   │   └── README.md
+│   ├── css
+│   │   ├── styles_backup.css
+│   │   ├── styles.css
+│   │   └── weather-effects.css
+│   ├── favicon.ico
+│   ├── icon-192.png
+│   ├── icon-512.png
+│   ├── images
+│   ├── js
+│   │   ├── dashboard
+│   │   ├── dashboard-components
+│   │   ├── dashboard-data
+│   │   ├── dashboard.js
+│   │   ├── dashboard.jsZone - kopia.Identifier
+│   │   ├── dashboard - kopia.js
+│   │   ├── dashboard-views
+│   │   └── weather-effects.js
+│   └── Thumbs.db
+├── sun_cache.json
+├── synology_start_script.sh
+├── task.log
+├── templates
+│   ├── index.html
+│   └── index - kopia.html
+├── timestamp_fix.patch
+└── tokens.json
+
+34 directories, 65 files

@@ -1,0 +1,100 @@
+/**
+ * @file fi.js
+ * @description Finsk språkkatalog. Vindterminologi enligt Ilmatieteen
+ *              laitos officiella benämningar (tyyntä, heikkoa tuulta,
+ *              kohtalaista tuulta, navakkaa tuulta, kovaa tuulta,
+ *              myrskyä, hirmumyrskyä) - FMI:s m/s-gränser sammanfaller
+ *              nästan exakt med appens skalsteg.
+ */
+
+I18n.register('fi', {
+    __locale: 'fi-FI',
+
+    LABEL_ACTUAL: 'TODELLINEN',
+    LABEL_FORECAST: 'ENNUSTE',
+    LABEL_TEMPERATURE: 'LÄMPÖTILA',
+    SECTION_12H: '12 tunnin ennuste',
+    SECTION_5DAY: '5 vuorokauden ennuste',
+
+    LOADING: 'Lataa...',
+    LOADING_WEATHER: 'Ladataan säätietoja...',
+    LOADING_FORECAST: 'Ladataan ennustetta...',
+    STATUS_UPDATED: 'Säätiedot päivitetty',
+    STALE_SINCE: '⚠️ Tietoja ei päivitetty {time} jälkeen',
+    STALE_UNAVAILABLE: '⚠️ Säätietoja ei voida hakea',
+    COMPASS: 'N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW',
+    UNKNOWN: 'Tuntematon',
+
+    FMT_HUMIDITY: '{value}% Ilmankosteus',
+    FMT_AIR_QUALITY: '{value} ppm Ilmanlaatu',
+    FMT_NOISE: '{value} dB Melu',
+
+    WEATHER_1: 'Selkeää',
+    WEATHER_2: 'Melko selkeää',
+    WEATHER_3: 'Vaihtelevaa pilvisyyttä',
+    WEATHER_4: 'Puolipilvistä',
+    WEATHER_5: 'Melko pilvistä',
+    WEATHER_6: 'Pilvistä',
+    WEATHER_7: 'Sumua',
+    WEATHER_8: 'Sadekuuroja',
+    WEATHER_9: 'Sadekuuroja',
+    WEATHER_10: 'Sadekuuroja',
+    WEATHER_11: 'Ukkosta',
+    WEATHER_12: 'Räntäkuuroja',
+    WEATHER_13: 'Räntäkuuroja',
+    WEATHER_14: 'Räntäkuuroja',
+    WEATHER_15: 'Lumikuuroja',
+    WEATHER_16: 'Lumikuuroja',
+    WEATHER_17: 'Lumikuuroja',
+    WEATHER_18: 'Sadetta',
+    WEATHER_19: 'Sadetta',
+    WEATHER_20: 'Sadetta',
+    WEATHER_21: 'Ukkosta',
+    WEATHER_22: 'Räntäsadetta',
+    WEATHER_23: 'Räntäsadetta',
+    WEATHER_24: 'Räntäsadetta',
+    WEATHER_25: 'Lumisadetta',
+    WEATHER_26: 'Lumisadetta',
+    WEATHER_27: 'Lumisadetta',
+
+    WIND_LAND_CALM: 'Tyyntä',
+    WIND_LAND_WEAK: 'Heikkoa tuulta',
+    WIND_LAND_MODERATE: 'Kohtalaista tuulta',
+    WIND_LAND_FRESH: 'Navakkaa tuulta',
+    WIND_LAND_STRONG: 'Kovaa tuulta',
+    WIND_LAND_STORM: 'Myrskyä',
+    WIND_LAND_HURRICANE: 'Hirmumyrskyä',
+
+    WIND_SEA_CALM: 'Tyyntä',
+    WIND_SEA_BREEZE: 'Tuulta',
+    WIND_SEA_GALE: 'Kovaa tuulta',
+    WIND_SEA_STORM: 'Myrskyä',
+    WIND_SEA_HURRICANE: 'Hirmumyrskyä',
+
+    WIND_BEAUFORT_CALM: 'Tyyntä',
+
+    BARO_STORM: 'Myrsky',
+    BARO_RAIN: 'Sade',
+    BARO_UNSTABLE: 'Muuttuvaa',
+    BARO_FAIR: 'Kaunis',
+    BARO_VERY_DRY: 'Hyvin kuiva',
+
+    TREND_RISING_FAST_WORD: 'nousee nopeasti',
+    TREND_RISING_WORD: 'nousee',
+    TREND_STABLE_WORD: 'vakaa',
+    TREND_FALLING_WORD: 'laskee',
+    TREND_FALLING_FAST_WORD: 'laskee nopeasti',
+    TREND_RISING_FAST: 'Nousee nopeasti',
+    TREND_RISING: 'Nouseva',
+    TREND_STABLE: 'Vakaa',
+    TREND_FALLING: 'Laskeva',
+    TREND_FALLING_FAST: 'Laskee nopeasti',
+    TREND_COLLECTING: 'Kerätään tietoja...',
+    TREND_PREFIX: 'Trendi: ',
+
+    UV_RISK_low: 'Matala UV-riski',
+    UV_RISK_moderate: 'Kohtalainen UV-riski',
+    UV_RISK_high: 'Korkea UV-riski',
+    UV_RISK_very_high: 'Hyvin korkea UV-riski',
+    UV_RISK_extreme: 'Äärimmäinen UV-riski'
+});

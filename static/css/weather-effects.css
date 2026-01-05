@@ -1,0 +1,440 @@
+/**
+ * @file weather-effects.css
+ * @version 1.1.0
+ * @lastModified 2025-01-10
+ * @description WeatherEffects CSS för Flask Weather Dashboard med centraliserad färghantering
+ * @dependencies colors.css
+ * @author Flask Weather Dashboard Team
+ * 
+ * OPTIMERAD FÖR: N156HCA-E5B IPS (1920×1080) + Pi5 GPU + Chromium kiosk-läge
+ * BASERAD PÅ: MagicMirror MMM-WeatherEffects CSS
+ * PRESTANDA: Smooth 60fps animationer för Pi5 + GPU-acceleration
+ * v1.1.0: Integrerad med colors.css centraliserad färgpalett
+ */
+
+/* === BASE WRAPPER (MM-kompatibel) === */
+
+.weather-effect-wrapper {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none !important;
+    z-index: 99999999 !important; /* Över alla dashboard-element */
+    overflow: hidden !important;
+    
+    /* Smooth transitions */
+    transition: opacity 1000ms ease-in-out;
+    
+    /* GPU-acceleration för Pi5 */
+    transform: translateZ(0);
+    will-change: opacity;
+    
+    /* Säkerställ att effekter inte påverkar layout */
+    display: block;
+    contain: layout style paint;
+}
+
+/* === REGN-EFFEKTER (N156HCA-E5B OPTIMERADE - CENTRALISERAD FÄRG) === */
+
+.rain-particle {
+    position: absolute !important;
+    width: 4px;
+    height: 18px;
+    background: linear-gradient(to bottom, 
+        var(--rain-color) 0%,
+        rgba(135, 206, 250, 0.85) 50%,
+        rgba(135, 206, 250, 0.3) 100%
+    );
+    opacity: 0.9;
+    border-radius: 0 0 50% 50%; /* Droppe-form */
+    
+    /* Glow-effekt för bättre definition */
+    box-shadow: 
+        0 0 2px var(--rain-color),
+        0 0 4px rgba(135, 206, 250, 0.3);
+    
+    /* GPU-acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    
+    /* Pi5-optimerad animation */
+    animation: rain-fall linear infinite;
+    
+    /* Förstärkt kontrast för N156HCA-E5B IPS */
+    filter: brightness(1.15) contrast(1.1) saturate(1.2);
+    
+    /* Förhindra text-selection */
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Vindpåverkade regn-partiklar */
+.rain-particle.wind-left {
+    transform: skewX(-15deg) translateZ(0);
+}
+
+.rain-particle.wind-right {
+    transform: skewX(15deg) translateZ(0);
+}
+
+/* Regn-animation optimerad för N156HCA-E5B + Pi5 */
+@keyframes rain-fall {
+    0% {
+        transform: translateY(-20px) translateZ(0);
+        opacity: 0;
+    }
+    
+    5% {
+        opacity: 0.9;
+    }
+    
+    95% {
+        opacity: 0.9;
+    }
+    
+    100% {
+        transform: translateY(110vh) translateZ(0);
+        opacity: 0;
+    }
+}
+
+/* Vindpåverkad regn-animation */
+@keyframes rain-fall-wind-left {
+    0% {
+        transform: translateY(-20px) translateX(0) skewX(-15deg) translateZ(0);
+        opacity: 0;
+    }
+    
+    5% {
+        opacity: 0.9;
+    }
+    
+    95% {
+        opacity: 0.9;
+    }
+    
+    100% {
+        transform: translateY(110vh) translateX(-50px) skewX(-15deg) translateZ(0);
+        opacity: 0;
+    }
+}
+
+@keyframes rain-fall-wind-right {
+    0% {
+        transform: translateY(-20px) translateX(0) skewX(15deg) translateZ(0);
+        opacity: 0;
+    }
+    
+    5% {
+        opacity: 0.9;
+    }
+    
+    95% {
+        opacity: 0.9;
+    }
+    
+    100% {
+        transform: translateY(110vh) translateX(50px) skewX(15deg) translateZ(0);
+        opacity: 0;
+    }
+}
+
+/* === SNÖ-EFFEKTER (N156HCA-E5B OPTIMERADE - CENTRALISERAD FÄRG) === */
+
+.snow-particle {
+    position: absolute !important;
+    color: var(--snow-color);
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-weight: 400;
+    opacity: 0.85;
+    
+    /* GPU-acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    
+    /* Pi5-optimerad animation */
+    animation: snow-fall linear infinite;
+    
+    /* Förbättrad kontrast för N156HCA-E5B IPS */
+    text-shadow: 
+        0 0 3px var(--snow-sparkle),
+        0 0 6px rgba(255, 255, 255, 0.5);
+    filter: brightness(1.1) contrast(1.1);
+    
+    /* Förhindra text-selection */
+    user-select: none;
+    pointer-events: none;
+    
+    /* Smooth font-rendering för N156HCA-E5B */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Sparkle-effekt för snöflingor */
+.snow-particle.sparkle {
+    animation: snow-fall linear infinite, snow-sparkle 2s ease-in-out infinite;
+}
+
+/* Snö-animationer */
+@keyframes snow-fall {
+    0% {
+        transform: translateY(-20px) translateZ(0);
+        opacity: 0;
+    }
+    
+    5% {
+        opacity: 0.85;
+    }
+    
+    95% {
+        opacity: 0.85;
+    }
+    
+    100% {
+        transform: translateY(110vh) translateZ(0);
+        opacity: 0;
+    }
+}
+
+@keyframes snow-sparkle {
+    0%, 100% {
+        filter: brightness(1.1) contrast(1.1) saturate(1);
+    }
+    
+    50% {
+        filter: brightness(1.4) contrast(1.3) saturate(1.2);
+    }
+}
+
+/* === PERFORMANCE OPTIMERINGAR === */
+
+/* GPU-acceleration för alla weather particles */
+.rain-particle,
+.snow-particle {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Optimera animations för 60fps på Pi5 */
+@media (hover: none) and (pointer: coarse) {
+    /* Mobile/Touch devices (inklusive Pi5 touchscreen) */
+    .rain-particle {
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+    }
+    
+    .snow-particle {
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+    }
+}
+
+/* Minska motion för användare med reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .weather-effect-wrapper {
+        animation: none;
+        transition: none;
+    }
+    
+    .rain-particle,
+    .snow-particle {
+        animation-duration: 5s !important;
+        opacity: 0.5 !important;
+    }
+    
+    .snow-particle.sparkle {
+        animation: snow-fall linear infinite !important;
+    }
+}
+
+/* === Z-INDEX KOMPATIBILITET MED DASHBOARD === */
+
+.weather-effect-wrapper {
+    z-index: 99999999 !important;
+}
+
+.loading-overlay {
+    z-index: 999999999 !important;
+}
+
+/* === THEME KOMPATIBILITET === */
+
+/* Ljust tema - mindre intensiva effekter */
+.theme-light .rain-particle {
+    opacity: 0.7;
+    background: linear-gradient(to bottom, 
+        rgba(0, 170, 255, 0.8) 0%,
+        rgba(0, 170, 255, 0.6) 50%, 
+        rgba(0, 170, 255, 0.2) 100%
+    );
+    box-shadow: 
+        0 0 2px rgba(0, 170, 255, 0.5),
+        0 0 4px rgba(0, 170, 255, 0.25);
+}
+
+.theme-light .snow-particle {
+    opacity: 0.7;
+    color: #f0f0f0;
+    text-shadow: 
+        0 0 2px rgba(255, 255, 255, 0.6),
+        0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+/* Mörkt tema - mer intensiva effekter */
+.theme-dark .rain-particle {
+    opacity: 0.95;
+    background: linear-gradient(to bottom, 
+        rgba(0, 170, 255, 1) 0%,
+        rgba(0, 170, 255, 0.9) 50%, 
+        rgba(0, 170, 255, 0.4) 100%
+    );
+    filter: brightness(1.2) contrast(1.1);
+    box-shadow: 
+        0 0 3px rgba(0, 170, 255, 0.8),
+        0 0 6px rgba(0, 170, 255, 0.4);
+}
+
+.theme-dark .snow-particle {
+    opacity: 0.95;
+    color: #ffffff;
+    text-shadow: 
+        0 0 4px rgba(255, 255, 255, 1),
+        0 0 8px rgba(255, 255, 255, 0.6);
+    filter: brightness(1.1) contrast(1.1);
+}
+
+/* === INTENSITY VARIATIONS === */
+
+/* Light intensity */
+.weather-effect-wrapper.intensity-light .rain-particle {
+    opacity: 0.7;
+    animation-duration: 3s;
+    box-shadow: 
+        0 0 1px rgba(0, 170, 255, 0.4),
+        0 0 2px rgba(0, 170, 255, 0.2);
+}
+
+.weather-effect-wrapper.intensity-light .snow-particle {
+    opacity: 0.7;
+    animation-duration: 4s;
+}
+
+/* Heavy intensity */
+.weather-effect-wrapper.intensity-heavy .rain-particle {
+    opacity: 1;
+    animation-duration: 1.5s;
+    height: 22px;
+    width: 5px;
+    box-shadow: 
+        0 0 4px rgba(0, 170, 255, 0.8),
+        0 0 8px rgba(0, 170, 255, 0.4),
+        0 0 12px rgba(0, 170, 255, 0.2);
+}
+
+.weather-effect-wrapper.intensity-heavy .snow-particle {
+    opacity: 1;
+    animation-duration: 2.5s;
+    filter: brightness(1.2) contrast(1.2);
+}
+
+/* === UTILITY CLASSES === */
+
+.weather-effect-wrapper.hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.weather-effect-wrapper.paused .rain-particle,
+.weather-effect-wrapper.paused .snow-particle {
+    animation-play-state: paused;
+}
+
+/* === DEBUG-STYLING === */
+
+.weather-effect-wrapper.debug {
+    border: 2px dashed rgba(255, 0, 0, 0.5);
+    background: rgba(255, 255, 0, 0.1);
+}
+
+.weather-effect-wrapper.debug .rain-particle {
+    background: rgba(255, 0, 0, 0.8) !important;
+}
+
+.weather-effect-wrapper.debug .snow-particle {
+    color: rgba(255, 0, 0, 0.8) !important;
+    text-shadow: none !important;
+}
+
+/* === SMOOTH FADE TRANSITIONS === */
+
+.weather-effect-wrapper {
+    transition: opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rain-particle,
+.snow-particle {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === FINAL OPTIMIZATIONS === */
+
+.weather-effect-wrapper {
+    overflow: hidden;
+    contain: layout style paint;
+}
+
+.rain-particle,
+.snow-particle {
+    contain: layout style;
+    isolation: isolate;
+}
+
+/* Print media - dölj weather effects */
+@media print {
+    .weather-effect-wrapper {
+        display: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .rain-particle {
+        background: linear-gradient(to bottom, 
+            rgba(0, 150, 255, 1) 0%, 
+            rgba(0, 150, 255, 0.9) 50%, 
+            transparent 100%
+        );
+        filter: brightness(1.3) contrast(1.3);
+        box-shadow: 
+            0 0 5px rgba(0, 150, 255, 1),
+            0 0 10px rgba(0, 150, 255, 0.6);
+    }
+    
+    .snow-particle {
+        color: #ffffff;
+        filter: brightness(1.3) contrast(1.3);
+        text-shadow: 
+            0 0 2px rgba(255, 255, 255, 1),
+            0 0 4px rgba(255, 255, 255, 0.8);
+    }
+}
+
+/* Accessibility: Respektera user preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .weather-effect-wrapper {
+        display: none;
+    }
+}
+
+console.log('[WeatherEffects v1.1.0] CSS med centraliserad färghantering från colors.css');

@@ -1,0 +1,43 @@
+/*
+ * Kickstand WeatherIcons - fontpaket för Flask Weather Dashboard
+ *
+ * Fonten (fonts/WeatherIcons.woff/.ttf) är skapad av KickstandApps
+ * (kickstandapps.com) och licensierad under SIL Open Font License 1.1 -
+ * se License.txt i denna mapp. Källa: https://github.com/kickstandapps/WeatherIcons
+ *
+ * Fonten mappar sina 12 glyfer till bokstäver (a-l). Denna CSS-fil är
+ * skriven för dashboarden och ger glyferna semantiska klassnamn
+ * (används av ICON_PACKS i static/js/utils/icon-packs.js).
+ */
+
+@font-face {
+    font-family: 'KickstandWeatherIcons';
+    src: url('fonts/WeatherIcons.woff') format('woff'),
+         url('fonts/WeatherIcons.ttf') format('truetype');
+    font-style: normal;
+    font-weight: normal;
+}
+
+.ksi {
+    font-family: 'KickstandWeatherIcons';
+    font-style: normal;
+    font-weight: normal;
+    display: inline-block;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glyfmappning enligt fontens teckenkarta (Promo/WeatherIcons Letters.png) */
+.ksi-cloud::before      { content: "a"; }
+.ksi-cloud-wind::before { content: "b"; }
+.ksi-haze::before       { content: "c"; }
+.ksi-moon::before       { content: "d"; }
+.ksi-cloud-moon::before { content: "e"; }
+.ksi-cloud-sun::before  { content: "f"; }
+.ksi-rain::before       { content: "g"; }
+.ksi-snow::before       { content: "h"; }
+.ksi-thunder::before    { content: "i"; }
+.ksi-sun::before        { content: "j"; }
+.ksi-sunrise::before    { content: "k"; }
+.ksi-tornado::before    { content: "l"; }
