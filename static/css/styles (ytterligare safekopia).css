@@ -277,7 +277,7 @@ body {
 }
 
 .netatmo-temp-small {
-    font-size: clamp(2.67rem, 5vw, 6rem); /* Exakt 2/3 av .main-temperature */
+    font-size: clamp(2rem, 3.8vw, 4.5rem);
     font-weight: 800;
     color: var(--accent-secondary);
     line-height: 1;
@@ -365,13 +365,6 @@ body {
     font-weight: 700;
     color: var(--text-primary);
     text-align: center;
-    /* Svart bakgrund med rundade hörn */
-    background-color: rgba(0, 0, 0, 0.85);
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-    display: inline-block;
-    position: relative;
-    z-index: 10;
 }
 
 /* Single temperature mode (endast SMHI) */

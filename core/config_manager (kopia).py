@@ -115,31 +115,31 @@ def validate_weather_effects_config(config_data: Optional[Dict[str, Any]]) -> Di
     Returns:
         dict: Validerad konfiguration med fallback-värden
     """
-    # Default-konfiguration (Optimerad för N156HCA-E5B 1920×1080 IPS)
+    # Default-konfiguration (MagicMirror-kompatibel)
     default_config = {
         'enabled': False,
         'intensity': 'auto',
         'rain_config': {
-            'droplet_count': 100,        # Optimerad för FullHD
+            'droplet_count': 50,
             'droplet_speed': 2.0,
             'wind_direction': 'none',
             'enable_splashes': False
         },
         'snow_config': {
-            'flake_count': 50,           # Optimerad för FullHD
-            'characters': ['❄', '❆', '❇', '❈', '❄', '✨', '✱'],  # Kuraterad snöflingskollektion
+            'flake_count': 25,
+            'characters': ['*', '+'],
             'sparkle_enabled': False,
-            'min_size': 1.2,            # +50% för FullHD
-            'max_size': 2.4,            # +50% för FullHD
-            'speed': 0.9                # IPS smoothness
+            'min_size': 0.8,
+            'max_size': 1.5,
+            'speed': 1.0
         },
         'transition_duration': 1000,
         'debug_logging': False,
         'fallback_enabled': True,
         'lp156wh4_optimizations': {
             'enabled': True,
-            'contrast_boost': 1.0,      # IPS behöver ingen boost
-            'brightness_boost': 1.0,    # IPS behöver ingen boost
+            'contrast_boost': 1.1,
+            'brightness_boost': 1.1,
             'gpu_acceleration': True,
             'target_fps': 60
         }
@@ -169,21 +169,21 @@ def validate_weather_effects_config(config_data: Optional[Dict[str, Any]]) -> Di
             print(f"⚠️ Ogiltig intensitet '{validated_config['intensity']}', använder 'auto'")
             validated_config['intensity'] = 'auto'
         
-        # Rain config validering (FullHD-optimerad)
+        # Rain config validering
         rain_config = validated_config['rain_config']
-        rain_config['droplet_count'] = max(10, min(200, int(rain_config.get('droplet_count', 100))))
+        rain_config['droplet_count'] = max(10, min(100, int(rain_config.get('droplet_count', 50))))
         rain_config['droplet_speed'] = max(0.5, min(5.0, float(rain_config.get('droplet_speed', 2.0))))
         
         valid_wind_directions = ['none', 'left-to-right', 'right-to-left']
         if rain_config.get('wind_direction') not in valid_wind_directions:
             rain_config['wind_direction'] = 'none'
         
-        # Snow config validering (FullHD-optimerad med Unicode)
+        # Snow config validering
         snow_config = validated_config['snow_config']
-        snow_config['flake_count'] = max(10, min(100, int(snow_config.get('flake_count', 50))))
-        snow_config['min_size'] = max(0.5, min(3.0, float(snow_config.get('min_size', 1.2))))
-        snow_config['max_size'] = max(1.0, min(4.0, float(snow_config.get('max_size', 2.4))))
-        snow_config['speed'] = max(0.5, min(2.0, float(snow_config.get('speed', 0.9))))
+        snow_config['flake_count'] = max(10, min(50, int(snow_config.get('flake_count', 25))))
+        snow_config['min_size'] = max(0.5, min(2.0, float(snow_config.get('min_size', 0.8))))
+        snow_config['max_size'] = max(1.0, min(3.0, float(snow_config.get('max_size', 1.5))))
+        snow_config['speed'] = max(0.5, min(2.0, float(snow_config.get('speed', 1.0))))
         
         # Säkerställ att max_size >= min_size
         if snow_config['max_size'] < snow_config['min_size']:
@@ -191,7 +191,7 @@ def validate_weather_effects_config(config_data: Optional[Dict[str, Any]]) -> Di
         
         # Characters validering
         if not isinstance(snow_config.get('characters'), list) or len(snow_config['characters']) == 0:
-            snow_config['characters'] = ['❄', '❅', '❆']  # Unicode fallback
+            snow_config['characters'] = ['*', '+']
         
         # Transition duration
         validated_config['transition_duration'] = max(500, min(3000, int(validated_config.get('transition_duration', 1000))))

@@ -81,7 +81,7 @@ function createForecastCard(forecast) {
             windArrow = `<i class="wi wi-direction-up" style="
                 transform: rotate(${arrowRotation}deg); 
                 color: #4A9EFF; 
-                font-size: clamp(1.3rem, 1.7vw, 2rem);  
+                font-size: clamp(2.21rem, 2.89vw, 3.4rem);  
                 margin-left: 3px; 
                 font-family: 'weathericons', 'Weather Icons', sans-serif;
             "></i>`;
@@ -89,7 +89,7 @@ function createForecastCard(forecast) {
         
         position4Content = `<div class="forecast-wind forecast-wind-consistent">
             <div class="forecast-wind-header">
-                <i class="wi ${windData.icon}" style="font-size: clamp(1.1rem, 1.5vw, 1.8rem); opacity: 0.9; color: #4A9EFF; margin-right: 2px; font-family: 'weathericons', 'Weather Icons', sans-serif;"></i>
+                <i class="wi ${windData.icon}" style="font-size: clamp(1.87rem, 2.55vw, 3.06rem); opacity: 0.9; color: #4A9EFF; margin-right: 2px; font-family: 'weathericons', 'Weather Icons', sans-serif;"></i>
                 ${windArrow}
             </div>
             <div class="forecast-wind-text">

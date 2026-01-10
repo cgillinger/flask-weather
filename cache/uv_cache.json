@@ -1,0 +1,14 @@
+{
+  "uv_index": 0.2,
+  "peak_hour": 11,
+  "risk_level": "low",
+  "risk_text": "L\u00e5g UV-risk",
+  "color": "green",
+  "timestamp": "2026-01-09T21:03:50.446826+00:00",
+  "coordinates": {
+    "latitude": 59.3293,
+    "longitude": 18.0686
+  },
+  "source": "CAMS ADS (max dygn, molnfri himmel)",
+  "method": "max_daily"
+}

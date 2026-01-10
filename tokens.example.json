@@ -1,9 +1,0 @@
-{
-  "access_token": "netatmotokenhere",
-  "refresh_token": "netatmotokenhere",
-  "expires_in": 10800,
-  "expire_in": 10800,
-  "scope": [
-    "read_station"
-  ]
-}
