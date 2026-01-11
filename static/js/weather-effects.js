@@ -40,7 +40,7 @@ const DEFAULT_CONFIG = {
     // Snow configuration - Optimerad för 1920×1080 IPS med Unicode
     snow_config: {
         flake_count: 50,          // +100% från 768p (35→50) för FullHD
-        characters: ['❄', '❆', '❇', '❈', '❄', '✨', '✱'],  // Kuraterad snöflingskollektion
+        characters: ['❄', '❆', '❇', '❈', '❄', '✱'],  // Kuraterad snöflingskollektion (utan ✨)
         sparkle_enabled: false,   // IPS kräver mindre effekter
         min_size: 1.2,            // +50% från 768p (0.8→1.2) för bättre synlighet
         max_size: 2.4,            // +50% från 768p (1.6→2.4) för bättre synlighet

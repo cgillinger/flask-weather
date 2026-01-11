@@ -1,13 +1,14 @@
 /**
  * @file weather-icon-renderer.js
- * @version 1.1.0
- * @lastModified 2025-01-10
+ * @version 1.2.0
+ * @lastModified 2025-01-11
  * @description Komplett ikonhantering för Weather Icons med centraliserad färgkodning
  * @dependencies ColorManager (color-manager.js)
  * @author Flask Weather Dashboard Team
  * 
  * STEG 4 REFAKTORERING: Extraherat från dashboard.js
  * STEG 5: FontAwesome-funktionalitet flyttad till fontawesome-renderer.js
+ * v1.2.0: Kraftigare snö-ikon (wi-snowflake-cold) för måttliga/kraftiga snöbyar och snöfall
  * v1.1.0: Integrerad med ColorManager för väderikon-färgkodning
  */
 
@@ -62,8 +63,8 @@ class WeatherIconRenderer {
             13: {day: "wi-rain-mix", night: "wi-rain-mix"},
             14: {day: "wi-rain-mix", night: "wi-rain-mix"},
             15: {day: "wi-day-snow", night: "wi-night-snow"},
-            16: {day: "wi-snow", night: "wi-snow"},
-            17: {day: "wi-snow", night: "wi-snow"},
+            16: {day: "wi-snowflake-cold", night: "wi-snowflake-cold"},
+            17: {day: "wi-snowflake-cold", night: "wi-snowflake-cold"},
             18: {day: "wi-day-rain", night: "wi-night-rain"},
             19: {day: "wi-rain", night: "wi-rain"},
             20: {day: "wi-rain", night: "wi-rain"},
@@ -72,8 +73,8 @@ class WeatherIconRenderer {
             23: {day: "wi-sleet", night: "wi-sleet"},
             24: {day: "wi-sleet", night: "wi-sleet"},
             25: {day: "wi-day-snow", night: "wi-night-snow"},
-            26: {day: "wi-snow", night: "wi-snow"},
-            27: {day: "wi-snow", night: "wi-snow"}
+            26: {day: "wi-snowflake-cold", night: "wi-snowflake-cold"},
+            27: {day: "wi-snowflake-cold", night: "wi-snowflake-cold"}
         };
         
         const mapping = iconMap[numSymbol];
@@ -120,4 +121,4 @@ class WeatherIconRenderer {
 // Exportera för backward compatibility (behåll gamla namn)
 const WeatherIconManager = WeatherIconRenderer;
 
-console.log('✅ Weather Icon Renderer v1.1.0 laddat - ColorManager integration aktiverad!');
+console.log('✅ Weather Icon Renderer v1.2.0 laddat - Kraftigare snö-ikon för måttliga/kraftiga snöbyar/snöfall!');

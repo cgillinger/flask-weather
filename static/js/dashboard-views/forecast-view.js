@@ -1,7 +1,7 @@
 /**
  * @file forecast-view.js
- * @version 1.1.1
- * @lastModified 2025-01-10 (v1.1.1)
+ * @version 1.2.0
+ * @lastModified 2025-01-11 (v1.2.0)
  * @description Prognos-funktioner för tim- och dagsprognoser
  * @dependencies ColorManager (color-manager.js), WeatherIconRenderer, formatters-dashboard.js, wind-calculations.js
  * @author Flask Weather Dashboard Team
@@ -9,6 +9,8 @@
  * STEG 12 REFAKTORERING: Extraherat från dashboard.js
  * v1.1.0: Integrerad med ColorManager för temperatur- och ikon-färgkodning
  * v1.1.1: Vindikonsfärg nu dynamisk via ColorManager (grön/gul/orange/röd)
+ * v1.1.2: Opacity borttagen från vindikoner för full färgmättnad
+ * v1.2.0: Förenklad prognos-färgskala för läsbarhet (VIT standard, ISBLÅ/LJUSRÖD extremer)
  */
 
 // === HOURLY FORECAST FUNCTIONS ===
@@ -94,7 +96,7 @@ function createForecastCard(forecast) {
         
         position4Content = `<div class="forecast-wind forecast-wind-consistent">
             <div class="forecast-wind-header">
-                <i class="wi ${windData.icon}" style="font-size: clamp(1.87rem, 2.55vw, 3.06rem); opacity: 0.9; color: ${windColor}; margin-right: 2px; font-family: 'weathericons', 'Weather Icons', sans-serif;"></i>
+                <i class="wi ${windData.icon}" style="font-size: clamp(1.87rem, 2.55vw, 3.06rem); color: ${windColor}; margin-right: 2px; font-family: 'weathericons', 'Weather Icons', sans-serif;"></i>
                 ${windArrow}
             </div>
             <div class="forecast-wind-text">
@@ -107,10 +109,13 @@ function createForecastCard(forecast) {
     const iconId = `forecast-icon-${Math.random().toString(36).substr(2, 9)}`;
     const tempDegree = formatTemperatureInteger(forecast.temperature);
     
+    // FÖRENKLAD PROGNOS-FÄRGSKALA v1.2.0: Använd getForecastTemperatureColor för läsbarhet
+    const tempColor = ColorManager.getForecastTemperatureColor(forecast.temperature);
+    
     card.innerHTML = `
         <div class="forecast-time">${forecast.local_time}</div>
         <div class="forecast-icon" id="${iconId}"></div>
-        <div class="forecast-temp" style="font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">${tempDegree}</div>
+        <div class="forecast-temp" style="font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.4); color: ${tempColor};">${tempDegree}</div>
         ${position4Content}
     `;
     
@@ -199,15 +204,15 @@ function createDailyForecastItem(day) {
     
     iconContainer.appendChild(weatherIcon);
     
-    // CENTRALISERAD FÄRGKODNING v1.1.0: Temperatur-färgkodning via ColorManager
+    // FÖRENKLAD PROGNOS-FÄRGSKALA v1.2.0: Använd getForecastTemperatureColor för läsbarhet
     const tempElement = item.querySelector('.daily-temp');
     if (tempElement) {
-        // Använd max-temp för färg (högsta är viktigast)
-        const tempColor = ColorManager.getTemperatureColor(day.temp_max);
+        // Använd max-temp för färg (högsta är viktigast för läsbarhet)
+        const tempColor = ColorManager.getForecastTemperatureColor(day.temp_max);
         tempElement.style.color = tempColor;
     }
     
     return item;
 }
 
-console.log('✅ Forecast View v1.1.0 laddat - ColorManager integration aktiverad!');
+console.log('✅ Forecast View v1.2.0 laddat - Förenklad prognos-färgskala för läsbarhet!');

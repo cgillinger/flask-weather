@@ -1,13 +1,18 @@
 /*
  * Filename: colors.css
- * Version: 1.0.0
- * Last updated: 2025-01-10
+ * Version: 1.2.0
+ * Last updated: 2025-01-11
  * Purpose: Centraliserad färgpalett för Flask Weather Dashboard
  * Dependencies: None
  * Used by: styles.css, weather-effects.css, ColorManager.js
  * 
  * VIKTIGT: Detta är den enda platsen där färger definieras.
  * Alla andra filer läser från dessa CSS-variabler.
+ * 
+ * v1.2.0 ÄNDRINGAR:
+ * - Konsekvent UV-gul (#FDD835) för: sol, halvklart, vind-gul
+ * - Logik: Samma gula nyans för alla "måttliga/solrelaterade" indikatorer
+ * - Vindskala fortsatt SMHI-standard (exakta m/s-intervall)
  */
 
 /* ===============================================
@@ -61,19 +66,19 @@
     --air-poor: var(--uv-very-high); /* Röd - dålig luftkvalitet */
     
     /* ========== VÄDERIKONER (Färgglada för signage) ========== */
-    --weather-sun: #FFD700;          /* Gyllene gul - sol */
-    --weather-partly-cloudy: #FFA500; /* Orange - halvklart */
+    --weather-sun: #FDD835;          /* UV-gul - konsekvent med UV/luftkvalitet (v1.2.0) */
+    --weather-partly-cloudy: #FDD835; /* UV-gul - samma som sol (v1.2.0) */
     --weather-cloudy: #9E9E9E;       /* Grå - molnigt */
     --weather-rain: #4A9EFF;         /* Blå - regn (matchar accent-primary) */
     --weather-thunder: #9C27B0;      /* Lila - åska (elektrisk) */
     --weather-snow: #E3F2FD;         /* Isblå/vit - snö */
     --weather-sleet: #00BCD4;        /* Cyan - snöblandat regn */
     
-    /* ========== VINDIKONER (Beaufort-färgkodning) ========== */
-    --wind-calm: #10b981;            /* Grön - Beaufort 0-3 (lugnt/lätt) */
-    --wind-moderate: #f59e0b;        /* Gul - Beaufort 4-6 (måttlig/stark bris) */
-    --wind-strong: #fb923c;          /* Orange - Beaufort 7-9 (kuling) */
-    --wind-storm: #ef4444;           /* Röd - Beaufort 10-12 (storm/orkan) */
+    /* ========== VINDIKONER (SMHI Beaufort-standard v1.2.0) ========== */
+    --wind-calm: #10b981;            /* Grön - B0-3 (0-5.4 m/s) Lugnt→Måttlig */
+    --wind-moderate: #FDD835;        /* UV-gul - B4-6 (5.5-13.8 m/s) Måttlig→Frisk (v1.2.0) */
+    --wind-strong: #fb923c;          /* Orange - B7-9 (13.9-24.4 m/s) Hård vind */
+    --wind-storm: #ef4444;           /* Röd - B10-12 (24.5+ m/s) Storm→Orkan */
     
     /* ========== WEATHER EFFECTS ========== */
     --rain-color: rgba(0, 170, 255, 1);        /* Regn-partiklar */
@@ -137,4 +142,11 @@
  * 2. Skapa CSS-klass om färgen används i HTML/JS
  * 3. Uppdatera ColorManager.js om färgen används dynamiskt
  * 4. Dokumentera färgen i COLOR_PALETTE.md
+ * 
+ * v1.2.0 ÄNDRINGSLOGG:
+ * - Konsekvent UV-gul (#FDD835) för sol, halvklart, vind-gul
+ * - Logik: En gul nyans för alla "måttliga/varnings-nivåer"
+ * - Sol-ikoner: #fafd0f → #FDD835 (UV-gul)
+ * - Halvklart: #FFA500 → #FDD835 (från orange till UV-gul)
+ * - Vind-gul: #fafd0f → #FDD835 (UV-gul)
  */
