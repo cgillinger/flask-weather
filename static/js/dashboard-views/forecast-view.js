@@ -1,7 +1,14 @@
 /**
- * Forecast View - STEG 12 REFAKTORERING
- * Prognos-funktioner extraherat frÃ¥n dashboard.js
- * Hanterar tim- och dagsprognoser med ikoner, temperaturer och vind
+ * @file forecast-view.js
+ * @version 1.1.1
+ * @lastModified 2025-01-10 (v1.1.1)
+ * @description Prognos-funktioner för tim- och dagsprognoser
+ * @dependencies ColorManager (color-manager.js), WeatherIconRenderer, formatters-dashboard.js, wind-calculations.js
+ * @author Flask Weather Dashboard Team
+ * 
+ * STEG 12 REFAKTORERING: Extraherat från dashboard.js
+ * v1.1.0: Integrerad med ColorManager för temperatur- och ikon-färgkodning
+ * v1.1.1: Vindikonsfärg nu dynamisk via ColorManager (grön/gul/orange/röd)
  */
 
 // === HOURLY FORECAST FUNCTIONS ===
@@ -14,7 +21,7 @@ function updateHourlyForecast(forecastData) {
     const container = document.getElementById('hourly-forecast');
     
     if (!forecastData || !Array.isArray(forecastData) || forecastData.length === 0) {
-        container.innerHTML = '<div class="forecast-placeholder">âš ï¸ Ingen prognos tillgÃ¤nglig</div>';
+        container.innerHTML = '<div class="forecast-placeholder">⚠️ Ingen prognos tillgänglig</div>';
         return;
     }
     
@@ -25,13 +32,13 @@ function updateHourlyForecast(forecastData) {
         container.appendChild(card);
     });
     
-    console.log(`ðŸ“ˆ ${forecastData.length} timprognos-kort uppdaterade`);
+    console.log(`📈 ${forecastData.length} timprognos-kort uppdaterade`);
 }
 
 /**
  * Skapa ett timprognos-kort
  * @param {object} forecast - Enskild timprognos-data
- * @returns {HTMLElement} FÃ¤rdigt prognos-kort
+ * @returns {HTMLElement} Färdigt prognos-kort
  */
 function createForecastCard(forecast) {
     const card = document.createElement('div');
@@ -47,7 +54,7 @@ function createForecastCard(forecast) {
     card.className = `forecast-card ${timeClass}`;
     
     const isDay = hour >= 6 && hour <= 20;
-    // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
+    // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
     const iconName = WeatherIconRenderer.getIconName(forecast.weather_symbol, isDay);
     
     // POSITION 4 LOGIK: Visa ANTINGEN vind ELLER nederbörd (aldrig båda)
@@ -62,17 +69,15 @@ function createForecastCard(forecast) {
             <i class="wi wi-raindrops" style="font-size: clamp(1.2rem, 1.6vw, 2rem); color: #4fc3f7;"></i>
             <span style="font-size: clamp(0.95rem, 1.3vw, 1.6rem); font-weight: 600;">${forecast.precipitation.toFixed(1)} mm</span>
         </div>`;
-        /* ↑ ÄNDRA HÄR FÖR NEDERBÖRD STORLEK:
-         * Text: clamp(0.95rem, 1.3vw, 1.6rem) - Samma som 5-dagars weekday
-         * Ikon: clamp(1.2rem, 1.6vw, 2rem) - Lite större än text för harmoni
-         * Font-weight: 600 - Samma som 5-dagars weekday
-         */
     } else if (forecast.wind_speed) {
         // DEFAULT → Visa vind
         const windKmh = Math.round(forecast.wind_speed * 3.6);
         const windData = convertWindSpeed(windKmh, dashboardState.windUnit);
         
-        // KONSISTENT VINDLAYOUT: Dela upp i tvÃ¥ rader
+        // CENTRALISERAD FÄRGKODNING v1.1.1: Använd ColorManager för vindfärg
+        const windColor = ColorManager.getWindColor(forecast.wind_speed);
+        
+        // KONSISTENT VINDLAYOUT: Dela upp i två rader
         const windLines = formatWindTextForTwoLines(windData.value);
         
         let windArrow = '';
@@ -80,7 +85,7 @@ function createForecastCard(forecast) {
             const arrowRotation = forecast.wind_direction + 180;
             windArrow = `<i class="wi wi-direction-up" style="
                 transform: rotate(${arrowRotation}deg); 
-                color: #4A9EFF; 
+                color: ${windColor}; 
                 font-size: clamp(2.21rem, 2.89vw, 3.4rem);  
                 margin-left: 3px; 
                 font-family: 'weathericons', 'Weather Icons', sans-serif;
@@ -89,7 +94,7 @@ function createForecastCard(forecast) {
         
         position4Content = `<div class="forecast-wind forecast-wind-consistent">
             <div class="forecast-wind-header">
-                <i class="wi ${windData.icon}" style="font-size: clamp(1.87rem, 2.55vw, 3.06rem); opacity: 0.9; color: #4A9EFF; margin-right: 2px; font-family: 'weathericons', 'Weather Icons', sans-serif;"></i>
+                <i class="wi ${windData.icon}" style="font-size: clamp(1.87rem, 2.55vw, 3.06rem); opacity: 0.9; color: ${windColor}; margin-right: 2px; font-family: 'weathericons', 'Weather Icons', sans-serif;"></i>
                 ${windArrow}
             </div>
             <div class="forecast-wind-text">
@@ -111,11 +116,11 @@ function createForecastCard(forecast) {
     
     const iconContainer = card.querySelector(`#${iconId}`);
     
-    // Få färgklass från WeatherIconRenderer
-    const colorClass = WeatherIconRenderer.getColorClass(forecast.weather_symbol);
+    // CENTRALISERAD FÄRGKODNING v1.1.0: Använd ColorManager istället för CSS-klasser
+    const weatherIcon = WeatherIconRenderer.createIcon(iconName, ['forecast-weather-icon']);
+    const iconColor = ColorManager.getWeatherIconColor(forecast.weather_symbol);
+    weatherIcon.style.color = iconColor;
     
-    // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
-    const weatherIcon = WeatherIconRenderer.createIcon(iconName, ['forecast-weather-icon', colorClass]);
     iconContainer.appendChild(weatherIcon);
     
     return card;
@@ -131,32 +136,30 @@ function updateDailyForecast(dailyData) {
     const container = document.getElementById('daily-forecast');
     
     if (!dailyData || !Array.isArray(dailyData) || dailyData.length === 0) {
-        container.innerHTML = '<div class="forecast-placeholder">âš ï¸ Ingen 5-dagarsprognos tillgÃ¤nglig</div>';
+        container.innerHTML = '<div class="forecast-placeholder">⚠️ Ingen 5-dagarsprognos tillgänglig</div>';
         return;
     }
     
     container.innerHTML = '';
-    
-    // FORM: DAG NATT header borttagen - tar onÃ¶dig plats
     
     dailyData.forEach(day => {
         const item = createDailyForecastItem(day);
         container.appendChild(item);
     });
     
-    console.log(`ðŸ“… ${dailyData.length} dagsprognos-rader uppdaterade`);
+    console.log(`📅 ${dailyData.length} dagsprognos-rader uppdaterade`);
 }
 
 /**
  * Skapa en dagsprognos-rad
  * @param {object} day - Enskild dagsprognos-data
- * @returns {HTMLElement} FÃ¤rdig dagsprognos-rad
+ * @returns {HTMLElement} Färdig dagsprognos-rad
  */
 function createDailyForecastItem(day) {
     const item = document.createElement('div');
     item.className = 'daily-forecast-item';
     
-    // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
+    // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
     const iconName = WeatherIconRenderer.getIconName(day.weather_symbol, true);
     
     const weekdays = {
@@ -172,7 +175,7 @@ function createDailyForecastItem(day) {
                        'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
         dateDisplay = `${dateObj.getDate()} ${months[dateObj.getMonth()]}`;
     } catch (e) {
-        // AnvÃ¤nd original om parsning misslyckas
+        // Använd original om parsning misslyckas
     }
     
     const iconId = `daily-icon-${Math.random().toString(36).substr(2, 9)}`;
@@ -180,28 +183,31 @@ function createDailyForecastItem(day) {
     const tempMaxFormatted = formatTemperatureDaily(day.temp_max);
     const tempMinFormatted = formatTemperatureDaily(day.temp_min);
     
-    const maxTempColorClass = getTemperatureColorClass(day.temp_max);
-    const minTempColorClass = getTemperatureColorClass(day.temp_min);
-    const tempColorClass = maxTempColorClass || minTempColorClass;
-    
     item.innerHTML = `
         <div class="daily-icon" id="${iconId}"></div>
-        <div class="daily-temp ${tempColorClass}">${tempMaxFormatted}/${tempMinFormatted}</div>
+        <div class="daily-temp">${tempMaxFormatted}/${tempMinFormatted}</div>
         <div class="daily-weekday">${weekdaySwedish}</div>
         <div class="daily-date">${dateDisplay}</div>
     `;
     
     const iconContainer = item.querySelector(`#${iconId}`);
-    // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
-    const weatherIcon = WeatherIconRenderer.createIcon(iconName, ['daily-weather-icon']);
     
-    // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
-    const colorClass = WeatherIconRenderer.getColorClass(day.weather_symbol);
-    weatherIcon.classList.add(colorClass);
+    // CENTRALISERAD FÄRGKODNING v1.1.0: Använd ColorManager istället för CSS-klasser
+    const weatherIcon = WeatherIconRenderer.createIcon(iconName, ['daily-weather-icon']);
+    const iconColor = ColorManager.getWeatherIconColor(day.weather_symbol);
+    weatherIcon.style.color = iconColor;
     
     iconContainer.appendChild(weatherIcon);
+    
+    // CENTRALISERAD FÄRGKODNING v1.1.0: Temperatur-färgkodning via ColorManager
+    const tempElement = item.querySelector('.daily-temp');
+    if (tempElement) {
+        // Använd max-temp för färg (högsta är viktigast)
+        const tempColor = ColorManager.getTemperatureColor(day.temp_max);
+        tempElement.style.color = tempColor;
+    }
     
     return item;
 }
 
-console.log('âœ… STEG 12: Forecast View laddat - 4 funktioner extraherade!');
+console.log('✅ Forecast View v1.1.0 laddat - ColorManager integration aktiverad!');

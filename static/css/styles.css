@@ -1,31 +1,17 @@
-/* ===============================================
-   WEATHER DASHBOARD - UNIT-BASED LAYOUT
-   1920×1080 Kiosk-optimerad (N156HCA-E5B)
-   =============================================== */
+/**
+ * @file styles.css
+ * @version 2.1.0
+ * @lastModified 2025-01-10
+ * @description Weather Dashboard huvudstilmall - CENTRALISERAD färghantering
+ * @dependencies colors.css
+ * @author Flask Weather Dashboard Team
+ * 
+ * 1920×1080 Kiosk-optimerad (N156HCA-E5B IPS)
+ * v2.1.0: Alla färgdefinitioner flyttade till colors.css - NOLL duplicering
+ */
 
-/* ========== ROOT & RESET ========== */
-:root {
-    /* Color palette */
-    --bg-primary: #0f0f0f;
-    --bg-secondary: #1a1a1a;
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
-    --accent-primary: #4A9EFF;
-    --accent-secondary: #6eb6ff;
-    
-    /* Clock colors */
-    --clock-bg: rgba(20, 20, 20, 0.95);
-    --clock-border: rgba(255, 51, 51, 0.6);
-    --clock-time-color: #ff3333;
-    --clock-date-color: #e0e0e0;
-    --clock-dot-inactive: rgba(255, 255, 255, 0.2);
-    --clock-dot-active: #ff3333;
-    
-    /* Barometer colors */
-    --barometer-rising: #2d7d32;
-    --barometer-falling: #d32f2f;
-    --barometer-stable: #666666;
-}
+/* === IMPORTERA CENTRALISERAD FÄRGPALETT === */
+@import url('colors.css');
 
 * {
     margin: 0;
@@ -470,17 +456,6 @@ body {
 }
 
 /* UV färgschema */
-.uv-low { color: #4CAF50 !important; }
-.uv-moderate { color: #FDD835 !important; }
-.uv-high { color: #FB8C00 !important; }
-.uv-very_high { color: #E53935 !important; }
-.uv-extreme { color: #8E24AA !important; }
-
-.uv-risk-text {
-    font-size: 0.85em;
-    opacity: 0.9;
-}
-
 /* ========== BOTTOM ZONE: FRAMÅT ========== */
 .bottom-zone {
     display: grid;
@@ -553,33 +528,9 @@ body {
     margin: 0;
 }
 
-/* FORM: Färgscheman för väderikoner */
-.daily-sun-color {
-    color: #ffa726 !important; /* Orange sol */
-}
 
 .daily-partly-cloudy-color {
     color: #90caf9 !important; /* Ljusblå */
-}
-
-.daily-cloud-color {
-    color: #b0bec5 !important; /* Ljusgrå moln */
-}
-
-.daily-rain-color {
-    color: #4fc3f7 !important; /* Cyan regn */
-}
-
-.daily-snow-color {
-    color: #81d4fa !important; /* Ljusblå snö */
-}
-
-.daily-thunderstorm-color {
-    color: #ffd54f !important; /* Gul åska */
-}
-
-.daily-default-color {
-    color: var(--accent-primary) !important;
 }
 
 .forecast-temp {

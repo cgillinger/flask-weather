@@ -1,17 +1,24 @@
 /**
- * FontAwesome Renderer - STEG 5 REFAKTORERING
- * Font Awesome ikonhantering extraherat från weather-icon-renderer.js
- * Hanterar luftkvalitets-ikoner och färgkodning
+ * @file fontawesome-renderer.js
+ * @version 1.1.0
+ * @lastModified 2025-01-10
+ * @description Font Awesome ikonhantering med centraliserad färgkodning
+ * @dependencies ColorManager (color-manager.js)
+ * @author Flask Weather Dashboard Team
+ * 
+ * STEG 5 REFAKTORERING: Extraherat från weather-icon-renderer.js
+ * v1.1.0: Integrerad med ColorManager för centraliserad färghantering
  */
 
-// === FONT AWESOME SYSTEM - SEPARERAD FÄRGKODNING ===
+// === FONT AWESOME SYSTEM - CENTRALISERAD FÄRGKODNING ===
 
 /**
  * FontAwesome Renderer för luftkvalitet och andra ikoner
+ * Använder ColorManager för konsistent färghantering
  */
 class FontAwesomeRenderer {
     /**
-     * Skapa luftkvalitets-ikon med färgkodning
+     * Skapa luftkvalitets-ikon med färgkodning från ColorManager
      * @param {string} airQualityLevel - 'good', 'moderate', 'poor'
      * @returns {HTMLElement} Font Awesome leaf-ikon
      */
@@ -20,14 +27,8 @@ class FontAwesomeRenderer {
         icon.className = `fas fa-leaf air-quality-fa-icon`;
         icon.setAttribute('data-air-quality', airQualityLevel);
         
-        // SEPARERAD FÄRGKODNING: Bara ikonen får färg
-        const colors = {
-            'good': '#34a853',
-            'moderate': '#fbbc04', 
-            'poor': '#ea4335'
-        };
-        
-        icon.style.color = colors[airQualityLevel] || colors['good'];
+        // CENTRALISERAD FÄRGKODNING: Använd ColorManager istället för hårdkodade värden
+        icon.style.color = ColorManager.getAirQualityColor(airQualityLevel);
         icon.style.fontSize = 'clamp(21px, 2.1rem, 28px)';
         icon.style.display = 'inline-block';
         icon.style.marginRight = '7px';
@@ -55,6 +56,9 @@ class FontAwesomeRenderer {
     
     /**
      * Skapa ljudnivå-ikon
+     * NOTERA: Ljudnivå-färger är inte prioriterade i färghanteringsprojektet
+     * och behåller därför hårdkodade värden tills vidare
+     * 
      * @param {string} level - Ljudnivå ('low', 'medium', 'high')
      * @returns {HTMLElement} Font Awesome volym-ikon
      */
@@ -65,6 +69,7 @@ class FontAwesomeRenderer {
             'high': 'fas fa-volume-up'
         };
         
+        // Hårdkodade färger behålls för ljudnivå (ej prioriterat i detta projekt)
         const colors = {
             'low': '#4CAF50',
             'medium': '#9575cd',
@@ -86,4 +91,4 @@ class FontAwesomeRenderer {
 // Exportera för backward compatibility (behåll gamla namn)
 const FontAwesomeManager = FontAwesomeRenderer;
 
-console.log('✅ STEG 5: FontAwesome Renderer laddat - Luftkvalitets-ikoner och färgkodning extraherade!');
+console.log('✅ FontAwesome Renderer v1.1.0 laddat - ColorManager integration aktiverad!');

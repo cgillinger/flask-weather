@@ -1,13 +1,15 @@
-/* 
- * WeatherEffects CSS fÃ¶r Flask Weather Dashboard
- * FAS 2: CSS-styling och animationer
+/**
+ * @file weather-effects.css
+ * @version 1.1.0
+ * @lastModified 2025-01-10
+ * @description WeatherEffects CSS för Flask Weather Dashboard med centraliserad färghantering
+ * @dependencies colors.css
+ * @author Flask Weather Dashboard Team
  * 
- * OPTIMERAD FÃ–R: LP156WH4 (1366Ã—768) + Pi5 GPU + Chromium kiosk-lÃ¤ge
- * BASERAD PÃ…: MagicMirror MMM-WeatherEffects CSS
- * PRESTANDA: Smooth 60fps animationer fÃ¶r Pi5 + GPU-acceleration
- * KOMPATIBILITET: Z-index och layout-kompatibel med befintlig glassmorphism
- * 
- * ðŸŒ§ï¸ ENHANCED: FÃ¶rbÃ¤ttrade regndroppar fÃ¶r bÃ¤ttre synlighet pÃ¥ LP156WH4
+ * OPTIMERAD FÖR: N156HCA-E5B IPS (1920×1080) + Pi5 GPU + Chromium kiosk-läge
+ * BASERAD PÅ: MagicMirror MMM-WeatherEffects CSS
+ * PRESTANDA: Smooth 60fps animationer för Pi5 + GPU-acceleration
+ * v1.1.0: Integrerad med colors.css centraliserad färgpalett
  */
 
 /* === BASE WRAPPER (MM-kompatibel) === */
@@ -19,39 +21,39 @@
     width: 100% !important;
     height: 100% !important;
     pointer-events: none !important;
-    z-index: 99999999 !important; /* Ã–ver alla dashboard-element */
+    z-index: 99999999 !important; /* Över alla dashboard-element */
     overflow: hidden !important;
     
     /* Smooth transitions */
     transition: opacity 1000ms ease-in-out;
     
-    /* GPU-acceleration fÃ¶r Pi5 */
+    /* GPU-acceleration för Pi5 */
     transform: translateZ(0);
     will-change: opacity;
     
-    /* SÃ¤kerstÃ¤ll att effekter inte pÃ¥verkar layout */
+    /* Säkerställ att effekter inte påverkar layout */
     display: block;
     contain: layout style paint;
 }
 
-/* === REGN-EFFEKTER (LP156WH4 OPTIMERADE - FÃ–RBÃ„TTRAD SYNLIGHET) === */
+/* === REGN-EFFEKTER (N156HCA-E5B OPTIMERADE - CENTRALISERAD FÄRG) === */
 
 .rain-particle {
     position: absolute !important;
-    width: 4px; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Bredare frÃ¥n 2px till 4px */
-    height: 18px; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: LÃ¤ngre frÃ¥n 12px till 18px */
+    width: 4px;
+    height: 18px;
     background: linear-gradient(to bottom, 
-        rgba(0, 170, 255, 0.95) 0%, /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: HÃ¶gre opacitet */
-        rgba(0, 170, 255, 0.85) 50%, /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Mer synlig mitt */
-        rgba(0, 170, 255, 0.3) 100% /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Mjukare fade */
+        var(--rain-color) 0%,
+        rgba(135, 206, 250, 0.85) 50%,
+        rgba(135, 206, 250, 0.3) 100%
     );
-    opacity: 0.9; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: HÃ¶jd frÃ¥n 0.8 till 0.9 */
+    opacity: 0.9;
     border-radius: 0 0 50% 50%; /* Droppe-form */
     
-    /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Glow-effekt fÃ¶r bÃ¤ttre definition */
+    /* Glow-effekt för bättre definition */
     box-shadow: 
-        0 0 2px rgba(0, 170, 255, 0.6),
-        0 0 4px rgba(0, 170, 255, 0.3);
+        0 0 2px var(--rain-color),
+        0 0 4px rgba(135, 206, 250, 0.3);
     
     /* GPU-acceleration */
     transform: translateZ(0);
@@ -60,15 +62,15 @@
     /* Pi5-optimerad animation */
     animation: rain-fall linear infinite;
     
-    /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Starkare kontrast fÃ¶r LP156WH4 LED LCD */
+    /* Förstärkt kontrast för N156HCA-E5B IPS */
     filter: brightness(1.15) contrast(1.1) saturate(1.2);
     
-    /* FÃ¶rhindra text-selection */
+    /* Förhindra text-selection */
     user-select: none;
     pointer-events: none;
 }
 
-/* VindpÃ¥verkade regn-partiklar */
+/* Vindpåverkade regn-partiklar */
 .rain-particle.wind-left {
     transform: skewX(-15deg) translateZ(0);
 }
@@ -77,7 +79,7 @@
     transform: skewX(15deg) translateZ(0);
 }
 
-/* Regn-animation optimerad fÃ¶r LP156WH4 + Pi5 */
+/* Regn-animation optimerad för N156HCA-E5B + Pi5 */
 @keyframes rain-fall {
     0% {
         transform: translateY(-20px) translateZ(0);
@@ -85,11 +87,11 @@
     }
     
     5% {
-        opacity: 0.9; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: HÃ¶gre start-opacitet */
+        opacity: 0.9;
     }
     
     95% {
-        opacity: 0.9; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: BehÃ¥ller synlighet lÃ¤ngre */
+        opacity: 0.9;
     }
     
     100% {
@@ -98,7 +100,7 @@
     }
 }
 
-/* VindpÃ¥verkad regn-animation */
+/* Vindpåverkad regn-animation */
 @keyframes rain-fall-wind-left {
     0% {
         transform: translateY(-20px) translateX(0) skewX(-15deg) translateZ(0);
@@ -106,11 +108,11 @@
     }
     
     5% {
-        opacity: 0.9; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: HÃ¶gre opacitet */
+        opacity: 0.9;
     }
     
     95% {
-        opacity: 0.9; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: BehÃ¥ller synlighet lÃ¤ngre */
+        opacity: 0.9;
     }
     
     100% {
@@ -126,11 +128,11 @@
     }
     
     5% {
-        opacity: 0.9; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: HÃ¶gre opacitet */
+        opacity: 0.9;
     }
     
     95% {
-        opacity: 0.9; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: BehÃ¥ller synlighet lÃ¤ngre */
+        opacity: 0.9;
     }
     
     100% {
@@ -139,11 +141,11 @@
     }
 }
 
-/* === SNÃ–-EFFEKTER (LP156WH4 OPTIMERADE) === */
+/* === SNÖ-EFFEKTER (N156HCA-E5B OPTIMERADE - CENTRALISERAD FÄRG) === */
 
 .snow-particle {
     position: absolute !important;
-    color: #ffffff;
+    color: var(--snow-color);
     font-family: 'Segoe UI', 'Arial', sans-serif;
     font-weight: 400;
     opacity: 0.85;
@@ -155,28 +157,28 @@
     /* Pi5-optimerad animation */
     animation: snow-fall linear infinite;
     
-    /* FÃ¶rbÃ¤ttrad kontrast fÃ¶r LP156WH4 LED LCD */
+    /* Förbättrad kontrast för N156HCA-E5B IPS */
     text-shadow: 
-        0 0 3px rgba(255, 255, 255, 0.8),
-        0 0 6px rgba(255, 255, 255, 0.4);
+        0 0 3px var(--snow-sparkle),
+        0 0 6px rgba(255, 255, 255, 0.5);
     filter: brightness(1.1) contrast(1.1);
     
-    /* FÃ¶rhindra text-selection */
+    /* Förhindra text-selection */
     user-select: none;
     pointer-events: none;
     
-    /* Smooth font-rendering fÃ¶r LP156WH4 */
+    /* Smooth font-rendering för N156HCA-E5B */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 }
 
-/* Sparkle-effekt fÃ¶r snÃ¶flingor */
+/* Sparkle-effekt för snöflingor */
 .snow-particle.sparkle {
     animation: snow-fall linear infinite, snow-sparkle 2s ease-in-out infinite;
 }
 
-/* SnÃ¶-animationer */
+/* Snö-animationer */
 @keyframes snow-fall {
     0% {
         transform: translateY(-20px) translateZ(0);
@@ -209,7 +211,7 @@
 
 /* === PERFORMANCE OPTIMERINGAR === */
 
-/* GPU-acceleration fÃ¶r alla weather particles */
+/* GPU-acceleration för alla weather particles */
 .rain-particle,
 .snow-particle {
     transform: translateZ(0);
@@ -217,7 +219,7 @@
     perspective: 1000px;
 }
 
-/* Optimera animations fÃ¶r 60fps pÃ¥ Pi5 */
+/* Optimera animations för 60fps på Pi5 */
 @media (hover: none) and (pointer: coarse) {
     /* Mobile/Touch devices (inklusive Pi5 touchscreen) */
     .rain-particle {
@@ -231,7 +233,7 @@
     }
 }
 
-/* Minska motion fÃ¶r anvÃ¤ndare med reduced motion preference */
+/* Minska motion för användare med reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
     .weather-effect-wrapper {
         animation: none;
@@ -240,38 +242,35 @@
     
     .rain-particle,
     .snow-particle {
-        animation-duration: 5s !important; /* LÃ¥ngsammare animationer */
-        opacity: 0.5 !important; /* Mindre intensiva effekter */
+        animation-duration: 5s !important;
+        opacity: 0.5 !important;
     }
     
     .snow-particle.sparkle {
-        animation: snow-fall linear infinite !important; /* Ta bort sparkle */
+        animation: snow-fall linear infinite !important;
     }
 }
 
 /* === Z-INDEX KOMPATIBILITET MED DASHBOARD === */
 
-/* SÃ¤kerstÃ¤ll att weather effects visas Ã¶ver allt innehÃ¥ll men under eventuella modaler */
 .weather-effect-wrapper {
-    z-index: 99999999 !important; /* Ã–ver glassmorphism cards (z-index ~1000) */
+    z-index: 99999999 !important;
 }
 
-/* Om det finns loading overlay eller modaler med hÃ¶gre z-index */
 .loading-overlay {
-    z-index: 999999999 !important; /* Ã–ver weather effects om nÃ¶dvÃ¤ndigt */
+    z-index: 999999999 !important;
 }
 
 /* === THEME KOMPATIBILITET === */
 
 /* Ljust tema - mindre intensiva effekter */
 .theme-light .rain-particle {
-    opacity: 0.7; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Lite hÃ¶gre Ã¤n tidigare */
+    opacity: 0.7;
     background: linear-gradient(to bottom, 
-        rgba(0, 170, 255, 0.8) 0%, /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: FÃ¶rstÃ¤rkt */
+        rgba(0, 170, 255, 0.8) 0%,
         rgba(0, 170, 255, 0.6) 50%, 
         rgba(0, 170, 255, 0.2) 100%
     );
-    /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: BehÃ¥ller glow-effekt Ã¤ven i ljust tema */
     box-shadow: 
         0 0 2px rgba(0, 170, 255, 0.5),
         0 0 4px rgba(0, 170, 255, 0.25);
@@ -285,16 +284,15 @@
         0 0 4px rgba(255, 255, 255, 0.3);
 }
 
-/* MÃ¶rkt tema - mer intensiva effekter */
+/* Mörkt tema - mer intensiva effekter */
 .theme-dark .rain-particle {
-    opacity: 0.95; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Maximal synlighet i mÃ¶rkt tema */
+    opacity: 0.95;
     background: linear-gradient(to bottom, 
-        rgba(0, 170, 255, 1) 0%, /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Full intensitet */
+        rgba(0, 170, 255, 1) 0%,
         rgba(0, 170, 255, 0.9) 50%, 
         rgba(0, 170, 255, 0.4) 100%
     );
     filter: brightness(1.2) contrast(1.1);
-    /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Starkare glow i mÃ¶rkt tema */
     box-shadow: 
         0 0 3px rgba(0, 170, 255, 0.8),
         0 0 6px rgba(0, 170, 255, 0.4);
@@ -311,11 +309,10 @@
 
 /* === INTENSITY VARIATIONS === */
 
-/* Light intensity - fÃ¤rre partiklar, lÃ¥ngsammare animationer */
+/* Light intensity */
 .weather-effect-wrapper.intensity-light .rain-particle {
-    opacity: 0.7; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: HÃ¶jd frÃ¥n 0.6 */
+    opacity: 0.7;
     animation-duration: 3s;
-    /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: BehÃ¥ller glow Ã¤ven vid light intensity */
     box-shadow: 
         0 0 1px rgba(0, 170, 255, 0.4),
         0 0 2px rgba(0, 170, 255, 0.2);
@@ -326,15 +323,12 @@
     animation-duration: 4s;
 }
 
-/* Medium intensity - standard vÃ¤rden (definierade ovan) */
-
-/* Heavy intensity - fler partiklar, snabbare animationer */
+/* Heavy intensity */
 .weather-effect-wrapper.intensity-heavy .rain-particle {
-    opacity: 1; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Maximal synlighet */
+    opacity: 1;
     animation-duration: 1.5s;
-    height: 22px; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Ã„nnu lÃ¤ngre droppar vid heavy */
-    width: 5px; /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Bredare vid heavy intensity */
-    /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Stark glow fÃ¶r heavy rain */
+    height: 22px;
+    width: 5px;
     box-shadow: 
         0 0 4px rgba(0, 170, 255, 0.8),
         0 0 8px rgba(0, 170, 255, 0.4),
@@ -349,19 +343,17 @@
 
 /* === UTILITY CLASSES === */
 
-/* DÃ¶lj weather effects */
 .weather-effect-wrapper.hidden {
     opacity: 0 !important;
     pointer-events: none !important;
 }
 
-/* Pausa animationer (fÃ¶r debugging) */
 .weather-effect-wrapper.paused .rain-particle,
 .weather-effect-wrapper.paused .snow-particle {
     animation-play-state: paused;
 }
 
-/* === DEBUG-STYLING (endast vid development) === */
+/* === DEBUG-STYLING === */
 
 .weather-effect-wrapper.debug {
     border: 2px dashed rgba(255, 0, 0, 0.5);
@@ -377,32 +369,12 @@
     text-shadow: none !important;
 }
 
-/* === FÃ–RBÃ„TTRAD CONTRAST FÃ–R LED LCD PANEL === */
-
-/* LP156WH4 Ã¤r en LED LCD panel som kan ha lÃ¤gre kontrast Ã¤n OLED */
-.rain-particle {
-    /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Extra kontrast-boost fÃ¶r LED panels */
-    filter: brightness(1.15) contrast(1.1) saturate(1.2);
-}
-
-.snow-particle {
-    /* Extra ljusstyrka fÃ¶r vit text pÃ¥ LED panels */
-    filter: brightness(1.1) contrast(1.1);
-    
-    /* Starkare text-shadow fÃ¶r bÃ¤ttre definition */
-    text-shadow: 
-        0 0 3px rgba(255, 255, 255, 0.9),
-        0 0 6px rgba(255, 255, 255, 0.5),
-        0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
 /* === SMOOTH FADE TRANSITIONS === */
 
 .weather-effect-wrapper {
     transition: opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Smooth enter/exit transitions fÃ¶r partiklar */
 .rain-particle,
 .snow-particle {
     animation-fill-mode: both;
@@ -411,20 +383,18 @@
 
 /* === FINAL OPTIMIZATIONS === */
 
-/* FÃ¶rhindra scroll och layout shifts */
 .weather-effect-wrapper {
     overflow: hidden;
     contain: layout style paint;
 }
 
-/* Optimera fÃ¶r Pi5 memory usage */
 .rain-particle,
 .snow-particle {
     contain: layout style;
     isolation: isolate;
 }
 
-/* Print media - dÃ¶lj weather effects */
+/* Print media - dölj weather effects */
 @media print {
     .weather-effect-wrapper {
         display: none !important;
@@ -440,7 +410,6 @@
             transparent 100%
         );
         filter: brightness(1.3) contrast(1.3);
-        /* ðŸŒ§ï¸ FÃ–RBÃ„TTRAT: Maximal glow fÃ¶r high contrast */
         box-shadow: 
             0 0 5px rgba(0, 150, 255, 1),
             0 0 10px rgba(0, 150, 255, 0.6);
@@ -468,4 +437,4 @@
     }
 }
 
-console.log('[WeatherEffects] CSS-animationer laddade - LP156WH4 optimerade med fÃ¶rbÃ¤ttrade regndroppar');
+console.log('[WeatherEffects v1.1.0] CSS med centraliserad färghantering från colors.css');

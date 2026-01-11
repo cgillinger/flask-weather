@@ -186,23 +186,37 @@
         </div>
     </div>
 
-    <!-- JavaScript Modules - KORREKTA SÖKVÄGAR -->
+    <!-- ========== JAVASCRIPT MODULES - FÄRGHANTERING v1.1.1 ========== -->
+    
+    <!-- STEG 1-3: Grundläggande utilities -->
     <script src="/static/js/dashboard/formatters-dashboard.js"></script>
     <script src="/static/js/dashboard/wind-calculations.js"></script>
     <script src="/static/js/dashboard/dom-helpers.js"></script>
+    
+    <!-- FÄRGHANTERING: ColorManager - LADDA TIDIGT (före komponenter som använder den) -->
+    <script src="/static/js/utils/color-manager.js"></script>
+    
+    <!-- STEG 4-5: Icon renderers (använder ColorManager) -->
     <script src="/static/js/dashboard-components/weather-icon-renderer.js"></script>
     <script src="/static/js/dashboard-components/fontawesome-renderer.js"></script>
+    
+    <!-- STEG 6-9: Display och data komponenter -->
     <script src="/static/js/dashboard-components/circular-clock.js"></script>
     <script src="/static/js/dashboard-components/barometer-display.js"></script>
     <script src="/static/js/dashboard-components/uv-display.js"></script>
     <script src="/static/js/dashboard-components/rain-display.js"></script>
     <script src="/static/js/dashboard-data/intelligent-data-source.js"></script>
     <script src="/static/js/dashboard-components/ui-adaptation-engine.js"></script>
+    
+    <!-- STEG 10-12: API client och views (använder ColorManager) -->
     <script src="/static/js/dashboard-data/fetch-api-client.js"></script>
     <script src="/static/js/dashboard-views/current-weather-view.js"></script>
     <script src="/static/js/dashboard-views/forecast-view.js"></script>
+    
+    <!-- MAIN: Dashboard orchestrator -->
     <script src="/static/js/dashboard.js"></script>
     
+    <!-- WeatherEffects (conditional) -->
     {% if weather_effects_enabled %}
     <script src="/static/js/weather-effects.js"></script>
     {% endif %}

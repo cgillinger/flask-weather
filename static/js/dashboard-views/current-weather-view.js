@@ -1,15 +1,21 @@
 /**
- * Current Weather View - STEG 11 REFAKTORERING
- * Nuvarande vÃ¤der-funktioner extraherat frÃ¥n dashboard.js
- * Hanterar huvudkortet, temperatur, vind, luftfuktighet och ikoner
- * + NETATMO RAIN PRIORITY: Netatmo-regnmÃ¤tare Ã¤r sanningen fÃ¶r weather effects
+ * @file current-weather-view.js
+ * @version 1.1.1
+ * @lastModified 2025-01-10 (v1.1.1)
+ * @description Nuvarande väder-funktioner för huvudkort, temperatur, vind och ikoner
+ * @dependencies ColorManager (color-manager.js), WeatherIconRenderer, FontAwesomeRenderer
+ * @author Flask Weather Dashboard Team
+ * 
+ * STEG 11 REFAKTORERING: Extraherat från dashboard.js
+ * + NETATMO RAIN PRIORITY: Netatmo-regnmätare är sanningen för weather effects
+ * v1.1.0: Integrerad med ColorManager för temperatur-färgkodning
  */
 
 // === CURRENT WEATHER FUNCTIONS ===
 
 /**
- * Uppdatera nuvarande vÃ¤der (huvudfunktion)
- * @param {object} data - Komplett vÃ¤derdata frÃ¥n API
+ * Uppdatera nuvarande väder (huvudfunktion)
+ * @param {object} data - Komplett väderdata från API
  */
 function updateCurrentWeather(data) {
     removeWindDetailItems();
@@ -19,24 +25,29 @@ function updateCurrentWeather(data) {
         const smhi = data.smhi;
         
         // SMHI Temperatur
-        updateElementHTML('smhi-temperature', smhi.temperature ? formatTemperature(smhi.temperature) : '--.-Â°');
+        updateElementHTML('smhi-temperature', smhi.temperature ? formatTemperature(smhi.temperature) : '--.-°');
         
-        // SMHI VÃ¤der-ikon
+        // SMHI Väder-ikon
         if (smhi.weather_symbol) {
             const iconElement = document.getElementById('smhi-weather-icon');
             const isDay = isDaytime();
-            // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
+            // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
             const iconName = WeatherIconRenderer.getIconName(smhi.weather_symbol, isDay);
             
             if (iconElement) {
                 iconElement.innerHTML = '';
                 iconElement.className = 'weather-icon';
                 
-                // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
+                // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
                 const weatherIcon = WeatherIconRenderer.createIcon(iconName, ['weather-main-icon']);
+                
+                // CENTRALISERAD FÄRGKODNING v1.1.0: Använd ColorManager för huvudikon
+                const iconColor = ColorManager.getWeatherIconColor(smhi.weather_symbol);
+                weatherIcon.style.color = iconColor;
+                
                 iconElement.appendChild(weatherIcon);
                 
-                console.log(`ðŸŽ¨ Main weather icon: ${iconName} for symbol ${smhi.weather_symbol}`);
+                console.log(`🎨 Main weather icon: ${iconName} for symbol ${smhi.weather_symbol} - color: ${iconColor}`);
                 
                 // NETATMO RAIN PRIORITY: WeatherEffects update med Netatmo-prioritering
                 if (window.weatherEffectsManager) {
@@ -52,8 +63,8 @@ function updateCurrentWeather(data) {
         }
     }
     
-    // HUMIDITY FIX: INTELLIGENT DATAHANTERING FÃ–R LUFTFUKTIGHET
-    // STEG 8: AnvÃ¤nd Intelligent Data Source istÃ¤llet fÃ¶r lokal funktion
+    // HUMIDITY FIX: INTELLIGENT DATAHANTERING FÖR LUFTFUKTIGHET
+    // STEG 8: Använd Intelligent Data Source istället för lokal funktion
     const humidityData = formatDataWithSource(
         data.netatmo?.humidity || data.smhi?.humidity, 
         'humidity'
@@ -61,11 +72,11 @@ function updateCurrentWeather(data) {
     
     if (humidityData.shouldShow) {
         updateHumidityDisplay(humidityData.formatted);
-        console.log(`ðŸ’§ HUMIDITY FIX: ${humidityData.debug}`);
+        console.log(`💧 HUMIDITY FIX: ${humidityData.debug}`);
     } else {
-        // HUMIDITY FIX: DÃ¶lj luftfuktighet helt nÃ¤r ingen data finns
-        console.log('ðŸ™ˆ HUMIDITY FIX: DÃ¶ljer luftfuktighet - ingen data tillgÃ¤nglig');
-        // Element dÃ¶ljs av adaptHumiditySection() som kallas av applyUIAdaptations()
+        // HUMIDITY FIX: Dölj luftfuktighet helt när ingen data finns
+        console.log('🙈 HUMIDITY FIX: Döljer luftfuktighet - ingen data tillgänglig');
+        // Element döljs av adaptHumiditySection() som kallas av applyUIAdaptations()
     }
     
     // Netatmo Data (Villkorsstyrd med FAS 3 UI-anpassningar)
@@ -73,27 +84,21 @@ function updateCurrentWeather(data) {
         const netatmo = data.netatmo;
         
         // Netatmo Faktisk Temperatur (FAS 3: Bara om sektionen visas)
-        // STEG 8: AnvÃ¤nd Intelligent Data Source istÃ¤llet fÃ¶r lokal funktion
+        // STEG 8: Använd Intelligent Data Source istället för lokal funktion
         const tempData = formatDataWithSource(netatmo.temperature, 'temperature_actual');
         if (tempData.shouldShow) {
             const tempElement = document.getElementById('netatmo-temperature-small');
             if (tempElement && !document.querySelector('#netatmo-temperature-section.netatmo-hidden')) {
                 tempElement.innerHTML = formatTemperature(tempData.value);
                 
-                let tempColor = '#4285f4';
-                if (tempData.value < 0) tempColor = '#3b82f6';
-                else if (tempData.value < 10) tempColor = '#06b6d4';
-                else if (tempData.value < 20) tempColor = '#10b981';
-                else if (tempData.value < 25) tempColor = '#f59e0b';
-                else tempColor = '#ef4444';
-                
-                tempElement.style.color = tempColor;
+                // CENTRALISERAD FÄRGKODNING: Använd ColorManager istället för hårdkodade värden
+                tempElement.style.color = ColorManager.getTemperatureColor(tempData.value);
                 console.log(tempData.debug);
             }
         }
         
         // CO2/Luftkvalitet - FAS 3: Villkorsstyrd visning
-        // STEG 8: AnvÃ¤nd Intelligent Data Source istÃ¤llet fÃ¶r lokal funktion
+        // STEG 8: Använd Intelligent Data Source istället för lokal funktion
         const co2Data = formatDataWithSource(netatmo.co2, 'co2');
         if (co2Data.shouldShow) {
             const airQualityElement = document.getElementById('air-quality');
@@ -114,42 +119,42 @@ function updateCurrentWeather(data) {
                     existingIcon.remove();
                 }
                 
-                // STEG 5: AnvÃ¤nd FontAwesomeRenderer istÃ¤llet fÃ¶r FontAwesomeManager
+                // STEG 5: Använd FontAwesomeRenderer istället för FontAwesomeManager
                 const leafIcon = FontAwesomeRenderer.createLeafIcon(iconClass);
                 airQualityContainer.insertBefore(leafIcon, airQualityElement);
                 
-                console.log(`ðŸƒ ${co2Data.debug} - SEPARERAD FÃ„RGKODNING: ${iconClass}`);
+                console.log(`🍃 ${co2Data.debug} - SEPARERAD FÄRGKODNING: ${iconClass}`);
             }
         }
         
-        // BAROMETER UPDATE med smart kÃ¤lla
+        // BAROMETER UPDATE med smart källa
         const pressureTrend = netatmo.pressure_trend;
-        // STEG 8: AnvÃ¤nd Intelligent Data Source istÃ¤llet fÃ¶r lokal funktion
+        // STEG 8: Använd Intelligent Data Source istället för lokal funktion
         const pressureData = formatDataWithSource(netatmo.pressure || data.smhi?.pressure, 'pressure');
         
-        // STEG 7: AnvÃ¤nd BarometerDisplay istÃ¤llet fÃ¶r BarometerManager
+        // STEG 7: Använd BarometerDisplay istället för BarometerManager
         BarometerDisplay.updateBarometerDetail(pressureTrend, pressureData.value);
         
-        // FÃ–RSTÃ„RKT VINDDATA UNDER FAKTISK (FAS 3: Bara om sektionen visas)
+        // FÖRSTÄRKT VINDDATA UNDER FAKTISK (FAS 3: Bara om sektionen visas)
         if (data.smhi && data.smhi.wind_speed !== null && data.smhi.wind_speed !== undefined) {
             updateWindUnderFaktisk(data.smhi);
         }
     } else {
         // FAS 3: SMHI-ONLY MODE - Fallback hantering med UI-anpassningar
-        console.log('ðŸ“Š FAS 3: SMHI-only mode med UI-degradering + HUMIDITY FIX');
+        console.log('📊 FAS 3: SMHI-only mode med UI-degradering + HUMIDITY FIX');
         
-        // AnvÃ¤nd SMHI fÃ¶r barometer med fallback
-        // STEG 8: AnvÃ¤nd Intelligent Data Source istÃ¤llet fÃ¶r lokal funktion
+        // Använd SMHI för barometer med fallback
+        // STEG 8: Använd Intelligent Data Source istället för lokal funktion
         const fallbackPressureTrend = createSmhiPressureTrendFallback(data.smhi);
         const pressureData = formatDataWithSource(data.smhi?.pressure, 'pressure');
         
-        // STEG 7: AnvÃ¤nd BarometerDisplay istÃ¤llet fÃ¶r BarometerManager
+        // STEG 7: Använd BarometerDisplay istället för BarometerManager
         BarometerDisplay.updateBarometerDetail(fallbackPressureTrend, pressureData.value);
         
-        console.log('ðŸ”„ FAS 3: FAKTISK temperatur, luftfuktighet och CO2 Ã¤r dolda via UI-anpassningar');
+        console.log('🔄 FAS 3: FAKTISK temperatur, luftfuktighet och CO2 är dolda via UI-anpassningar');
     }
     
-    // SOL-TIDER (OfÃ¶rÃ¤ndrade)
+    // SOL-TIDER (Oförändrade)
     if (data.sun) {
         try {
             if (data.sun.sunrise) {
@@ -164,7 +169,7 @@ function updateCurrentWeather(data) {
                 updateSunTimeOptimized('sunset-time', sunsetTime);
             }
         } catch (error) {
-            console.error('âŒ Fel vid parsning av soltider:', error);
+            console.error('❌ Fel vid parsning av soltider:', error);
         }
     }
     
@@ -174,8 +179,8 @@ function updateCurrentWeather(data) {
 }
 
 /**
- * NETATMO RAIN PRIORITY: Uppdatera weather effects med Netatmo-prioritering fÃ¶r regn
- * @param {object} data - Komplett vÃ¤derdata frÃ¥n API
+ * NETATMO RAIN PRIORITY: Uppdatera weather effects med Netatmo-prioritering för regn
+ * @param {object} data - Komplett väderdata från API
  */
 function updateWeatherEffects(data) {
     if (!window.weatherEffectsManager) {
@@ -189,14 +194,14 @@ function updateWeatherEffects(data) {
     );
     
     if (hasNetatmoRain) {
-        // NETATMO RAIN PRIORITY: Netatmo-regnmÃ¤taren Ã¤r sanningen
+        // NETATMO RAIN PRIORITY: Netatmo-regnmätaren är sanningen
         const rainIntensity = data.netatmo.rain_sum_1 || data.netatmo.rain || 0;
         const windDirection = data.smhi?.wind_direction || 0;
         
-        console.log(`ðŸŒ§ï¸ NETATMO RAIN PRIORITY: Triggat regn-effekt frÃ¥n Netatmo (${rainIntensity.toFixed(2)} mm)`);
+        console.log(`🌧️ NETATMO RAIN PRIORITY: Triggat regn-effekt från Netatmo (${rainIntensity.toFixed(2)} mm)`);
         weatherEffectsManager.updateFromNetatmoRain(rainIntensity, windDirection);
     } else {
-        // Fallback till SMHI fÃ¶r alla vÃ¤dertyper (regn, snÃ¶, sleet)
+        // Fallback till SMHI för alla vädertyper (regn, snö, sleet)
         if (data.smhi && data.smhi.weather_symbol) {
             weatherEffectsManager.updateFromSMHI(
                 data.smhi.weather_symbol,
@@ -219,13 +224,13 @@ function updateWindUnderFaktisk(smhiData) {
     const existingWindElements = netatmoSection.querySelectorAll('.wind-under-faktisk');
     existingWindElements.forEach(element => element.remove());
     
-    // FAS 3: Bara lÃ¤gg till vinddata om Netatmo-sektionen visas
+    // FAS 3: Bara lägg till vinddata om Netatmo-sektionen visas
     if (netatmoSection.classList.contains('netatmo-hidden')) {
-        console.log('ðŸ™ˆ FAS 3: Vinddata skippas - FAKTISK sektion Ã¤r dold');
+        console.log('🙈 FAS 3: Vinddata skippas - FAKTISK sektion är dold');
         return;
     }
     
-    // LÃ¤gg till ny vinddata
+    // Lägg till ny vinddata
     if (smhiData.wind_speed !== null && smhiData.wind_speed !== undefined) {
         const windKmh = smhiData.wind_speed * 3.6;
         const windData = convertWindSpeed(windKmh, dashboardState.windUnit);
@@ -237,7 +242,7 @@ function updateWindUnderFaktisk(smhiData) {
             const windDir = getWindDirection(smhiData.wind_direction);
             const windDegree = Math.round(smhiData.wind_direction);
             
-            // FÃ–RSTÃ„RKT VÃ„DERRIKTNINGSPIL: 12px â†’ 28px fÃ¶r LP156WH4-synlighet
+            // FÖRSTÄRKT VÄDERRIKTNINGSPIL: 12px → 28px för LP156WH4-synlighet
             windArrowHTML = ` <i class="wi wi-wind from-${windDegree}-deg" style="
                 color: #4A9EFF; 
                 font-size: 28px; 
@@ -254,7 +259,7 @@ function updateWindUnderFaktisk(smhiData) {
         const windElement = document.createElement('div');
         windElement.className = 'wind-under-faktisk';
         
-        // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
+        // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
         const windIcon = WeatherIconRenderer.createIcon(windData.icon, []);
         windIcon.style.cssText = `
             color: #4A9EFF; 
@@ -268,12 +273,12 @@ function updateWindUnderFaktisk(smhiData) {
         
         netatmoSection.appendChild(windElement);
         
-        console.log(`ðŸ’¨ FÃ–RSTÃ„RKT vinddata under FAKTISK: ${windText} (pil: 28px)`);
+        console.log(`💨 FÖRSTÄRKT vinddata under FAKTISK: ${windText} (pil: 28px)`);
     }
 }
 
 /**
- * Ta bort vinddata frÃ¥n weather details grid
+ * Ta bort vinddata från weather details grid
  */
 function removeWindDetailItems() {
     const weatherDetailsGrid = document.querySelector('.weather-details-grid');
@@ -291,19 +296,19 @@ function removeWindDetailItems() {
             item.classList.contains('wind-detail') ||
             item.id && item.id.includes('wind')) {
             
-            console.log(`ðŸ—‘ï¸ Tar bort vind detail-item: ${text}`);
+            console.log(`🗑️ Tar bort vind detail-item: ${text}`);
             item.remove();
         }
     });
 }
 
 /**
- * Initialisera robusta ikoner fÃ¶r vÃ¤der-visning
+ * Initialisera robusta ikoner för väder-visning
  */
 function initializeRobustIcons() {
-    console.log('ðŸŽ¨ FAS 3: Initialiserar graciÃ¶s ikon-hantering med HUMIDITY FIX...');
+    console.log('🎨 FAS 3: Initialiserar graciös ikon-hantering med HUMIDITY FIX...');
     updateHumidityDisplay('50% Luftfuktighet');
-    console.log('âœ… FAS 3: GraciÃ¶s ikon-hantering med HUMIDITY FIX initialiserad');
+    console.log('✅ FAS 3: Graciös ikon-hantering med HUMIDITY FIX initialiserad');
 }
 
 /**
@@ -317,7 +322,7 @@ function updateHumidityDisplay(humidityText) {
     humidityElement.innerHTML = '';
     humidityElement.className = 'data-point'; // FIX: data-point instead of detail-item
     
-    // STEG 4: AnvÃ¤nd WeatherIconRenderer istÃ¤llet fÃ¶r WeatherIconManager
+    // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
     const humidityIcon = WeatherIconRenderer.createIcon('wi-humidity', ['pressure-icon']);
     humidityIcon.style.cssText = `
         color: #4A9EFF;
@@ -329,7 +334,7 @@ function updateHumidityDisplay(humidityText) {
     humidityElement.appendChild(humidityIcon);
     humidityElement.insertAdjacentHTML('beforeend', `<span>${humidityText}</span>`);
     
-    console.log(`ðŸ’§ HUMIDITY FIX: Luftfuktighetsikon skapad: wi-humidity`);
+    console.log(`💧 HUMIDITY FIX: Luftfuktighetsikon skapad: wi-humidity`);
 }
 
-console.log('âœ… STEG 11: Current Weather View laddat - 6 funktioner (+ NETATMO RAIN PRIORITY)!');
+console.log('✅ Current Weather View v1.1.0 laddat - ColorManager integration aktiverad!');
