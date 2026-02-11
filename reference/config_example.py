@@ -41,6 +41,15 @@ CONFIG = {
         'comment': 'Namn på ort som visas på skärmen - hjälper användaren förstå var data kommer ifrån'
     },
     
+    # 🌡️ TEMPERATUR-LAYOUT: Styr vilken datakälla som visas på vilken plats
+    # plats_1 = Stor siffra (primär), plats_2 = Liten siffra (sekundär)
+    # Värden: 'smhi' (prognos) eller 'netatmo' (faktisk mätning)
+    # Om datakällan för plats_1 saknas (t.ex. Netatmo ej tillgänglig) → fallback till den andra källan
+    'temperature_layout': {
+        'plats_1': 'smhi',      # ← ÄNDRA TILL 'netatmo' för att visa faktisk temp som stor siffra
+        'plats_2': 'netatmo',   # ← ÄNDRA TILL 'smhi' för att visa prognos som liten siffra
+    },
+
     'ui': {
         # 🎛️ OFFENTLIGA UI-INSTÄLLNINGAR - Anpassa efter behov
         'fullscreen': True,                      # True/False - Fullskärmsläge för kiosk
