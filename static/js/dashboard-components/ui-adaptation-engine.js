@@ -58,29 +58,36 @@ function adaptHumiditySection(netatmoAvailable) {
 }
 
 /**
- * Anpassa temperatur-sektionen beroende på Netatmo-tillgänglighet
+ * Anpassa temperatur-sektionen baserat på config-styrd layout och datatillgänglighet.
+ * Döljer plats-2 om dess datakälla saknas.
  */
 function adaptTemperatureSection(netatmoAvailable) {
-    const netatmoTempSection = document.querySelector('.faktisk-column');
+    const plats2Section = document.getElementById('plats-2-section');
     const tempUnit = document.querySelector('.temp-unit');
-    
-    if (!netatmoAvailable) {
-        // FAS 3: Dölj FAKTISK temperatur-sektion
-        if (netatmoTempSection) {
-            netatmoTempSection.classList.add('netatmo-hidden');
-            console.log('🙈 FAS 3: FAKTISK temperatur-sektion dold');
+
+    // Bestäm vilken källa plats_2 pekar på
+    const layout = dashboardState.config?.temperature_layout || { plats_1: 'smhi', plats_2: 'netatmo' };
+    let plats2Source = layout.plats_2;
+
+    // Om plats_1 var 'netatmo' men netatmo saknas → fallback gör att plats_2 blir 'netatmo' (dold)
+    if (layout.plats_1 === 'netatmo' && !netatmoAvailable) {
+        plats2Source = 'netatmo';
+    }
+
+    const plats2Available = plats2Source === 'netatmo' ? netatmoAvailable : true;
+
+    if (!plats2Available) {
+        if (plats2Section) {
+            plats2Section.classList.add('netatmo-hidden');
+            console.log('🙈 Plats-2 temperatur-sektion dold (källa saknas)');
         }
-        
-        // Justera container för centrerad layout
         if (tempUnit) {
             tempUnit.classList.add('single-temperature-mode');
         }
     } else {
-        // FAS 3: Visa FAKTISK temperatur-sektion
-        if (netatmoTempSection) {
-            netatmoTempSection.classList.remove('netatmo-hidden');
+        if (plats2Section) {
+            plats2Section.classList.remove('netatmo-hidden');
         }
-        
         if (tempUnit) {
             tempUnit.classList.remove('single-temperature-mode');
         }
@@ -111,8 +118,11 @@ function adaptAirQualitySection(netatmoAvailable) {
  * Anpassa etiketter beroende pÃ¥ datakÃ¤llor
  */
 function adaptLabels(netatmoAvailable) {
+    // Labels hanteras nu dynamiskt av updateCurrentWeather() via getTemperatureLayout().
+    // Funktionen behålls tom för bakåtkompatibilitet (anropas från applyUIAdaptations).
+    return;
     const smhiLabel = document.querySelector('.smhi-label');
-    
+
     if (!netatmoAvailable) {
         // FAS 3: Ã„ndra "PROGNOS" till "TEMPERATUR" nÃ¤r bara SMHI anvÃ¤nds
         if (smhiLabel) {
