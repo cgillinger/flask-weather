@@ -666,10 +666,7 @@ def api_current_weather():
             'use_netatmo': weather_state['use_netatmo'],  # NYT: För frontend-detektering
             'netatmo_available': weather_state['netatmo_available'],  # NYT: Faktisk tillgänglighet
             'weather_effects_enabled': weather_state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status
-            'uv_enabled': weather_state['uv_enabled'],  # FAS 3: UV-status
-            'temperature_layout': weather_state['config'].get('temperature_layout', {
-                'plats_1': 'smhi', 'plats_2': 'netatmo'
-            })
+            'uv_enabled': weather_state['uv_enabled']  # FAS 3: UV-status
         }
 
     response_data = {
