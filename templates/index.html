@@ -70,18 +70,18 @@
                         <div class="position-underline"></div>
                     </div>
 
-                    <!-- TEMP UNIT: Configstyrda platser (plats-1 = stor, plats-2 = liten) -->
+                    <!-- TEMP UNIT -->
                     <div class="temp-unit" id="temp-unit">
-                        <!-- PLATS 1: Primär temperatur (stor siffra) -->
-                        <div class="plats-1-column" id="plats-1-section">
-                            <div class="plats-1-temperature" id="plats-1-temperature">--.-°</div>
-                            <div class="plats-1-label" id="plats-1-label">TEMPERATUR</div>
+                        <!-- PROGNOS COLUMN -->
+                        <div class="prognos-column">
+                            <div class="main-temperature" id="smhi-temperature">--.-°</div>
+                            <div class="smhi-label" id="smhi-label">PROGNOS</div>
                         </div>
 
-                        <!-- PLATS 2: Sekundär temperatur (liten siffra) -->
-                        <div class="plats-2-column" id="plats-2-section">
-                            <div class="plats-2-temperature" id="plats-2-temperature">--.-°</div>
-                            <div class="plats-2-label" id="plats-2-label"></div>
+                        <!-- FAKTISK COLUMN -->
+                        <div class="faktisk-column" id="netatmo-temperature-section">
+                            <div class="netatmo-temp-small" id="netatmo-temperature-small">--.-°</div>
+                            <div class="netatmo-label">FAKTISK</div>
                             <!-- Vinddata läggs till här av JavaScript -->
                         </div>
                     </div>

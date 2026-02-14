@@ -233,12 +233,12 @@ body {
     margin-top: clamp(0.8rem, 1.2vw, 1.6rem); /* FORM: Margin top för justering mot klocksiffror */
 }
 
-/* PLATS 1: Primär temperatur (stor siffra) */
-.plats-1-column {
+/* PROGNOS COLUMN */
+.prognos-column {
     text-align: center;
 }
 
-.plats-1-temperature {
+.main-temperature {
     font-size: clamp(4rem, 7.5vw, 9rem);
     font-weight: 900;
     color: var(--text-primary);
@@ -248,7 +248,7 @@ body {
     justify-content: center;
 }
 
-.plats-1-label {
+.smhi-label {
     font-size: clamp(0.8rem, 1.1vw, 1.3rem);
     font-weight: 700;
     color: var(--text-secondary);
@@ -257,15 +257,15 @@ body {
     margin-top: 0.3rem;
 }
 
-/* PLATS 2: Sekundär temperatur (liten siffra) */
-.plats-2-column {
+/* FAKTISK COLUMN */
+.faktisk-column {
     text-align: center;
     position: relative;
     top: -0.8rem;
 }
 
-.plats-2-temperature {
-    font-size: clamp(2.67rem, 5vw, 6rem); /* Exakt 2/3 av plats-1 */
+.netatmo-temp-small {
+    font-size: clamp(2.67rem, 5vw, 6rem); /* Exakt 2/3 av .main-temperature */
     font-weight: 800;
     color: var(--accent-secondary);
     line-height: 1;
@@ -274,7 +274,7 @@ body {
     justify-content: center;
 }
 
-.plats-2-label {
+.netatmo-label {
     font-size: clamp(0.7rem, 0.95vw, 1.1rem);
     font-weight: 700;
     color: var(--text-secondary);
@@ -362,8 +362,8 @@ body {
     z-index: 10;
 }
 
-/* Single temperature mode (plats-2 källa saknas) */
-.temp-unit.single-temperature-mode .plats-2-column {
+/* Single temperature mode (endast SMHI) */
+.temp-unit.single-temperature-mode .faktisk-column {
     display: none;
 }
 
@@ -767,15 +767,15 @@ body {
     align-items: flex-start !important;
 }
 
-/* FORCE PLATS-1 AND PLATS-2 AS FLEX CHILDREN */
-.temp-unit > .plats-1-column {
+/* FORCE PROGNOS AND FAKTISK AS FLEX CHILDREN */
+.temp-unit > .prognos-column {
     display: block !important;
     flex: 0 0 auto !important;
     grid-column: unset !important;
     grid-row: unset !important;
 }
 
-.temp-unit > .plats-2-column {
+.temp-unit > .faktisk-column {
     display: block !important;
     flex: 0 0 auto !important;
     grid-column: unset !important;
