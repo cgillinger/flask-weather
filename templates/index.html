@@ -72,17 +72,17 @@
 
                     <!-- TEMP UNIT -->
                     <div class="temp-unit" id="temp-unit">
-                        <!-- PROGNOS COLUMN -->
-                        <div class="prognos-column">
-                            <div class="main-temperature" id="smhi-temperature">--.-°</div>
-                            <div class="smhi-label" id="smhi-label">PROGNOS</div>
-                        </div>
-
-                        <!-- FAKTISK COLUMN -->
+                        <!-- FAKTISK COLUMN (Netatmo - primär/stor) -->
                         <div class="faktisk-column" id="netatmo-temperature-section">
-                            <div class="netatmo-temp-small" id="netatmo-temperature-small">--.-°</div>
+                            <div class="main-temperature" id="netatmo-temperature-small">--.-°</div>
                             <div class="netatmo-label">FAKTISK</div>
                             <!-- Vinddata läggs till här av JavaScript -->
+                        </div>
+
+                        <!-- PROGNOS COLUMN (SMHI - sekundär/liten) -->
+                        <div class="prognos-column">
+                            <div class="smhi-temp-small" id="smhi-temperature">--.-°</div>
+                            <div class="smhi-label" id="smhi-label">PROGNOS</div>
                         </div>
                     </div>
 

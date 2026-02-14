@@ -233,8 +233,8 @@ body {
     margin-top: clamp(0.8rem, 1.2vw, 1.6rem); /* FORM: Margin top för justering mot klocksiffror */
 }
 
-/* PROGNOS COLUMN */
-.prognos-column {
+/* FAKTISK COLUMN (Netatmo - primär/stor, visas först) */
+.faktisk-column {
     text-align: center;
 }
 
@@ -248,7 +248,7 @@ body {
     justify-content: center;
 }
 
-.smhi-label {
+.netatmo-label {
     font-size: clamp(0.8rem, 1.1vw, 1.3rem);
     font-weight: 700;
     color: var(--text-secondary);
@@ -257,14 +257,14 @@ body {
     margin-top: 0.3rem;
 }
 
-/* FAKTISK COLUMN */
-.faktisk-column {
+/* PROGNOS COLUMN (SMHI - sekundär/liten, visas efter) */
+.prognos-column {
     text-align: center;
     position: relative;
     top: -0.8rem;
 }
 
-.netatmo-temp-small {
+.smhi-temp-small {
     font-size: clamp(2.67rem, 5vw, 6rem); /* Exakt 2/3 av .main-temperature */
     font-weight: 800;
     color: var(--accent-secondary);
@@ -274,7 +274,7 @@ body {
     justify-content: center;
 }
 
-.netatmo-label {
+.smhi-label {
     font-size: clamp(0.7rem, 0.95vw, 1.1rem);
     font-weight: 700;
     color: var(--text-secondary);
@@ -362,9 +362,14 @@ body {
     z-index: 10;
 }
 
-/* Single temperature mode (endast SMHI) */
-.temp-unit.single-temperature-mode .faktisk-column {
+/* Single temperature mode (SMHI-only eller Netatmo ej tillgänglig) */
+.temp-unit.single-temperature-mode .prognos-column {
     display: none;
+}
+
+/* I single-temperature-mode: SMHI visas i faktisk-kolumnen som primär */
+.temp-unit.single-temperature-mode .faktisk-column {
+    text-align: center;
 }
 
 /* ========== MID ZONE: FAKTA ========== */
@@ -767,21 +772,26 @@ body {
     align-items: flex-start !important;
 }
 
-/* FORCE PROGNOS AND FAKTISK AS FLEX CHILDREN */
-.temp-unit > .prognos-column {
+/* FORCE FAKTISK AND PROGNOS AS FLEX CHILDREN */
+.temp-unit > .faktisk-column {
     display: block !important;
     flex: 0 0 auto !important;
     grid-column: unset !important;
     grid-row: unset !important;
 }
 
-.temp-unit > .faktisk-column {
+.temp-unit > .prognos-column {
     display: block !important;
     flex: 0 0 auto !important;
     grid-column: unset !important;
     grid-row: unset !important;
     position: relative !important;
     top: -0.8rem !important;
+}
+
+/* Override: i single-temperature-mode ska prognos-kolumnen döljas */
+.temp-unit.single-temperature-mode > .prognos-column {
+    display: none !important;
 }
 
 /* FORCE SUN TIMES PLACEMENT */
