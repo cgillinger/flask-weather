@@ -142,16 +142,25 @@ function updateCurrentWeather(data) {
     } else {
         // FAS 3: SMHI-ONLY MODE - Fallback hantering med UI-anpassningar
         console.log('📊 FAS 3: SMHI-only mode med UI-degradering + HUMIDITY FIX');
-        
+
+        // SWAPPED: Visa SMHI-temp i den primära (stora) positionen
+        if (data.smhi && data.smhi.temperature) {
+            const primaryTempElement = document.getElementById('netatmo-temperature-small');
+            if (primaryTempElement) {
+                primaryTempElement.innerHTML = formatTemperature(data.smhi.temperature);
+                primaryTempElement.style.color = ColorManager.getTemperatureColor(data.smhi.temperature);
+                console.log('🌡️ SMHI-only: SMHI-temperatur visas i primär (stor) position');
+            }
+        }
+
         // Använd SMHI för barometer med fallback
-        // STEG 8: Använd Intelligent Data Source istället för lokal funktion
         const fallbackPressureTrend = createSmhiPressureTrendFallback(data.smhi);
         const pressureData = formatDataWithSource(data.smhi?.pressure, 'pressure');
-        
+
         // STEG 7: Använd BarometerDisplay istället för BarometerManager
         BarometerDisplay.updateBarometerDetail(fallbackPressureTrend, pressureData.value);
-        
-        console.log('🔄 FAS 3: FAKTISK temperatur, luftfuktighet och CO2 är dolda via UI-anpassningar');
+
+        console.log('🔄 FAS 3: Prognos-kolumn och CO2 dolda via UI-anpassningar');
     }
     
     // SOL-TIDER (Oförändrade)
