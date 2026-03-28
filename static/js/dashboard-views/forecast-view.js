@@ -68,8 +68,8 @@ function createForecastCard(forecast) {
     if (hasSignificantRain) {
         // NEDERBÖRD > 2MM → Visa nederbörd (ersätter vind)
         position4Content = `<div class="forecast-precipitation">
-            <i class="wi wi-raindrops" style="font-size: clamp(1.2rem, 1.6vw, 2rem); color: #4fc3f7;"></i>
-            <span style="font-size: clamp(0.95rem, 1.3vw, 1.6rem); font-weight: 600;">${forecast.precipitation.toFixed(1)} mm</span>
+            <i class="wi wi-raindrops" style="font-size: clamp(0.9rem, 1.2vw, 1.5rem); color: #4fc3f7;"></i>
+            <span style="font-size: clamp(0.75rem, 1vw, 1.2rem); font-weight: 600;">${forecast.precipitation.toFixed(1)} mm</span>
         </div>`;
     } else if (forecast.wind_speed) {
         // DEFAULT → Visa vind
@@ -88,7 +88,7 @@ function createForecastCard(forecast) {
             windArrow = `<i class="wi wi-direction-up" style="
                 transform: rotate(${arrowRotation}deg); 
                 color: ${windColor}; 
-                font-size: clamp(2.21rem, 2.89vw, 3.4rem);  
+                font-size: clamp(1.4rem, 1.8vw, 2.2rem);  
                 margin-left: 3px; 
                 font-family: 'weathericons', 'Weather Icons', sans-serif;
             "></i>`;
@@ -96,7 +96,7 @@ function createForecastCard(forecast) {
         
         position4Content = `<div class="forecast-wind forecast-wind-consistent">
             <div class="forecast-wind-header">
-                <i class="wi ${windData.icon}" style="font-size: clamp(1.87rem, 2.55vw, 3.06rem); color: ${windColor}; margin-right: 2px; font-family: 'weathericons', 'Weather Icons', sans-serif;"></i>
+                <i class="wi ${windData.icon}" style="font-size: clamp(1.2rem, 1.6vw, 2rem); color: ${windColor}; margin-right: 2px; font-family: 'weathericons', 'Weather Icons', sans-serif;"></i>
                 ${windArrow}
             </div>
             <div class="forecast-wind-text">
