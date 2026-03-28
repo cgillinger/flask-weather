@@ -483,7 +483,7 @@ body {
     font-size: clamp(1rem, 1.4vw, 1.7rem);
     font-weight: 800;
     color: var(--text-primary);
-    margin-bottom: clamp(0.3rem, 0.5vw, 0.7rem);
+    margin-bottom: clamp(0.2rem, 0.3vw, 0.5rem);
     flex-shrink: 0;
 }
 
@@ -498,16 +498,17 @@ body {
 .forecast-card {
     /* Grid child - inga flex properties */
     min-height: auto;
-    padding: clamp(0.4rem, 0.6vw, 0.8rem);
+    padding: clamp(0.3rem, 0.4vw, 0.6rem);
     background: #000000; /* Helt svart */
     border: 2px solid rgba(255, 255, 255, 0.6);
     border-radius: clamp(0.6rem, 0.9vw, 1.1rem);
     display: grid;
-    grid-template-rows: auto auto auto auto; /* 4 rader: tid, ikon, temp, vind/nederbörd */
+    grid-template-rows: auto auto auto 1fr;
     align-items: center;
     justify-items: center;
-    gap: clamp(0.2rem, 0.3vw, 0.5rem); /* Spacing mellan element */
+    gap: clamp(0.1rem, 0.2vw, 0.3rem);
     text-align: center;
+    overflow: hidden;
     transition: all 0.3s ease;
 }
 
@@ -519,7 +520,7 @@ body {
 
 .forecast-time {
     grid-row: 1;
-    font-size: clamp(1rem, 1.3vw, 1.5rem);
+    font-size: clamp(0.85rem, 1.1vw, 1.3rem);
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0;
@@ -527,8 +528,8 @@ body {
 
 .forecast-icon {
     grid-row: 2;
-    font-size: clamp(2.2rem, 3.2vw, 3.8rem);
-    min-height: clamp(2.8rem, 4vw, 5rem); /* Fast höjd för linjering */
+    font-size: clamp(1.8rem, 2.5vw, 3rem);
+    min-height: clamp(2.2rem, 3vw, 3.8rem);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -542,7 +543,7 @@ body {
 
 .forecast-temp {
     grid-row: 3;
-    font-size: clamp(2rem, 3vw, 3.8rem); /* Krympt för kompakt layout */
+    font-size: clamp(1.6rem, 2.2vw, 2.8rem);
     font-weight: 800;
     color: var(--text-primary);
     margin-top: 0;
@@ -586,10 +587,10 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: clamp(0.95rem, 1.3vw, 1.6rem); /* ← ÄNDRA HÄR: Samma som 5-dagars weekday */
-    font-weight: 600; /* ← ÄNDRA HÄR: Samma som 5-dagars weekday */
+    font-size: clamp(0.75rem, 1vw, 1.2rem);
+    font-weight: 600;
     color: #ffffff;
-    line-height: 1.2;
+    line-height: 1.1;
 }
 
 .wind-line1,
@@ -608,7 +609,7 @@ body {
     font-size: clamp(1rem, 1.4vw, 1.7rem);
     font-weight: 800;
     color: var(--text-primary);
-    margin-bottom: clamp(0.3rem, 0.5vw, 0.7rem);
+    margin-bottom: clamp(0.2rem, 0.3vw, 0.5rem);
     flex-shrink: 0;
 }
 
