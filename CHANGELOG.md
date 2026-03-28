@@ -17,6 +17,7 @@ Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
 ### Fixat
 - Visuell obalans där prognoszonerna dominerade hero-innehållet
+- Timprognoskortens overflow: krympt ikon, temperatur, padding och border
 
 ## [2.x.x] och tidigare
 
