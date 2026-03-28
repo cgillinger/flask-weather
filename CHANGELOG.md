@@ -10,6 +10,7 @@ Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 - Klocka, temperaturer och väderikon skalade upp ~30% för bättre visuell balans
 - Prognoskort komprimerade utan att ta bort datapunkter
 - Forecast-card min-height borttagen för naturligare storleksanpassning
+- Intern ombalansering av timkort: ikon och temp förstorade, vind komprimerad till enrad, nederbörd visas som separat rad under vind
 
 ### Tillagt
 - VERSION-fil för central versionshantering
