@@ -20,7 +20,7 @@
 USERNAME="ditt-användarnamn"
 
 # Projektets katalog (vanligtvis korrekt som den är)
-PROJECT_DIR="/var/services/homes/${USERNAME}/vaderdisplay"
+PROJECT_DIR="/var/services/homes/${USERNAME}/flask-weather"
 
 # Python-sökväg (vanligtvis korrekt som den är)
 PYTHON_PATH="/bin/python3"
@@ -44,7 +44,7 @@ echo "🕐 Tid: $(date)"
 # Kontrollera att projektkatalogen existerar
 if [ ! -d "${PROJECT_DIR}" ]; then
     echo "❌ FEL: Projektkatalog finns inte: ${PROJECT_DIR}"
-    echo "💡 Kontrollera att USERNAME är korrekt och att vaderdisplay är nedladdat"
+    echo "💡 Kontrollera att USERNAME är korrekt och att flask-weather är nedladdat"
     exit 1
 fi
 
@@ -57,7 +57,7 @@ cd "${PROJECT_DIR}" || {
 # Kontrollera att app.py finns
 if [ ! -f "app.py" ]; then
     echo "❌ FEL: app.py finns inte i ${PROJECT_DIR}"
-    echo "💡 Kontrollera att vaderdisplay är korrekt nedladdat"
+    echo "💡 Kontrollera att flask-weather är korrekt nedladdat"
     exit 1
 fi
 

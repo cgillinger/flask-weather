@@ -1,6 +1,8 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**GitHub Repository:** [https://github.com/cgillinger/vaderdisplay](https://github.com/cgillinger/vaderdisplay)
+**Version 3.0.0** · [Changelog](CHANGELOG.md)
+
+**GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 
 En modern, responsiv väder-dashboard som fungerar på alla skärmstorlekar och enheter. Visar väderprognos från SMHI med valfri integration av Netatmo väderstation för faktiska mätningar. Inkluderar Weather Effects med animerade regn- och snöeffekter, UV-index från CAMS, och centraliserad färghantering för optimal visuell upplevelse.
 
@@ -35,7 +37,7 @@ En modern, responsiv väder-dashboard som fungerar på alla skärmstorlekar och 
 **Linux/Ubuntu/Raspberry Pi:**
 ```bash
 sudo apt update && sudo apt install python3 python3-pip git libeccodes-dev -y
-cd ~ && git clone https://github.com/cgillinger/vaderdisplay.git && cd vaderdisplay
+cd ~ && git clone https://github.com/cgillinger/flask-weather.git && cd flask-weather
 pip3 install -r requirements.txt --break-system-packages
 cp reference/config_example.py reference/config.py
 nano reference/config.py  # Konfigurera (se guide nedan)
@@ -45,7 +47,7 @@ python3 app.py
 **Synology NAS:**
 ```bash
 python3 -m pip install --user flask requests netCDF4 cdsapi
-cd /var/services/homes/$(whoami) && git clone https://github.com/cgillinger/vaderdisplay.git && cd vaderdisplay
+cd /var/services/homes/$(whoami) && git clone https://github.com/cgillinger/flask-weather.git && cd flask-weather
 cp reference/config_example.py reference/config.py
 nano reference/config.py
 python3 app.py
@@ -158,8 +160,8 @@ sudo apt install python3 python3-pip git curl nano libeccodes-dev -y
 
 ```bash
 cd ~
-git clone https://github.com/cgillinger/vaderdisplay.git
-cd vaderdisplay
+git clone https://github.com/cgillinger/flask-weather.git
+cd flask-weather
 pip3 install -r requirements.txt --break-system-packages
 ```
 *Laddar ner dashboarden och installerar alla Python-beroenden inklusive Flask, requests, netCDF4, cdsapi.*
@@ -230,7 +232,7 @@ After=network.target
 [Service]
 Type=simple
 User=$USER
-WorkingDirectory=$HOME/vaderdisplay
+WorkingDirectory=$HOME/flask-weather
 ExecStart=/usr/bin/python3 app.py
 Restart=always
 
@@ -256,8 +258,8 @@ sudo systemctl start weather-dashboard
 ```bash
 python3 -m pip install --user flask requests netCDF4 cdsapi
 cd /var/services/homes/$(whoami)
-git clone https://github.com/cgillinger/vaderdisplay.git
-cd vaderdisplay
+git clone https://github.com/cgillinger/flask-weather.git
+cd flask-weather
 cp reference/config_example.py reference/config.py
 nano reference/config.py
 ```
@@ -277,7 +279,7 @@ python3 app.py
 3. **Användare**: Ditt användarnamn
 4. **Script:** 
    ```bash
-   cd /var/services/homes/$(whoami)/vaderdisplay && python3 app.py
+   cd /var/services/homes/$(whoami)/flask-weather && python3 app.py
    ```
 5. **Schema**: **När systemet startar**
 
@@ -359,8 +361,8 @@ sudo apt install python3 python3-pip git curl nano chromium-browser xorg libecco
 
 ```bash
 cd ~
-git clone https://github.com/cgillinger/vaderdisplay.git
-cd vaderdisplay
+git clone https://github.com/cgillinger/flask-weather.git
+cd flask-weather
 pip3 install -r requirements.txt --break-system-packages
 cp reference/config_example.py reference/config.py
 nano reference/config.py
@@ -393,7 +395,7 @@ cat > ~/.config/autostart/weather-dashboard.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
 Name=Weather Dashboard
-Exec=/bin/bash -c 'cd ~/vaderdisplay && python3 app.py & sleep 10 && chromium-browser --kiosk --disable-infobars http://localhost:8036'
+Exec=/bin/bash -c 'cd ~/flask-weather && python3 app.py & sleep 10 && chromium-browser --kiosk --disable-infobars http://localhost:8036'
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -731,13 +733,13 @@ Redigera `static/css/colors.css`:
 
 **Linux/Pi:**
 ```bash
-cd ~/vaderdisplay
+cd ~/flask-weather
 python3 app.py
 ```
 
 **Synology:**
 ```bash
-cd /var/services/homes/$(whoami)/vaderdisplay
+cd /var/services/homes/$(whoami)/flask-weather
 python3 app.py
 ```
 
@@ -942,7 +944,7 @@ echo "Port 8036: $(netstat -tuln | grep :8036 > /dev/null && echo 'UPPTAGEN' || 
 
 ### 📚 Resurser
 
-- **GitHub Issues**: [https://github.com/cgillinger/vaderdisplay/issues](https://github.com/cgillinger/vaderdisplay/issues)
+- **GitHub Issues**: [https://github.com/cgillinger/flask-weather/issues](https://github.com/cgillinger/flask-weather/issues)
 - **Konfiguration**: `reference/config_example.py` har detaljerade kommentarer
 - **API-dokumentation**: Tillgänglig via `/api/`-endpoints
 
@@ -950,7 +952,7 @@ echo "Port 8036: $(netstat -tuln | grep :8036 > /dev/null && echo 'UPPTAGEN' || 
 
 **Backup och uppdatera:**
 ```bash
-cd ~/vaderdisplay
+cd ~/flask-weather
 cp reference/config.py reference/config.backup
 git pull
 pip3 install -r requirements.txt --break-system-packages --upgrade
