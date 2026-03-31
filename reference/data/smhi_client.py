@@ -22,8 +22,8 @@ class SMHIClient:
     
     # SMHI API konstanter - VÃ„DERPROGNOS
     BASE_URL = "https://opendata-download-metfcst.smhi.se/api"
-    CATEGORY = "pmp3g"  # Meteorological forecasts
-    VERSION = "2"
+    CATEGORY = "snow1g"  # Meteorological forecasts
+    VERSION = "1"
     
     # SMHI API konstanter - METEOROLOGISKA OBSERVATIONER (FAS 1)
     METOBS_BASE_URL = "https://opendata-download-metobs.smhi.se/api"
