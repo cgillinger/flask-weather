@@ -434,30 +434,35 @@ def update_weather_data():
 
         # FAS 2: SMHI data med luftfuktighet (alltid obligatorisk)
         if smhi_client:
-            # FAS 2: KRITISK ÄNDRING - Använd get_current_weather_with_humidity() istället för get_current_weather()
-            weather_state['smhi_data'] = smhi_client.get_current_weather_with_humidity()
-            weather_state['forecast_data'] = smhi_client.get_12h_forecast()
-            weather_state['daily_forecast_data'] = smhi_client.get_daily_forecast(5)
+            try:
+                # FAS 2: KRITISK ÄNDRING - Använd get_current_weather_with_humidity() istället för get_current_weather()
+                weather_state['smhi_data'] = smhi_client.get_current_weather_with_humidity()
+                weather_state['forecast_data'] = smhi_client.get_12h_forecast()
+                weather_state['daily_forecast_data'] = smhi_client.get_daily_forecast(5)
 
-            # FAS 2: Debug-logging för luftfuktighetsdata
-            if weather_state['smhi_data']:
-                humidity = weather_state['smhi_data'].get('humidity')
-                humidity_station = weather_state['smhi_data'].get('humidity_station')
-                humidity_age = weather_state['smhi_data'].get('humidity_age_minutes')
+                # FAS 2: Debug-logging för luftfuktighetsdata
+                if weather_state['smhi_data']:
+                    humidity = weather_state['smhi_data'].get('humidity')
+                    humidity_station = weather_state['smhi_data'].get('humidity_station')
+                    humidity_age = weather_state['smhi_data'].get('humidity_age_minutes')
 
-                if humidity is not None:
-                    print(f"✅ FAS 2: SMHI-data med luftfuktighet uppdaterad - {humidity}% från {humidity_station} (ålder: {humidity_age} min)")
+                    if humidity is not None:
+                        print(f"✅ FAS 2: SMHI-data med luftfuktighet uppdaterad - {humidity}% från {humidity_station} (ålder: {humidity_age} min)")
+                    else:
+                        print("⚠️ FAS 2: SMHI-data uppdaterad men ingen luftfuktighet tillgänglig")
+
+                    # FAS 2: WeatherEffects debugging
+                    if weather_state['weather_effects_enabled'] and weather_state['smhi_data'].get('weather_symbol'):
+                        weather_symbol = weather_state['smhi_data']['weather_symbol']
+                        effect_type = get_smhi_weather_effect_type(weather_symbol)
+                        precipitation = weather_state['smhi_data'].get('precipitation', 0)
+                        print(f"🌦️ FAS 2: SMHI Symbol {weather_symbol} → WeatherEffect '{effect_type}' (precipitation: {precipitation}mm)")
                 else:
-                    print("⚠️ FAS 2: SMHI-data uppdaterad men ingen luftfuktighet tillgänglig")
-
-                # FAS 2: WeatherEffects debugging
-                if weather_state['weather_effects_enabled'] and weather_state['smhi_data'].get('weather_symbol'):
-                    weather_symbol = weather_state['smhi_data']['weather_symbol']
-                    effect_type = get_smhi_weather_effect_type(weather_symbol)
-                    precipitation = weather_state['smhi_data'].get('precipitation', 0)
-                    print(f"🌦️ FAS 2: SMHI Symbol {weather_symbol} → WeatherEffect '{effect_type}' (precipitation: {precipitation}mm)")
-            else:
-                print("❌ FAS 2: SMHI-data misslyckades")
+                    print("❌ FAS 2: SMHI-data misslyckades")
+            except Exception as e:
+                print(f"❌ FAS 2: SMHI-uppdatering kraschade: {e}")
+                import traceback
+                traceback.print_exc()
 
         # FAS 2: Villkorsstyrd Netatmo-uppdatering
         if netatmo_client and weather_state['netatmo_available']:
