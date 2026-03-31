@@ -639,9 +639,12 @@ class SMHIClient:
         weather['coordinates'] = {'lat': self.latitude, 'lon': self.longitude}
         
         # LÃ¤gg till grid-koordinater frÃ¥n response
-        if 'geometry' in data and 'coordinates' in data['geometry']:
-            coords = data['geometry']['coordinates'][0]  # GeoJSON format
-            weather['grid_coordinates'] = {'lon': coords[0], 'lat': coords[1]}
+        try:
+            if 'geometry' in data and 'coordinates' in data['geometry']:
+                coords = data['geometry']['coordinates'][0]  # GeoJSON format
+                weather['grid_coordinates'] = {'lon': coords[0], 'lat': coords[1]}
+        except (IndexError, KeyError, TypeError):
+            pass
         
         # WEATHER ANIMATIONS: LÃ¤gg till animation trigger
         if weather.get('weather_symbol'):
