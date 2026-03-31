@@ -32,13 +32,13 @@ class SMHIClient:
     
     # VÃ¤derparametrar vi Ã¤r intresserade av
     PARAMETERS = {
-        't': 'temperature',      # Temperatur (Â°C)
-        'Wsymb2': 'weather_symbol',  # VÃ¤dersymbol (1-27)
-        'ws': 'wind_speed',      # Vindstyrka (m/s)
-        'wd': 'wind_direction',  # Vindriktning (grader)
-        'tp': 'precipitation',   # Total nederbÃ¶rd (mm) - FIXAT: AnvÃ¤nder tp istÃ¤llet fÃ¶r pmin
-        'pmax': 'precipitation_max',  # NederbÃ¶rd max (mm/h)
-        'msl': 'pressure'        # Lufttryck (hPa)
+        'air_temperature': 'temperature',                    # Temperatur
+        'symbol_code': 'weather_symbol',                     # Vädersymbol (1-27)
+        'wind_speed': 'wind_speed',                          # Vindstyrka (m/s)
+        'wind_from_direction': 'wind_direction',             # Vindriktning (grader)
+        'precipitation_amount_mean': 'precipitation',        # Medelskattad nederbörd (mm)
+        'precipitation_amount_max': 'precipitation_max',     # Nederbörd max (mm/h)
+        'air_pressure_at_mean_sea_level': 'pressure'         # Lufttryck (hPa)
     }
     
     # Timeout fÃ¶r API-anrop
@@ -503,18 +503,16 @@ class SMHIClient:
             Dict med tolkade parametrar
         """
         result = {}
-        
-        if 'parameters' not in time_entry:
+
+        # SNOW1g/v1: data is a flat dict instead of parameters array
+        data = time_entry.get('data')
+        if not data:
             return result
-        
-        for param in time_entry['parameters']:
-            param_name = param.get('name')
-            values = param.get('values', [])
-            
-            if param_name in self.PARAMETERS and values:
-                friendly_name = self.PARAMETERS[param_name]
-                result[friendly_name] = values[0]  # Ta fÃ¶rsta vÃ¤rdet
-        
+
+        for api_name, friendly_name in self.PARAMETERS.items():
+            if api_name in data:
+                result[friendly_name] = data[api_name]
+
         return result
     
     def _get_animation_trigger(self, weather_symbol: int, precipitation: float, wind_direction: float = None) -> Dict:
@@ -612,7 +610,7 @@ class SMHIClient:
         
         # Hitta nÃ¤rmaste tidpunkt
         for entry in data['timeSeries']:
-            valid_time_str = entry.get('validTime')
+            valid_time_str = entry.get('time')
             if not valid_time_str:
                 continue
             
@@ -635,7 +633,7 @@ class SMHIClient:
         weather = self.parse_parameters(best_entry)
         
         # LÃ¤gg till metadata
-        weather['valid_time'] = best_entry.get('validTime')
+        weather['valid_time'] = best_entry.get('time')
         weather['time_diff_minutes'] = int(min_time_diff / 60)
         weather['data_source'] = 'SMHI'
         weather['coordinates'] = {'lat': self.latitude, 'lon': self.longitude}
@@ -687,7 +685,7 @@ class SMHIClient:
             
             # Hitta nÃ¤rmaste datapunkt fÃ¶r target_time
             for entry in data['timeSeries']:
-                valid_time_str = entry.get('validTime')
+                valid_time_str = entry.get('time')
                 if not valid_time_str:
                     continue
                 
@@ -714,8 +712,8 @@ class SMHIClient:
                 weather = self.parse_parameters(best_entry)
                 
                 # LÃ¤gg till tidsinfo
-                valid_time = datetime.fromisoformat(best_entry['validTime'].replace('Z', '+00:00'))
-                weather['valid_time'] = best_entry['validTime']
+                valid_time = datetime.fromisoformat(best_entry['time'].replace('Z', '+00:00'))
+                weather['valid_time'] = best_entry['time']
                 weather['local_time'] = valid_time.strftime('%H:%M')
                 weather['hours_from_now'] = target_hour
                 weather['date_time'] = valid_time.isoformat()
@@ -759,7 +757,7 @@ class SMHIClient:
         forecast = []
         
         for entry in data['timeSeries']:
-            valid_time_str = entry.get('validTime')
+            valid_time_str = entry.get('time')
             if not valid_time_str:
                 continue
             
@@ -821,7 +819,7 @@ class SMHIClient:
         now = datetime.now(timezone.utc)
         
         for entry in data['timeSeries']:
-            valid_time_str = entry.get('validTime')
+            valid_time_str = entry.get('time')
             if not valid_time_str:
                 continue
             

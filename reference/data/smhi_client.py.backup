@@ -32,13 +32,13 @@ class SMHIClient:
     
     # VÃ¤derparametrar vi Ã¤r intresserade av
     PARAMETERS = {
-        't': 'temperature',      # Temperatur (Â°C)
-        'Wsymb2': 'weather_symbol',  # VÃ¤dersymbol (1-27)
-        'ws': 'wind_speed',      # Vindstyrka (m/s)
-        'wd': 'wind_direction',  # Vindriktning (grader)
-        'tp': 'precipitation',   # Total nederbÃ¶rd (mm) - FIXAT: AnvÃ¤nder tp istÃ¤llet fÃ¶r pmin
-        'pmax': 'precipitation_max',  # NederbÃ¶rd max (mm/h)
-        'msl': 'pressure'        # Lufttryck (hPa)
+        'air_temperature': 'temperature',                    # Temperatur
+        'symbol_code': 'weather_symbol',                     # Vädersymbol (1-27)
+        'wind_speed': 'wind_speed',                          # Vindstyrka (m/s)
+        'wind_from_direction': 'wind_direction',             # Vindriktning (grader)
+        'precipitation_amount_mean': 'precipitation',        # Medelskattad nederbörd (mm)
+        'precipitation_amount_max': 'precipitation_max',     # Nederbörd max (mm/h)
+        'air_pressure_at_mean_sea_level': 'pressure'         # Lufttryck (hPa)
     }
     
     # Timeout fÃ¶r API-anrop
@@ -263,7 +263,7 @@ class SMHIClient:
             try:
                 if isinstance(timestamp_raw, int):
                     # Unix timestamp (observations API)
-                    timestamp = datetime.fromtimestamp(timestamp_raw, tz=timezone.utc)
+                    timestamp = datetime.fromtimestamp(timestamp_raw / 1000, tz=timezone.utc)
                     timestamp_str = timestamp.isoformat()
                 elif isinstance(timestamp_raw, str):
                     # ISO format (annat API)
@@ -401,12 +401,81 @@ class SMHIClient:
             print(f"âŒ OvÃ¤ntat fel vid SMHI API-anrop: {e}")
             return None
     
-    def get_data(self, force_refresh: bool = False) -> Optional[Dict]:
+    # === VIKTAD DAGSPROGNOS: HJÄLPMETODER ===
+    
+    def _get_time_of_day_weight(self, hour: int) -> float:
         """
-        HÃ¤mta SMHI-data med cache-stÃ¶d.
+        Returnera tidsvikt baserat på när människor är utomhus.
         
         Args:
-            force_refresh: Tvinga uppdatering Ã¤ven om cache Ã¤r giltig
+            hour: Timme på dygnet (0-23)
+            
+        Returns:
+            Viktfaktor för tidpunkten
+        """
+        if 0 <= hour < 6: return 0.2   # Natt - de flesta sover
+        if 6 <= hour < 9: return 3.0   # Morgonpendling
+        if 9 <= hour < 12: return 2.0  # Aktiv förmiddag
+        if 12 <= hour < 15: return 2.5 # Lunch/aktiv dag
+        if 15 <= hour < 18: return 3.0 # Hemresa/fritid
+        if 18 <= hour < 21: return 1.5 # Kvällsaktivitet
+        return 0.5                      # Sen kväll
+    
+    def _get_weather_priority(self, symbol: int) -> float:
+        """
+        Returnera väderprioriteten för en symbol baserat på granulär modell.
+        Högre värde = mer allvarligt/märkbart väder.
+        
+        Args:
+            symbol: SMHI vädersymbol (1-27)
+            
+        Returns:
+            Prioritetsvärde för symbolen
+        """
+        if symbol is None:
+            return 2.0
+        
+        # Granulär prioritetsmodell för svenskt klimat
+        PRIORITY = {
+            1: 1.0,   # klart
+            2: 1.2,   # nästan klart
+            3: 1.5,   # lätt molnighet
+            4: 1.7,   # halvklart
+            5: 2.0,   # mulet
+            6: 3.0,   # dimma
+            7: 3.0,   # dimma
+            8: 3.5,   # lätt regnskur
+            9: 4.0,   # regnskur
+            10: 5.0,  # kraftig regnskur
+            11: 5.0,  # åska
+            12: 3.5,  # lätt regn
+            13: 4.0,  # regn
+            14: 5.0,  # kraftigt regn
+            15: 4.0,  # lätt snöblandat
+            16: 4.5,  # snöblandat
+            17: 5.0,  # kraftigt snöblandat
+            18: 4.0,  # lätt snöfall
+            19: 4.5,  # snöfall
+            20: 5.0,  # tungt snöfall
+            21: 4.2,  # lätt snöby
+            22: 4.7,  # snöby
+            23: 5.0,  # kraftig snöby
+            24: 5.0,  # lätt åskskur
+            25: 5.0,  # åskskur
+            26: 5.0,  # kraftig åskskur
+            27: 2.0   # oklar symbol
+        }
+        
+        return PRIORITY.get(symbol, 2.0)
+    
+    # === HUVUDMETODER ===
+    
+    def get_data(self, force_refresh: bool = False) -> Optional[Dict]:
+        """
+        Hämta SMHI-data med cache-stöd.
+        
+        Args:
+            force_refresh: Tvinga uppdatering även om cache är giltig
             
         Returns:
             Dict med SMHI-data eller None
@@ -434,18 +503,16 @@ class SMHIClient:
             Dict med tolkade parametrar
         """
         result = {}
-        
-        if 'parameters' not in time_entry:
+
+        # SNOW1g/v1: data is a flat dict instead of parameters array
+        data = time_entry.get('data')
+        if not data:
             return result
-        
-        for param in time_entry['parameters']:
-            param_name = param.get('name')
-            values = param.get('values', [])
-            
-            if param_name in self.PARAMETERS and values:
-                friendly_name = self.PARAMETERS[param_name]
-                result[friendly_name] = values[0]  # Ta fÃ¶rsta vÃ¤rdet
-        
+
+        for api_name, friendly_name in self.PARAMETERS.items():
+            if api_name in data:
+                result[friendly_name] = data[api_name]
+
         return result
     
     def _get_animation_trigger(self, weather_symbol: int, precipitation: float, wind_direction: float = None) -> Dict:
@@ -543,7 +610,7 @@ class SMHIClient:
         
         # Hitta nÃ¤rmaste tidpunkt
         for entry in data['timeSeries']:
-            valid_time_str = entry.get('validTime')
+            valid_time_str = entry.get('time')
             if not valid_time_str:
                 continue
             
@@ -566,7 +633,7 @@ class SMHIClient:
         weather = self.parse_parameters(best_entry)
         
         # LÃ¤gg till metadata
-        weather['valid_time'] = best_entry.get('validTime')
+        weather['valid_time'] = best_entry.get('time')
         weather['time_diff_minutes'] = int(min_time_diff / 60)
         weather['data_source'] = 'SMHI'
         weather['coordinates'] = {'lat': self.latitude, 'lon': self.longitude}
@@ -618,7 +685,7 @@ class SMHIClient:
             
             # Hitta nÃ¤rmaste datapunkt fÃ¶r target_time
             for entry in data['timeSeries']:
-                valid_time_str = entry.get('validTime')
+                valid_time_str = entry.get('time')
                 if not valid_time_str:
                     continue
                 
@@ -645,8 +712,8 @@ class SMHIClient:
                 weather = self.parse_parameters(best_entry)
                 
                 # LÃ¤gg till tidsinfo
-                valid_time = datetime.fromisoformat(best_entry['validTime'].replace('Z', '+00:00'))
-                weather['valid_time'] = best_entry['validTime']
+                valid_time = datetime.fromisoformat(best_entry['time'].replace('Z', '+00:00'))
+                weather['valid_time'] = best_entry['time']
                 weather['local_time'] = valid_time.strftime('%H:%M')
                 weather['hours_from_now'] = target_hour
                 weather['date_time'] = valid_time.isoformat()
@@ -690,7 +757,7 @@ class SMHIClient:
         forecast = []
         
         for entry in data['timeSeries']:
-            valid_time_str = entry.get('validTime')
+            valid_time_str = entry.get('time')
             if not valid_time_str:
                 continue
             
@@ -725,15 +792,22 @@ class SMHIClient:
         
         return forecast
     
-    def get_daily_forecast(self, days: int = 4) -> List[Dict]:
+    def get_daily_forecast(self, days: int = 5) -> List[Dict]:
         """
-        HÃ¤mta dagsprognos fÃ¶r kommande dagar.
+        Hämta dagsprognos för kommande dagar med viktad symbolberäkning.
+        
+        Algoritm:
+        - Börjar med IMORGON (exkluderar idag)
+        - Visar exakt 'days' antal dagar
+        - Varje dag får EN symbol baserad på viktad algoritm:
+          * Tidsvikt: när människor är utomhus
+          * Väderprioritering: hur allvarligt vädret är
         
         Args:
-            days: Antal dagar framÃ¥t
+            days: Antal dagar framåt (default 5)
             
         Returns:
-            Lista med vÃ¤derdata per dag (min/max temp)
+            Lista med väderdata per dag med viktad weather_symbol
         """
         data = self.get_data()
         
@@ -745,29 +819,34 @@ class SMHIClient:
         now = datetime.now(timezone.utc)
         
         for entry in data['timeSeries']:
-            valid_time_str = entry.get('validTime')
+            valid_time_str = entry.get('time')
             if not valid_time_str:
                 continue
             
             try:
                 valid_time = datetime.fromisoformat(valid_time_str.replace('Z', '+00:00'))
                 
-                # Endast framtida tidpunkter
+                # KRITISKT: Exkludera dagens datum, börja med imorgon
                 if valid_time <= now:
                     continue
                 
-                # BegrÃ¤nsa till antal dagar
-                days_diff = (valid_time - now).days
-                if days_diff >= days:
+                # Beräkna dagar från idag
+                days_from_today = (valid_time.date() - now.date()).days
+                
+                # Filtrera: endast dagar 1 till 'days' (imorgon = dag 1)
+                if days_from_today < 1 or days_from_today > days:
                     continue
                 
                 date_key = valid_time.date()
                 
+                # Utökad datastruktur för viktad beräkning
                 if date_key not in daily_data:
                     daily_data[date_key] = {
                         'date': date_key,
                         'temperatures': [],
                         'weather_symbols': [],
+                        'weather_symbols_with_time': [],
+                        'hourly_entries': [],  # NY: För viktad algoritm
                         'wind_speeds': [],
                         'precipitations': [],
                         'animation_triggers': []
@@ -775,18 +854,33 @@ class SMHIClient:
                 
                 weather = self.parse_parameters(entry)
                 
-                # Samla data fÃ¶r dagen
+                # Konvertera till lokal tid för timvikt
+                local_time = valid_time.astimezone()
+                
+                # Samla data för dagen
                 if 'temperature' in weather:
                     daily_data[date_key]['temperatures'].append(weather['temperature'])
+                
                 if 'weather_symbol' in weather:
                     daily_data[date_key]['weather_symbols'].append(weather['weather_symbol'])
-                    # LÃ¤gg till animation trigger
+                    daily_data[date_key]['weather_symbols_with_time'].append((valid_time, weather['weather_symbol']))
+                    
+                    # Animation trigger
                     trigger = self._get_animation_trigger(
                         weather['weather_symbol'],
                         weather.get('precipitation', 0),
                         weather.get('wind_direction')
                     )
                     daily_data[date_key]['animation_triggers'].append(trigger)
+                    
+                    # NY: Spara timinfo för viktad algoritm
+                    entry_info = {
+                        'hour': local_time.hour,
+                        'weather_symbol': weather['weather_symbol'],
+                        'precipitation': weather.get('precipitation', 0)
+                    }
+                    daily_data[date_key]['hourly_entries'].append(entry_info)
+                
                 if 'wind_speed' in weather:
                     daily_data[date_key]['wind_speeds'].append(weather['wind_speed'])
                 if 'precipitation' in weather:
@@ -795,7 +889,7 @@ class SMHIClient:
             except (ValueError, TypeError):
                 continue
         
-        # BerÃ¤kna dagliga sammandrag
+        # Beräkna dagliga sammandrag med viktad symbol
         daily_forecast = []
         
         for date_key in sorted(daily_data.keys()):
@@ -814,10 +908,38 @@ class SMHIClient:
                 summary['temp_max'] = max(temps)
                 summary['temp_avg'] = sum(temps) / len(temps)
             
-            # Vanligaste vÃ¤dersymbol
-            symbols = day_data['weather_symbols']
-            if symbols:
-                summary['weather_symbol'] = max(set(symbols), key=symbols.count)
+            # === VIKTAD SYMBOLBERÄKNING ===
+            hourly_entries = day_data.get('hourly_entries', [])
+            
+            if hourly_entries:
+                symbol_scores = {}
+                
+                for entry in hourly_entries:
+                    symbol = entry['weather_symbol']
+                    hour = entry['hour']
+                    precip = entry['precipitation']
+                    
+                    # Beräkna viktad score
+                    time_w = self._get_time_of_day_weight(hour)
+                    prio = self._get_weather_priority(symbol)
+                    
+                    score = time_w * prio
+                    
+                    # Förstärk vid kraftig nederbörd
+                    if precip >= 5.0:
+                        score *= 1.5
+                    
+                    # Summera scores per symbol
+                    symbol_scores[symbol] = symbol_scores.get(symbol, 0) + score
+                
+                # Välj symbolen med högst viktad score
+                summary['weather_symbol'] = max(symbol_scores, key=symbol_scores.get)
+            
+            else:
+                # Fallback: Vanligaste symbolen (om hourly_entries saknas)
+                symbols = day_data['weather_symbols']
+                if symbols:
+                    summary['weather_symbol'] = max(set(symbols), key=symbols.count)
             
             # Genomsnittlig vindstyrka
             winds = day_data['wind_speeds']
@@ -825,20 +947,20 @@ class SMHIClient:
                 summary['wind_speed_avg'] = sum(winds) / len(winds)
                 summary['wind_speed_max'] = max(winds)
             
-            # Total nederbÃ¶rd
+            # Total nederbörd
             precips = day_data['precipitations']
             if precips:
                 summary['precipitation_total'] = sum(precips)
                 summary['precipitation_max'] = max(precips)
             
-            # Dominant animation trigger fÃ¶r dagen
+            # Dominant animation trigger för dagen
             triggers = day_data['animation_triggers']
             if triggers:
                 # Hitta vanligaste animation type
                 trigger_types = [t['type'] for t in triggers if t['type'] != 'clear']
                 if trigger_types:
                     dominant_type = max(set(trigger_types), key=trigger_types.count)
-                    # AnvÃ¤nd fÃ¶rsta instansen av dominant type fÃ¶r full trigger data
+                    # Använd första instansen av dominant type för full trigger data
                     for trigger in triggers:
                         if trigger['type'] == dominant_type:
                             summary['animation_trigger'] = trigger
