@@ -510,8 +510,10 @@ class SMHIClient:
             return result
 
         for api_name, friendly_name in self.PARAMETERS.items():
-            if api_name in data:
-                result[friendly_name] = data[api_name]
+            value = data.get(api_name)
+            # SNOW1gv1: alla parametrar anvÃ¤nder 9999 som missing value
+            if value is not None and value != 9999:
+                result[friendly_name] = value
 
         return result
     
@@ -639,9 +641,10 @@ class SMHIClient:
         weather['coordinates'] = {'lat': self.latitude, 'lon': self.longitude}
         
         # LÃ¤gg till grid-koordinater frÃ¥n response
+        # SNOW1gv1: geometry.coordinates Ã¤r [lon, lat] (platt lista, inte nested)
         try:
             if 'geometry' in data and 'coordinates' in data['geometry']:
-                coords = data['geometry']['coordinates'][0]  # GeoJSON format
+                coords = data['geometry']['coordinates']  # [lon, lat]
                 weather['grid_coordinates'] = {'lon': coords[0], 'lat': coords[1]}
         except (IndexError, KeyError, TypeError):
             pass
