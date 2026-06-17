@@ -618,8 +618,10 @@ def format_api_response_with_pressure_trend(netatmo_data, smhi_data):
         # Netatmo trycktrend är tillgänglig och valid
         formatted_trend = {
             'trend': netatmo_data['pressure_trend']['trend'],
+            'trend5': netatmo_data['pressure_trend'].get('trend5', netatmo_data['pressure_trend']['trend']),
             'direction': netatmo_data['pressure_trend'].get('direction', 'steady'),
             'change': netatmo_data['pressure_trend'].get('change', 0),
+            'pressure_change': netatmo_data['pressure_trend'].get('pressure_change', 0),
             'analysis_quality': netatmo_data['pressure_trend'].get('analysis_quality', 'poor'),
             'source': 'netatmo'
         }

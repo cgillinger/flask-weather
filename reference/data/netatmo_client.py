@@ -195,6 +195,7 @@ class NetatmoClient:
         if len(pressures) < 2:
             return {
                 "trend": "n/a",
+                "trend5": "unknown",
                 "description": "Samlar tryckdata...",
                 "icon": "wi-na",
                 "data_hours": 0,
@@ -254,6 +255,7 @@ class NetatmoClient:
         else:
             return {
                 "trend": "n/a",
+                "trend5": "unknown",
                 "description": "Behöver mer data för SMHI-analys (3+ timmar)",
                 "icon": "wi-na",
                 "data_hours": data_hours,
@@ -347,58 +349,38 @@ class NetatmoClient:
         change_rate = primary_analysis['change_rate']
         actual_hours = primary_analysis['actual_hours']
         
-        # SMHI-KOMPATIBLA SVENSKA TRÖSKELVÄRDEN
-        # Baserat på forskning: "ett par, tre hPa per timme" för rejält blåsigt
+        # FEMGRADIG SKALA enligt pressure-descriptions.md (digitaliserad Huger-barometer)
+        # Δ per 3 h:  <−2 faller snabbt | −2…−0,5 faller | ±0,5 stabilt | +0,5…+2 stiger | >+2 stiger snabbt
+        # 'step' = gräns stabilt↔stiger/faller, 'fast' = gräns till snabbt-stegen.
         if fallback_period == "3h":
-            # SMHI 3-timmars trösklar
-            strong_rising_threshold = 2.0    # >2 hPa på 3h = stark ökning
-            rising_threshold = 0.8           # >0.8 hPa på 3h = stigande  
-            stable_threshold = 0.3           # ±0.3 hPa på 3h = stabilt
-            falling_threshold = -0.8         # <-0.8 hPa på 3h = fallande
-            strong_falling_threshold = -2.0  # <-2 hPa på 3h = starkt fallande
+            step_threshold = 0.5   # |Δ| ≥ 0.5 hPa på 3h = stiger/faller
+            fast_threshold = 2.0   # |Δ| > 2 hPa på 3h = snabbt
         else:
-            # 6h+ fallback-trösklar (proportionellt högre)
-            multiplier = actual_hours / 3.0  # Skala relativt till 3h
-            strong_rising_threshold = 2.0 * multiplier
-            rising_threshold = 0.8 * multiplier
-            stable_threshold = 0.3 * multiplier  
-            falling_threshold = -0.8 * multiplier
-            strong_falling_threshold = -2.0 * multiplier
-        
+            # 6h+ fallback: skala trösklarna proportionellt mot faktiskt tidsspann
+            # (ej extrapolering — undviker att brus förstärks till falska "snabbt")
+            multiplier = (actual_hours / 3.0) if actual_hours > 0 else 1.0
+            step_threshold = 0.5 * multiplier
+            fast_threshold = 2.0 * multiplier
+
         # Kontextanalys från längre perioder
         context = self._get_trend_context(all_periods)
-        
-        # Bestäm trend med svenska beskrivningar
-        if pressure_change >= strong_rising_threshold:
-            trend = "rising"
-            description = f"Snabbt stigande tryck - {context['weather_desc']}"
-            icon = "wi-direction-up"
-            
-        elif pressure_change >= rising_threshold:
-            trend = "rising"
-            if context['long_term_trend'] == 'stabilizing':
-                description = f"Stigande, stabiliseras - {context['weather_desc']}"
-            else:
-                description = f"Högtryck på ingång - {context['weather_desc']}"
-            icon = "wi-direction-up"
-            
-        elif pressure_change <= strong_falling_threshold:
-            trend = "falling"
-            description = f"Kraftigt fallande tryck - {context['weather_desc']}"
+
+        # Femgradig klassificering på 3h-Δ (pressure_change), specens styckvisa gränser
+        if pressure_change < -fast_threshold:
+            trend5 = "falling_fast"
+            description = f"Snabbt fallande tryck - {context['weather_desc']}"
             icon = "wi-direction-down"
-            
-        elif pressure_change <= falling_threshold:
-            trend = "falling"
+
+        elif pressure_change < -step_threshold:
+            trend5 = "falling"
             if context['long_term_trend'] == 'stabilizing':
                 description = f"Fallande, stabiliseras - {context['weather_desc']}"
             else:
                 description = f"Lågtryck närmar sig - {context['weather_desc']}"
             icon = "wi-direction-down"
-            
-        else:
-            # Stabilt enligt SMHI-trösklar
-            trend = "stable"
-            
+
+        elif pressure_change < step_threshold:
+            trend5 = "stable"
             # Nyanserad beskrivning baserat på kontext
             if abs(change_rate) > 0.1:  # Svag förändring detekterad
                 if pressure_change > 0:
@@ -407,11 +389,32 @@ class NetatmoClient:
                     description = f"Nästan stabilt, svagt fallande - {context['weather_desc']}"
             else:
                 description = f"Stabilt väderläge - {context['weather_desc']}"
-            
             icon = "wi-minus"
-        
+
+        elif pressure_change < fast_threshold:
+            trend5 = "rising"
+            if context['long_term_trend'] == 'stabilizing':
+                description = f"Stigande, stabiliseras - {context['weather_desc']}"
+            else:
+                description = f"Högtryck på ingång - {context['weather_desc']}"
+            icon = "wi-direction-up"
+
+        else:
+            trend5 = "rising_fast"
+            description = f"Snabbt stigande tryck - {context['weather_desc']}"
+            icon = "wi-direction-up"
+
+        # Behåll tregradig 'trend' för bakåtkompatibilitet (frontend-fallback, äldre konsumenter)
+        if trend5 in ("rising", "rising_fast"):
+            trend = "rising"
+        elif trend5 in ("falling", "falling_fast"):
+            trend = "falling"
+        else:
+            trend = "stable"
+
         return {
             "trend": trend,
+            "trend5": trend5,
             "description": description,
             "icon": icon,
             "pressure_change": pressure_change,

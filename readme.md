@@ -96,7 +96,7 @@ Flask Weather Dashboard är en elegant väder-dashboard som kombinerar SMHI:s v�
 - **SMHI Väderprognos**: 12-timmars och 5-dagars prognoser med färgkodade temperaturer
 - **Aktuell Temperatur**: Från SMHI eller Netatmo med färgkodning (frys → varmt)
 - **Luftfuktighet**: SMHI observationer eller Netatmo
-- **Lufttryck**: Med intelligent trycktrend-analys och färgkodade indikatorer
+- **Lufttryck**: Femgradig trycktrend (faller snabbt · faller · stabilt · stiger · stiger snabbt) med färgkodade indikatorer och dubbelpil för snabb väderomställning. Valbart ordläge (`pressure_display: 'words'`) som visar beskrivande nivåord som en fysisk barometer.
 - **Vinddata**: Beaufort-färgkodade vindikoner (grön → gul → orange → röd) med flera enhetsalternativ
 - **Nederbörd**: Prognoser med regnintensitet
 - **☀️ UV-index**: Real-time UV-data från CAMS med WHO/WMO-färgkodning (låg → extrem)

@@ -21,13 +21,18 @@ const PRESSURE_BANDS = [
 ];
 
 /**
- * Trend-metadata. 'arrow'/'word' används i ordläget (rad 2 = nålen på skalan),
- * 'text' används i det klassiska numeriska läget ("Trend: Stigande").
+ * Trend-metadata, femgradig skala enligt pressure-descriptions.md.
+ * 'arrow'/'word' används i ordläget (rad 2 = nålen på skalan), 'text' i det numeriska
+ * läget ("Trend: ..."), 'cls' styr ikonens färgklass. Snabbt-stegen får dubbelpil (⇈/⇊)
+ * och en kraftigare färgklass — displayens markör för en snabb väderomställning.
+ * Nyckel = backend-fältet 'trend5'; tregradiga 'trend' funkar som fallback (utan snabbt).
  */
 const TREND_META = {
-    rising:  { arrow: '↗', word: 'stiger',  text: 'Stigande' },
-    falling: { arrow: '↘', word: 'faller',  text: 'Fallande' },
-    stable:  { arrow: '→', word: 'stabilt', text: 'Stabilt' }
+    rising_fast:  { arrow: '⇈', word: 'stiger snabbt', text: 'Stigande snabbt', cls: 'rising-fast' },
+    rising:       { arrow: '↗', word: 'stiger',        text: 'Stigande',        cls: 'rising' },
+    stable:       { arrow: '→', word: 'stabilt',       text: 'Stabilt',         cls: 'stable' },
+    falling:      { arrow: '↘', word: 'faller',        text: 'Fallande',        cls: 'falling' },
+    falling_fast: { arrow: '⇊', word: 'faller snabbt', text: 'Fallande snabbt', cls: 'falling-fast' }
 };
 
 class BarometerDisplay {
@@ -73,10 +78,14 @@ class BarometerDisplay {
             console.log('📊 FAS 2: Använder SMHI trycktrend-fallback');
         }
 
-        // Uppdatera barometer-ikon (färgen bär trenden i båda lägena)
-        this.updateBarometerIcon(barometerIcon, finalPressureTrend.trend);
+        // Femgradig trend (trend5); fall tillbaka på tregradiga 'trend' (t.ex. SMHI-fallback
+        // som saknar riktig Δ → aldrig snabbt-steg).
+        const trendKey = finalPressureTrend.trend5 || finalPressureTrend.trend;
+        const trend = TREND_META[trendKey];
 
-        const trend = TREND_META[finalPressureTrend.trend];
+        // Uppdatera barometer-ikon (färgen bär trenden i båda lägena)
+        this.updateBarometerIcon(barometerIcon, trendKey);
+
         const mode = (typeof dashboardState !== 'undefined' && dashboardState.pressureDisplay) || 'numeric';
 
         if (mode === 'words') {
@@ -140,16 +149,18 @@ class BarometerDisplay {
         }
         
         // Ta bort alla trend-klasser
-        barometerIcon.classList.remove('rising', 'falling', 'stable', 'na');
-        
-        // Lägg till färgklass baserat på trend
+        barometerIcon.classList.remove('rising', 'falling', 'stable', 'na', 'rising-fast', 'falling-fast');
+
+        // Lägg till färgklass baserat på trend (femgradig; snabbt-stegen får egen klass)
         const classMap = {
+            'rising_fast': 'rising-fast',
             'rising': 'rising',
-            'falling': 'falling', 
             'stable': 'stable',
+            'falling': 'falling',
+            'falling_fast': 'falling-fast',
             'n/a': 'na'
         };
-        
+
         const cssClass = classMap[trend] || 'na';
         barometerIcon.classList.add(cssClass);
         

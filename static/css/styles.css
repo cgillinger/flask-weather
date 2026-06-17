@@ -437,6 +437,17 @@ body {
     color: var(--barometer-falling);
 }
 
+/* Snabbt-stegen: kraftigare fyllning som markör för snabb väderomställning */
+.barometer-icon-container.rising-fast {
+    background: rgba(45, 125, 50, 0.4);
+    color: var(--barometer-rising);
+}
+
+.barometer-icon-container.falling-fast {
+    background: rgba(211, 47, 47, 0.4);
+    color: var(--barometer-falling);
+}
+
 .barometer-icon-container.stable {
     background: rgba(102, 102, 102, 0.2);
     color: var(--barometer-stable);
