@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.1.1] - 2026-06-17
+
+### Fixat
+- **Tryckhistoriken överlever nu container-rebuilds.** `pressure_history.json` flyttad till den volym-monterade `cache/`-katalogen (tidigare i repo-roten → bakades in i imagen och nollställdes vid varje `docker compose up --build`, vilket "tystade" de femgradiga snabbt-stegen i ~3h efter varje deploy). Automatisk engångsmigrering av befintlig historik från repo-roten till `cache/`.
+
 ## [3.1.0] - 2026-06-17
 
 ### Tillagt
