@@ -3,6 +3,18 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.1.0] - 2026-06-17
+
+### Tillagt
+- **Femgradig trycktrend**: Trenden är nu femgradig enligt `pressure-descriptions.md` (faller snabbt · faller · stabilt · stiger · stiger snabbt) istället för tregradig. Ytterstegen "faller/stiger snabbt" flaggar en snabb väderomställning.
+- Snabbt-stegen får en egen visuell markör: **dubbelpil** (⇈/⇊) i trendraden samt en kraftigare ikonfärg (`rising-fast`/`falling-fast`).
+- Nytt backend-fält `trend5` i trycktrend-objektet (rising_fast/rising/stable/falling/falling_fast + unknown).
+- **Barometer-ordläge** (`ui.pressure_display: 'words'`): visar beskrivande nivåord som en fysisk barometer (Storm/Regn/Ostadigt/Vackert/Mycket torrt) med siffra och trendpil. Default `'numeric'`.
+
+### Ändrat
+- Trösklarna riktade om till specens skala: stabilt ±0,5 hPa/3h (tidigare ±0,8), snabbt vid |Δ| > 2 hPa/3h. Δ mäts som tidigare över 3h-fönstret (6h som fallback, proportionellt skalade trösklar).
+- Tregradiga `trend` behålls för bakåtkompatibilitet; SMHI-fallbacken (utan riktig Δ) ger aldrig snabbt-steg.
+
 ## [3.0.0] - 2026-03-28
 
 ### Ändrat
