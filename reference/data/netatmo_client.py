@@ -7,6 +7,7 @@ OAuth2 implementation med smart data-blending från alla stationer
 
 import json
 import os
+import shutil
 import time
 import threading
 from datetime import datetime, timedelta
@@ -52,7 +53,22 @@ class NetatmoClient:
         self._refresh_timer = None
         
         # SMHI-KOMPATIBEL TRYCKTREND-HISTORIK
-        self.pressure_history_file = "pressure_history.json"
+        # Lagras i cache/ (volym-monterad på Synology) så historiken överlever
+        # container-rebuilds. Annars nollställs den vid varje deploy och de
+        # femgradiga snabbt-stegen "tystnar" i ~3h tills fönstret fyllts på.
+        cache_dir = "cache"
+        os.makedirs(cache_dir, exist_ok=True)
+        self.pressure_history_file = os.path.join(cache_dir, "pressure_history.json")
+
+        # Engångsmigrering: ta med ev. äldre historik från repo-roten in i cache/.
+        legacy_history_file = "pressure_history.json"
+        if not os.path.exists(self.pressure_history_file) and os.path.exists(legacy_history_file):
+            try:
+                shutil.copy2(legacy_history_file, self.pressure_history_file)
+                print(f"📦 Migrerade tryckhistorik: {legacy_history_file} → {self.pressure_history_file}")
+            except Exception as e:
+                print(f"⚠️ Kunde inte migrera tryckhistorik: {e}")
+
         self._pressure_history = self._load_pressure_history()
         
         # Blending-prioriteter (moduler prioriteras för utomhusdata)
