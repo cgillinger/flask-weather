@@ -28,6 +28,7 @@ let dashboardState = {
     clockInterval: null,
     isLoading: true,
     windUnit: 'land',
+    pressureDisplay: 'numeric',
     config: null,
     
     // FAS 2: Netatmo-intelligens state

@@ -49,8 +49,14 @@ CONFIG = {
         
         # VINDENHETER - AKTIV: 'land' (svensk landterminologi)
         'wind_unit': 'land',    # ALTERNATIV: 'sjo', 'land', 'beaufort', 'ms', 'kmh' (se guide nedan)
-        
-        # TEMA - AKTIV: 'dark' (enda produktionsklara temat)  
+
+        # TRYCKVISNING - hur barometern visas
+        # 'words'   = beskrivande ord som en fysisk barometer (Storm/Regn/Ostadigt/Vackert/Mycket torrt)
+        #             + siffra och trendpil på rad 2. Bra för tittare utan känsla för hPa-värden.
+        # 'numeric' = enbart siffervärde + texttrend (klassiskt läge)
+        'pressure_display': 'words',
+
+        # TEMA - AKTIV: 'dark' (enda produktionsklara temat)
         'theme': 'dark',        # ALTERNATIV: 'light' (EJ produktionsklar!), 'dark', 'auto'
         
         # Automatiskt tema-byte (används när theme='auto')
