@@ -451,11 +451,13 @@ body {
 .barometer-pressure-line {
     font-weight: 700;
     font-size: clamp(1rem, 1.3vw, 1.5rem);
+    white-space: nowrap;
 }
 
 .barometer-trend-line {
     font-size: clamp(0.75rem, 1vw, 1.2rem);
     color: var(--text-secondary);
+    white-space: nowrap;
 }
 
 .barometer-desc-line {

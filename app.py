@@ -670,6 +670,7 @@ def api_current_weather():
     if weather_state['config']:
         ui_config = {
             'wind_unit': weather_state['config'].get('ui', {}).get('wind_unit', 'land'),
+            'pressure_display': weather_state['config'].get('ui', {}).get('pressure_display', 'numeric'),
             'use_netatmo': weather_state['use_netatmo'],  # NYT: För frontend-detektering
             'netatmo_available': weather_state['netatmo_available'],  # NYT: Faktisk tillgänglighet
             'weather_effects_enabled': weather_state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status

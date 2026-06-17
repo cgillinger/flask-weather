@@ -6,7 +6,40 @@
 
 // === BAROMETER SYSTEM ===
 
+/**
+ * Nivåband enligt den digitaliserade Huger-precisionsbarometern.
+ * Ordet bestäms av det ABSOLUTA trycket (som nålen på en fysisk urtavla).
+ * Gränser i hPa (= mbar). Slå upp med: hPa < band.max.
+ * Se pressure-descriptions.md i roten.
+ */
+const PRESSURE_BANDS = [
+    { max: 980,      label: 'Storm' },
+    { max: 1000,     label: 'Regn' },
+    { max: 1013,     label: 'Ostadigt' },
+    { max: 1040,     label: 'Vackert' },
+    { max: Infinity, label: 'Mycket torrt' }
+];
+
+/**
+ * Trend-metadata. 'arrow'/'word' används i ordläget (rad 2 = nålen på skalan),
+ * 'text' används i det klassiska numeriska läget ("Trend: Stigande").
+ */
+const TREND_META = {
+    rising:  { arrow: '↗', word: 'stiger',  text: 'Stigande' },
+    falling: { arrow: '↘', word: 'faller',  text: 'Fallande' },
+    stable:  { arrow: '→', word: 'stabilt', text: 'Stabilt' }
+};
+
 class BarometerDisplay {
+    /**
+     * Översätt absolut tryck (hPa) till beskrivande ord.
+     * @param {number} hPa - Lufttryck i hPa
+     * @returns {string} Nivåord, t.ex. "Vackert"
+     */
+    static describePressureLevel(hPa) {
+        return PRESSURE_BANDS.find(band => hPa < band.max).label;
+    }
+
     /**
      * Uppdatera barometer-detaljer med tryck och trend
      * @param {object} pressureTrend - Trycktrend-objekt från Netatmo eller fallback
@@ -24,37 +57,48 @@ class BarometerDisplay {
         
         // FAS 2: Använd intelligent datahantering för tryck
         const pressureData = formatDataWithSource(currentPressure, 'pressure');
-        
-        if (pressureData.shouldShow) {
-            barometerPressureLine.textContent = `${Math.round(pressureData.value)} hPa`;
+        const hasPressure = pressureData.shouldShow;
+        const roundedPressure = hasPressure ? Math.round(pressureData.value) : null;
+        if (hasPressure) {
             console.log(pressureData.debug);
-        } else {
-            barometerPressureLine.textContent = '-- hPa';
         }
-        
+
         // Hantera trycktrend med fallback
         let finalPressureTrend = pressureTrend;
-        
+
         if (!pressureTrend || pressureTrend.trend === 'n/a') {
             // FAS 2: Använd SMHI-baserad fallback om Netatmo saknas
             const smhiData = { pressure: currentPressure };
             finalPressureTrend = createSmhiPressureTrendFallback(smhiData);
             console.log('📊 FAS 2: Använder SMHI trycktrend-fallback');
         }
-        
-        // Uppdatera barometer-ikon
+
+        // Uppdatera barometer-ikon (färgen bär trenden i båda lägena)
         this.updateBarometerIcon(barometerIcon, finalPressureTrend.trend);
-        
-        // Uppdatera trend-linje
-        const statusMap = {
-            'rising': 'Stigande',
-            'falling': 'Fallande',
-            'stable': 'Stabilt'
-        };
-        const trendText = statusMap[finalPressureTrend.trend] || 'Okänt';
-        barometerTrendLine.textContent = `Trend: ${trendText}`;
-        
-        console.log(`📊 FAS 2: Barometer uppdaterad: ${finalPressureTrend.trend} (källa: ${finalPressureTrend.source || 'netatmo'})`);
+
+        const trend = TREND_META[finalPressureTrend.trend];
+        const mode = (typeof dashboardState !== 'undefined' && dashboardState.pressureDisplay) || 'numeric';
+
+        if (mode === 'words') {
+            // ORDLÄGE - emulerar den fysiska barometern:
+            //   rad 1 = nivåordet (den inre beskrivande ringen, från absolut tryck)
+            //   rad 2 = nålen på sifferskalan: pil + siffra + trendord
+            if (hasPressure) {
+                barometerPressureLine.textContent = this.describePressureLevel(roundedPressure);
+                const arrow = trend ? `${trend.arrow} ` : '';
+                const word = trend ? ` · ${trend.word}` : '';
+                barometerTrendLine.textContent = `${arrow}${roundedPressure} hPa${word}`;
+            } else {
+                barometerPressureLine.textContent = '--';
+                barometerTrendLine.textContent = trend ? `${trend.arrow} ${trend.word}` : 'Samlar data...';
+            }
+        } else {
+            // NUMERISKT LÄGE (klassiskt): siffra + texttrend
+            barometerPressureLine.textContent = hasPressure ? `${roundedPressure} hPa` : '-- hPa';
+            barometerTrendLine.textContent = `Trend: ${trend ? trend.text : 'Okänt'}`;
+        }
+
+        console.log(`📊 FAS 2: Barometer uppdaterad (${mode}): ${finalPressureTrend.trend} (källa: ${finalPressureTrend.source || 'netatmo'})`);
     }
     
     /**

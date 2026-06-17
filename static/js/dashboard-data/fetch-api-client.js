@@ -58,7 +58,11 @@ async function updateAllData() {
             if (currentData.config.wind_unit) {
                 dashboardState.windUnit = currentData.config.wind_unit;
             }
-            
+
+            if (currentData.config.pressure_display) {
+                dashboardState.pressureDisplay = currentData.config.pressure_display;
+            }
+
             console.log(`🧠 FAS 2: Netatmo-läge: ${dashboardState.useNetatmo ? 'AKTIVT' : 'INAKTIVT'}`);
         }
         
