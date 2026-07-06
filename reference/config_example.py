@@ -56,6 +56,12 @@ CONFIG = {
         # 'numeric' = enbart siffervärde + texttrend (klassiskt läge)
         'pressure_display': 'words',
 
+        # IKONPAKET - vilken väderikonuppsättning som används
+        # 'weather-icons' = Weather Icons-fonten (klassiskt läge, färgkodas automatiskt)
+        # 'amcharts'      = animerade färg-SVG:er med dag/natt-varianter
+        # Nya paket läggs till i static/js/utils/icon-packs.js
+        'icon_pack': 'weather-icons',
+
         # TEMA - AKTIV: 'dark' (enda produktionsklara temat)
         'theme': 'dark',        # ALTERNATIV: 'light' (EJ produktionsklar!), 'dark', 'auto'
         

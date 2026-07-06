@@ -29,23 +29,22 @@ function updateCurrentWeather(data) {
         if (smhi.weather_symbol) {
             const iconElement = document.getElementById('smhi-weather-icon');
             const isDay = isDaytime();
-            // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
-            const iconName = WeatherIconRenderer.getIconName(smhi.weather_symbol, isDay);
-            
+
             if (iconElement) {
                 iconElement.innerHTML = '';
                 iconElement.className = 'weather-icon';
-                
-                // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
-                const weatherIcon = WeatherIconRenderer.createIcon(iconName, ['weather-main-icon']);
-                
+
+                // IKONPAKET: Renderas med aktivt paket (ui.icon_pack i config)
+                const weatherIcon = WeatherIconRenderer.createWeatherIcon(smhi.weather_symbol, isDay, ['weather-main-icon']);
+
                 // CENTRALISERAD FÄRGKODNING v1.1.0: Använd ColorManager för huvudikon
+                // (påverkar bara font-ikoner; SVG-paket har egna färger)
                 const iconColor = ColorManager.getWeatherIconColor(smhi.weather_symbol);
                 weatherIcon.style.color = iconColor;
-                
+
                 iconElement.appendChild(weatherIcon);
-                
-                console.log(`🎨 Main weather icon: ${iconName} for symbol ${smhi.weather_symbol} - color: ${iconColor}`);
+
+                console.log(`🎨 Main weather icon: symbol ${smhi.weather_symbol} (${isDay ? 'dag' : 'natt'}) - color: ${iconColor}`);
                 
                 // NETATMO RAIN PRIORITY: WeatherEffects update med Netatmo-prioritering
                 if (window.weatherEffectsManager) {

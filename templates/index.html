@@ -198,6 +198,9 @@
     
     <!-- FÄRGHANTERING: ColorManager - LADDA TIDIGT (före komponenter som använder den) -->
     <script src="/static/js/utils/color-manager.js?v={{ asset_version }}"></script>
+
+    <!-- IKONPAKET: IconRegistry - före icon renderers och views -->
+    <script src="/static/js/utils/icon-packs.js?v={{ asset_version }}"></script>
     
     <!-- STEG 4-5: Icon renderers (använder ColorManager) -->
     <script src="/static/js/dashboard-components/weather-icon-renderer.js?v={{ asset_version }}"></script>

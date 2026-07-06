@@ -19,6 +19,19 @@
  */
 class WeatherIconRenderer {
     /**
+     * Skapa väderikon för en SMHI-symbol med aktivt ikonpaket (ui.icon_pack).
+     * Detta är den metod vyerna ska använda för vädersymbol-ikoner;
+     * createIcon()/getIconName() nedan är fontspecifika byggstenar.
+     * @param {number} symbol - SMHI vädersymbol (1-27)
+     * @param {boolean} isDay - Dag- eller nattvariant
+     * @param {Array} extraClasses - Extra CSS-klasser
+     * @returns {HTMLElement} Ikon-element (font-<i> eller svg-<img>)
+     */
+    static createWeatherIcon(symbol, isDay = true, extraClasses = []) {
+        return IconRegistry.createWeatherIcon(symbol, isDay, extraClasses);
+    }
+
+    /**
      * Skapa Weather Icons ikon-element
      * @param {string} iconName - Weather Icons klassnamn (t.ex. 'wi-day-sunny')
      * @param {Array} extraClasses - Extra CSS-klasser att applicera
