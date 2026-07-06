@@ -10,7 +10,7 @@ FAS 2: VILLKORSSTYRD NETATMO-FUNKTIONALITET för oberoende drift
 + FAS 3: UV-INDEX - Integration av CAMS UV-data via ADS API
 """
 
-__version__ = '3.2.1'
+__version__ = '3.2.2'
 
 from flask import Flask, render_template, jsonify, request
 from datetime import datetime, timedelta, timezone

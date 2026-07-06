@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.2.2] - 2026-07-06
+
+### Fixat
+- Ikoner med mycket viewBox-luft (framförallt solen) blev pyttesmå i femdygnsprognosen: nytt slot-skalningslager i CSS (`--slot-scale` för prognosrader/kort) plus per-fil-korrigering i paketmanifestet (`fileScale`). All skalning sker fortsatt via transform och kan aldrig påverka layouten.
+
 ## [3.2.1] - 2026-07-06
 
 ### Fixat

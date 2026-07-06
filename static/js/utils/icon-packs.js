@@ -99,6 +99,12 @@ const ICON_PACKS = {
         // SVG:ernas viewBox UTAN att påverka layouten (layoutboxen är
         // alltid exakt 1em, som en fontglyf)
         scale: 1.3,
+        // Per-fil-korrigering: vissa filer ritar sitt innehåll i mindre
+        // del av viewBoxen än övriga (solen ~55% mot molnens ~80%)
+        fileScale: {
+            'day/day.svg': 1.4,
+            'night/night.svg': 1.35
+        },
         icons: {
             'clear':               {day: 'day/day.svg',          night: 'night/night.svg'},
             'mostly-clear':        {day: 'day/cloudy-day-1.svg', night: 'night/cloudy-night-1.svg'},
@@ -179,8 +185,9 @@ const IconRegistry = {
         img.alt = '';
         img.draggable = false;
         img.className = ['svg-weather-icon', ...extraClasses].join(' ');
-        if (pack.scale && pack.scale !== 1) {
-            img.style.setProperty('--icon-scale', String(pack.scale));
+        const visualScale = (pack.scale || 1) * ((pack.fileScale && pack.fileScale[iconName]) || 1);
+        if (visualScale !== 1) {
+            img.style.setProperty('--icon-scale', String(visualScale));
         }
         return img;
     }

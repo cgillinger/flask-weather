@@ -878,6 +878,18 @@ img.svg-weather-icon {
     max-height: 100%;
     margin: 0 auto;
     object-fit: contain;
-    transform: scale(var(--icon-scale, 1));
+    transform: scale(calc(var(--icon-scale, 1) * var(--slot-scale, 1)));
     user-select: none;
+}
+
+/* Slot-multiplikatorer: små slottar (prognosrader) behöver rita ikonen
+   större än sin 1em-layoutbox för att SVG:ernas viewBox-luft inte ska
+   göra dem pyttesmå. Påverkar bara SVG-paket - font-glyfer berörs inte.
+   Ritas med transform, kan aldrig ändra radhöjder eller layout. */
+.daily-icon img.svg-weather-icon {
+    --slot-scale: 1.5;
+}
+
+.forecast-icon img.svg-weather-icon {
+    --slot-scale: 1.2;
 }
