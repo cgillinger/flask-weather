@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.2.1] - 2026-07-06
+
+### Fixat
+- SVG-ikonpaket kunde spränga layouten på 1920x1080-kioskskärmen: ikoner har nu en tvingad layoutbox på 1em (som fontglyfer) och skalas visuellt per paket via `transform: scale()` som aldrig påverkar layoutflödet. Fixar även för höga rader i femdygnsprognosen (inline-bildens baslinjeluft).
+
 ## [3.2.0] - 2026-07-06
 
 ### Tillagt
