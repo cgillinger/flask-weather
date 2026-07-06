@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.2.3] - 2026-07-06
+
+### Ändrat
+- Röd ram och yttre glöd runt klockan borttagen - sekundprickarna står nu fritt mot bakgrunden
+
 ## [3.2.2] - 2026-07-06
 
 ### Fixat
