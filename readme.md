@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**Version 3.3.0** · [Changelog](CHANGELOG.md)
+**Version 3.4.0** · [Changelog](CHANGELOG.md)
 
 **GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 
@@ -481,12 +481,37 @@ Huvudkonfigurationen görs i `reference/config.py`.
 
 Väderikonerna kan bytas som uppsättning med `ui.icon_pack` i `reference/config.py`:
 
-| Paket | Utseende |
-|-------|----------|
-| `weather-icons` | Weather Icons-fonten - monokrom, färgkodas automatiskt efter vädertyp (standard) |
-| `amcharts` | Animerade färg-SVG:er med dag/natt-varianter |
+| Paket | Utseende | Licens |
+|-------|----------|--------|
+| `weather-icons` | Weather Icons-fonten (Erik Flowers) - monokrom, färgkodas automatiskt efter vädertyp (standard) | SIL OFL 1.1 (via CDN) |
+| `amcharts` | Animerade färg-SVG:er med dag/natt-varianter | Fri (amCharts/ammap.com) |
+| `meteocons` | Animerade färg-SVG:er i fill-stil (Bas Milius) - modernast, mjukast animationer, komplett dag/natt | MIT |
+| `amedia-meteo` | Statiska färg-SVG:er (Amedia Utvikling) - komplett dag/natt, alla nederbördsintensiteter | **CC BY-NC-SA 4.0 - ej kommersiell användning!** |
+| `open-weather-icons` | Font (Ivan Vilanculo) - monokrom, OpenWeatherMap-symboler med dag/natt, färgkodas automatiskt | MIT |
+| `kickstand-weather` | Font (KickstandApps) - minimalistiskt Climacons-manér, 12 glyfer, färgkodas automatiskt | SIL OFL 1.1 |
 
 Efter byte: starta om servern (Docker: `docker compose up -d --build`).
+
+**Anmärkningar per paket:**
+
+- `meteocons` är animerat och samspelar med `ui.icon_animations` precis som `amcharts` - statiska varianter ligger färdiga i `meteocons-svg-static/`. Animationerna är dessutom lättviktiga (SMIL utan filter), så de belastar mindre än amcharts även när de animerar.
+- `amedia-meteo` och fontpaketen är statiska och påverkas inte av `ui.icon_animations`.
+- `open-weather-icons` saknar snöblandat-symbol (snöikonen används) och skiljer inte på nederbördsintensiteter.
+- `kickstand-weather` har bara 12 glyfer: snöblandat visas som regn och intensitetsgrader ser likadana ut. Dimma visas som dis.
+
+### 📜 Ikonpaketens licenser
+
+Ikonfilerna under `static/assets/icons/` kommer från tredje part och har **egna licenser** - de omfattas inte av projektets MIT-licens. Varje paketmapp innehåller sin licensfil, som ska följa med vid vidaredistribution:
+
+| Mapp | Upphov | Licens |
+|------|--------|--------|
+| `amcharts-svg/`, `amcharts-svg-static/` | amCharts (ammap.com) | Fri att använda med attribution (behållen i SVG-filernas kommentar) |
+| `meteocons-svg/`, `meteocons-svg-static/` | [Bas Milius](https://github.com/basmilius/meteocons) | MIT (`LICENSE` i mappen) |
+| `amedia-meteo/` | [Amedia Utvikling](https://github.com/amedia/meteo-icons) | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) (`LICENSE.md` i mappen) |
+| `open-weather-icons/` | [Ivan Vilanculo](https://github.com/isneezy/open-weather-icons) | MIT (`LICENSE.md` i mappen) |
+| `kickstand-weather/` | [KickstandApps](https://github.com/kickstandapps/WeatherIcons) | SIL OFL 1.1 (`License.txt` i mappen) |
+
+> ⚠️ **Viktigt om `amedia-meteo`:** CC BY-NC-SA 4.0 tillåter **endast icke-kommersiell** användning, och bearbetningar måste delas under samma licens. För en privat väderskärm är det inga problem, men om du använder dashboarden kommersiellt måste du välja ett annat ikonpaket eller ta bort mappen.
 
 **Ikonanimeringar (`ui.icon_animations`):**
 
@@ -504,8 +529,8 @@ Chromium-kiosker (t.ex. Pi5-uppsättningen) klarar full animering och påverkas 
 De statiska ikonvarianterna ligger i `static/assets/icons/amcharts-svg-static/` och genereras med `python3 scripts/generate_static_icons.py` (behövs bara om ikonpaketet uppdateras — resultatet är incheckat).
 
 **Lägga till ett eget paket:**
-1. Lägg ikonfilerna under `static/assets/icons/<paketnamn>/`
-2. Lägg till en post i `ICON_PACKS` i `static/js/utils/icon-packs.js` — mappa de semantiska nycklarna (`clear`, `rain`, `snow`, …) till dina ikoner med dag/natt-varianter. För animerade SVG-paket: peka `staticBasePath` på en mapp med icke-animerade kopior (saknas den visas de animerade filerna i alla lägen)
+1. Lägg ikonfilerna under `static/assets/icons/<paketnamn>/` — och paketets licensfil i samma mapp
+2. Lägg till en post i `ICON_PACKS` i `static/js/utils/icon-packs.js` — mappa de semantiska nycklarna (`clear`, `rain`, `snow`, …) till dina ikoner med dag/natt-varianter. För animerade SVG-paket: peka `staticBasePath` på en mapp med icke-animerade kopior (saknas den visas de animerade filerna i alla lägen). För fontpaket: sätt `baseClass` och länka paketets CSS i `templates/index.html`
 3. Välj paketet med `'icon_pack': '<paketnamn>'`
 
 Vyerna behöver aldrig ändras — all SMHI-symboltolkning sker i den kanoniska mappningen i samma fil.
@@ -1012,6 +1037,8 @@ cp backup/DATUM_TID/config.py reference/
 ## 📄 Licens
 
 Detta projekt är open source under MIT-licens. Se LICENSE-filen för detaljer.
+
+**Undantag:** de vendrade ikonpaketen under `static/assets/icons/` har egna licenser från sina respektive upphovspersoner — se [Ikonpaketens licenser](#-ikonpaketens-licenser). Notera särskilt att `amedia-meteo/` är CC BY-NC-SA 4.0 (endast icke-kommersiell användning).
 
 ## 🙏 Tack till
 

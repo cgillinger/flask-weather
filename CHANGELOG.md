@@ -3,6 +3,17 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.4.0] - 2026-07-06
+
+### Tillagt
+- **Fyra nya ikonpaket** (väljs med `ui.icon_pack`):
+  - `meteocons` - animerade färg-SVG:er av Bas Milius (MIT). Levereras med färdiga statiska varianter och samspelar med `ui.icon_animations`; animationerna är SMIL utan filter och därmed mycket lättare än amcharts.
+  - `amedia-meteo` - statiska färg-SVG:er av Amedia Utvikling med komplett dag/natt och alla nederbördsintensiteter. OBS: CC BY-NC-SA 4.0 - endast icke-kommersiell användning.
+  - `open-weather-icons` - fontpaket av Ivan Vilanculo (MIT), OpenWeatherMap-symboler med dag/natt, färgkodas automatiskt.
+  - `kickstand-weather` - minimalistiskt fontpaket av KickstandApps (SIL OFL 1.1), 12 glyfer i Climacons-manér; klass-CSS:en är skriven för dashboarden.
+- Generiskt stöd för fontpaket i ikonregistryt (`baseClass` per paket) - Weather Icons-fonten är inte längre specialfall i renderingsvägen
+- Licensdokumentation: varje vendrad ikonmapp innehåller sin licensfil, readme har nytt avsnitt "Ikonpaketens licenser", och MIT-avsnittet anger undantagen
+
 ## [3.3.0] - 2026-07-06
 
 ### Tillagt
