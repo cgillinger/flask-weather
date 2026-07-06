@@ -69,9 +69,6 @@ async function initializeDashboard() {
         // STEG 6: Initialisera cirkulär klocka från circular-clock.js  
         CircularClock.initializeCircularClock(dashboardState);
         
-        // STEG 11: Rensa vinddata från current-weather-view.js
-        removeWindDetailItems();
-        
         // STEG 10: Uppdatera data från fetch-api-client.js
         await updateAllData();
         
@@ -105,7 +102,7 @@ function startDataUpdates() {
 }
 
 function startThemeCheck() {
-    setInterval(async () => {
+    dashboardState.themeInterval = setInterval(async () => {
         try {
             // STEG 10: Använd checkThemeUpdate från fetch-api-client.js
             await checkThemeUpdate();
@@ -165,6 +162,9 @@ window.addEventListener('beforeunload', function() {
     }
     if (dashboardState.clockInterval) {
         clearInterval(dashboardState.clockInterval);
+    }
+    if (dashboardState.themeInterval) {
+        clearInterval(dashboardState.themeInterval);
     }
 });
 

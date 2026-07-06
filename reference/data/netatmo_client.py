@@ -42,7 +42,12 @@ class NetatmoClient:
         self.access_token = None
         self.refresh_token = refresh_token
         self.token_expires_at = None
-        self.token_file = "tokens.json"
+        # Tokens lagras i cache/ (volym-monterad på Synology) så att roterade
+        # refresh-tokens överlever container-rebuilds. Utan detta bryts
+        # Netatmo-inloggningen permanent vid rebuild om token hunnit rotera.
+        os.makedirs("cache", exist_ok=True)
+        self.token_file = os.path.join("cache", "tokens.json")
+        self.legacy_token_file = "tokens.json"
         
         # Cache
         self._cache_data = None
@@ -143,10 +148,12 @@ class NetatmoClient:
             return {"timestamps": [], "pressures": []}
     
     def _save_pressure_history(self):
-        """Spara tryckhistorik till fil."""
+        """Spara tryckhistorik till fil (atomärt, mot korrupt fil vid krasch)."""
         try:
-            with open(self.pressure_history_file, 'w', encoding='utf-8') as f:
+            tmp_path = self.pressure_history_file + '.tmp'
+            with open(tmp_path, 'w', encoding='utf-8') as f:
                 json.dump(self._pressure_history, f, indent=2)
+            os.replace(tmp_path, self.pressure_history_file)
         except Exception as e:
             print(f"❌ Fel vid sparande av tryckhistorik: {e}")
     
@@ -516,25 +523,34 @@ class NetatmoClient:
     
     def _load_saved_tokens(self):
         """Ladda sparade tokens från fil om de finns."""
-        if os.path.exists(self.token_file):
+        # Migrering: äldre versioner sparade tokens.json i appkatalogen
+        token_path = self.token_file
+        if not os.path.exists(token_path) and os.path.exists(self.legacy_token_file):
+            token_path = self.legacy_token_file
+
+        if os.path.exists(token_path):
             try:
-                with open(self.token_file, 'r') as f:
+                with open(token_path, 'r') as f:
                     token_data = json.load(f)
-                
+
                 self.refresh_token = token_data.get('refresh_token', self.initial_refresh_token)
-                print(f"🔄 Laddat sparade tokens från {self.token_file}")
-                
+                print(f"🔄 Laddat sparade tokens från {token_path}")
+
             except (json.JSONDecodeError, KeyError) as e:
-                print(f"⚠️ Fel vid läsning av {self.token_file}: {e}")
+                print(f"⚠️ Fel vid läsning av {token_path}: {e}")
                 print("🔧 Använder initial refresh_token från config")
         else:
             print(f"📁 {self.token_file} finns inte - använder initial refresh_token")
-    
+
     def _save_tokens(self, token_data):
         """Spara tokens till fil för framtida användning."""
         try:
-            with open(self.token_file, 'w') as f:
+            # Atomär skrivning: en krasch mitt i skrivningen får inte
+            # korrumpera token-filen (då tappas refresh-token permanent)
+            tmp_path = self.token_file + '.tmp'
+            with open(tmp_path, 'w') as f:
                 json.dump(token_data, f, indent=2)
+            os.replace(tmp_path, self.token_file)
             print(f"💾 Tokens sparade i {self.token_file}")
         except Exception as e:
             print(f"❌ Fel vid sparande av tokens: {e}")

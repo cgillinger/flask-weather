@@ -21,10 +21,10 @@ netCDF4>=1.6.0,<2.0.0
 # NetCDF4 för att läsa CAMS UV-data (returneras som .nc-filer)
 # Används för att extrahera UV-index från CAMS-prognoser
 
-# === OPTIONAL: PRODUCTION WSGI SERVER ===
-# Kommentera in om du vill köra med production server istället för Flask dev server
-# gunicorn>=21.0.0,<22.0.0
-# waitress>=2.1.0,<3.0.0
+# === PRODUCTION WSGI SERVER ===
+# app.py använder waitress automatiskt om det är installerat,
+# annars faller den tillbaka på Flasks devserver
+waitress>=2.1.0,<4.0.0
 
 # === DEVELOPMENT (valfritt) ===
 # Kommentera in för utveckling:

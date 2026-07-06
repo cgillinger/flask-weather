@@ -65,15 +65,9 @@ const UVDisplay = {
      */
     async fetchAndUpdateUV() {
         try {
-            const response = await fetch('/api/uv');
-            
-            if (!response.ok) {
-                console.warn(`☀️ UV API fel: ${response.status}`);
-                this.hideUVDisplay();
-                return;
-            }
-            
-            const uvData = await response.json();
+            // fetchWithTimeout (fetch-api-client.js): ett hängande /api/uv-anrop
+            // får inte blockera hela uppdateringscykeln på kiosken
+            const uvData = await fetchWithTimeout('/api/uv');
             
             // Kontrollera om UV-data är tillgänglig
             if (uvData && uvData.available) {

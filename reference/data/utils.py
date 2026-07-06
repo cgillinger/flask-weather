@@ -288,9 +288,11 @@ class SunCalculator:
             for key in keys_to_remove:
                 del cache_data[key]
             
-            # Spara uppdaterad cache
-            with open(self.cache_file, 'w', encoding='utf-8') as f:
+            # Spara uppdaterad cache (atomärt, mot korrupt fil vid krasch)
+            tmp_path = self.cache_file + '.tmp'
+            with open(tmp_path, 'w', encoding='utf-8') as f:
                 json.dump(cache_data, f, indent=2, ensure_ascii=False)
+            os.replace(tmp_path, self.cache_file)
             
             print(f"💾 Soldata cachad för {target_date}")
             

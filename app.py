@@ -13,9 +13,10 @@ FAS 2: VILLKORSSTYRD NETATMO-FUNKTIONALITET för oberoende drift
 __version__ = '3.0.0'
 
 from flask import Flask, render_template, jsonify, request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 import os
+import secrets
 import sys
 import threading
 import time
@@ -36,7 +37,30 @@ except ImportError as e:
 
 # Flask app setup
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'weather_dashboard_secret_key'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
+
+def _read_asset_version():
+    """Läs versionsnummer för cache-busting av statiska filer."""
+    try:
+        with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except OSError:
+        return __version__
+
+ASSET_VERSION = _read_asset_version()
+
+@app.context_processor
+def inject_asset_version():
+    return {'asset_version': ASSET_VERSION}
+
+# Skyddar weather_state: tre uppdateringstrådar skriver samtidigt som
+# Flask-routes läser från flera request-trådar
+state_lock = threading.RLock()
+
+def state_snapshot():
+    """Konsistent ögonblicksbild av weather_state för läsning i routes."""
+    with state_lock:
+        return dict(weather_state)
 
 # Global state för weather data
 weather_state = {
@@ -432,19 +456,26 @@ def update_weather_data():
     try:
         print(f"🔄 FAS 2+3: Uppdaterar väderdata... ({datetime.now().strftime('%H:%M:%S')})")
 
+        smhi_ok = False
+
         # FAS 2: SMHI data med luftfuktighet (alltid obligatorisk)
         if smhi_client:
             try:
                 # FAS 2: KRITISK ÄNDRING - Använd get_current_weather_with_humidity() istället för get_current_weather()
-                weather_state['smhi_data'] = smhi_client.get_current_weather_with_humidity()
-                weather_state['forecast_data'] = smhi_client.get_12h_forecast()
-                weather_state['daily_forecast_data'] = smhi_client.get_daily_forecast(5)
+                smhi_data = smhi_client.get_current_weather_with_humidity()
+                forecast_data = smhi_client.get_12h_forecast()
+                daily_forecast_data = smhi_client.get_daily_forecast(5)
 
-                # FAS 2: Debug-logging för luftfuktighetsdata
-                if weather_state['smhi_data']:
-                    humidity = weather_state['smhi_data'].get('humidity')
-                    humidity_station = weather_state['smhi_data'].get('humidity_station')
-                    humidity_age = weather_state['smhi_data'].get('humidity_age_minutes')
+                if smhi_data:
+                    smhi_ok = True
+                    with state_lock:
+                        weather_state['smhi_data'] = smhi_data
+                        weather_state['forecast_data'] = forecast_data
+                        weather_state['daily_forecast_data'] = daily_forecast_data
+
+                    humidity = smhi_data.get('humidity')
+                    humidity_station = smhi_data.get('humidity_station')
+                    humidity_age = smhi_data.get('humidity_age_minutes')
 
                     if humidity is not None:
                         print(f"✅ FAS 2: SMHI-data med luftfuktighet uppdaterad - {humidity}% från {humidity_station} (ålder: {humidity_age} min)")
@@ -452,10 +483,10 @@ def update_weather_data():
                         print("⚠️ FAS 2: SMHI-data uppdaterad men ingen luftfuktighet tillgänglig")
 
                     # FAS 2: WeatherEffects debugging
-                    if weather_state['weather_effects_enabled'] and weather_state['smhi_data'].get('weather_symbol'):
-                        weather_symbol = weather_state['smhi_data']['weather_symbol']
+                    if weather_state['weather_effects_enabled'] and smhi_data.get('weather_symbol'):
+                        weather_symbol = smhi_data['weather_symbol']
                         effect_type = get_smhi_weather_effect_type(weather_symbol)
-                        precipitation = weather_state['smhi_data'].get('precipitation', 0)
+                        precipitation = smhi_data.get('precipitation', 0)
                         print(f"🌦️ FAS 2: SMHI Symbol {weather_symbol} → WeatherEffect '{effect_type}' (precipitation: {precipitation}mm)")
                 else:
                     print("❌ FAS 2: SMHI-data misslyckades")
@@ -468,7 +499,8 @@ def update_weather_data():
         if netatmo_client and weather_state['netatmo_available']:
             try:
                 netatmo_data = netatmo_client.get_current_weather()
-                weather_state['netatmo_data'] = netatmo_data
+                with state_lock:
+                    weather_state['netatmo_data'] = netatmo_data
 
                 # Logga trycktrend om tillgänglig
                 if netatmo_data and 'pressure_trend' in netatmo_data:
@@ -478,9 +510,11 @@ def update_weather_data():
                     print("✅ FAS 2: Netatmo-data uppdaterad (ingen trycktrend)")
             except Exception as e:
                 print(f"❌ FAS 2: Netatmo-uppdatering misslyckades: {e}")
-                weather_state['netatmo_available'] = False
+                with state_lock:
+                    weather_state['netatmo_available'] = False
         else:
-            weather_state['netatmo_data'] = None
+            with state_lock:
+                weather_state['netatmo_data'] = None
             if weather_state['use_netatmo']:
                 print("📊 FAS 2: Netatmo ej tillgänglig - kör SMHI-only läge")
 
@@ -488,7 +522,8 @@ def update_weather_data():
         if uv_client and weather_state['uv_enabled']:
             try:
                 uv_data = uv_client.get_uv_index()
-                weather_state['uv_data'] = uv_data
+                with state_lock:
+                    weather_state['uv_data'] = uv_data
 
                 if uv_data:
                     uv_index = uv_data.get('uv_index', 0)
@@ -499,7 +534,8 @@ def update_weather_data():
             except Exception as e:
                 print(f"❌ FAS 3: UV-uppdatering misslyckades: {e}")
         else:
-            weather_state['uv_data'] = None
+            with state_lock:
+                weather_state['uv_data'] = None
 
         # Soltider
         if sun_calculator and smhi_client:
@@ -507,14 +543,22 @@ def update_weather_data():
                 smhi_client.latitude,
                 smhi_client.longitude
             )
-            weather_state['sun_data'] = sun_data
+            with state_lock:
+                weather_state['sun_data'] = sun_data
 
-        weather_state['last_update'] = datetime.now().isoformat()
-        weather_state['status'] = 'Uppdaterad'
+        # Ärlig status: last_update bumpas bara när kärndatan (SMHI) faktiskt
+        # hämtades, så att frontend kan upptäcka stale data
+        with state_lock:
+            if smhi_ok:
+                weather_state['last_update'] = datetime.now().isoformat()
+                weather_state['status'] = 'Uppdaterad'
+            else:
+                weather_state['status'] = 'Fel: SMHI-uppdatering misslyckades'
 
     except Exception as e:
         print(f"❌ Fel vid väderuppdatering: {e}")
-        weather_state['status'] = f'Fel: {str(e)}'
+        with state_lock:
+            weather_state['status'] = f'Fel: {str(e)}'
 
 
 def get_current_theme():
@@ -659,41 +703,43 @@ def index():
 def api_current_weather():
     """FAS 2+3: API endpoint för aktuell väderdata med intelligent Netatmo-hantering och UV."""
 
+    state = state_snapshot()
+
     # FAS 2: Villkorsstyrd Netatmo-formatering
     formatted_netatmo = None
-    if weather_state['netatmo_data'] and weather_state['netatmo_available']:
+    if state['netatmo_data'] and state['netatmo_available']:
         formatted_netatmo = format_api_response_with_pressure_trend(
-            weather_state['netatmo_data'],
-            weather_state['smhi_data']
+            state['netatmo_data'],
+            state['smhi_data']
         )
 
     # FAS 2+3: Utökad config för frontend-intelligens
     ui_config = None
-    if weather_state['config']:
+    if state['config']:
         ui_config = {
-            'wind_unit': weather_state['config'].get('ui', {}).get('wind_unit', 'land'),
-            'pressure_display': weather_state['config'].get('ui', {}).get('pressure_display', 'numeric'),
-            'use_netatmo': weather_state['use_netatmo'],  # NYT: För frontend-detektering
-            'netatmo_available': weather_state['netatmo_available'],  # NYT: Faktisk tillgänglighet
-            'weather_effects_enabled': weather_state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status
-            'uv_enabled': weather_state['uv_enabled']  # FAS 3: UV-status
+            'wind_unit': state['config'].get('ui', {}).get('wind_unit', 'land'),
+            'pressure_display': state['config'].get('ui', {}).get('pressure_display', 'numeric'),
+            'use_netatmo': state['use_netatmo'],  # NYT: För frontend-detektering
+            'netatmo_available': state['netatmo_available'],  # NYT: Faktisk tillgänglighet
+            'weather_effects_enabled': state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status
+            'uv_enabled': state['uv_enabled']  # FAS 3: UV-status
         }
 
     response_data = {
-        'smhi': weather_state['smhi_data'],  # FAS 2: Nu innehåller humidity från get_current_weather_with_humidity()
+        'smhi': state['smhi_data'],  # FAS 2: Nu innehåller humidity från get_current_weather_with_humidity()
         'netatmo': formatted_netatmo,  # Kan vara None i SMHI-only läge
-        'sun': weather_state['sun_data'],
-        'last_update': weather_state['last_update'],
+        'sun': state['sun_data'],
+        'last_update': state['last_update'],
         'theme': get_current_theme(),
-        'status': weather_state['status'],
+        'status': state['status'],
         'config': ui_config
     }
 
     # FAS 2+3: Debug-logging för API-respons
     mode = "SMHI + Netatmo" if formatted_netatmo else "SMHI-only"
-    effects = " + WeatherEffects" if weather_state['weather_effects_enabled'] else ""
-    uv = " + UV" if weather_state['uv_enabled'] else ""
-    smhi_humidity = weather_state['smhi_data'].get('humidity') if weather_state['smhi_data'] else None
+    effects = " + WeatherEffects" if state['weather_effects_enabled'] else ""
+    uv = " + UV" if state['uv_enabled'] else ""
+    smhi_humidity = state['smhi_data'].get('humidity') if state['smhi_data'] else None
     humidity_info = f" (humidity: {smhi_humidity}%)" if smhi_humidity is not None else " (no humidity)"
     print(f"🌐 FAS 2+3: API Response - {mode}{effects}{uv}{humidity_info}")
 
@@ -701,47 +747,51 @@ def api_current_weather():
 
 @app.route('/api/forecast')
 def api_forecast():
+    state = state_snapshot()
     return jsonify({
-        'forecast': weather_state['forecast_data'],
-        'last_update': weather_state['last_update']
+        'forecast': state['forecast_data'],
+        'last_update': state['last_update']
     })
 
 @app.route('/api/daily')
 def api_daily_forecast():
+    state = state_snapshot()
     return jsonify({
-        'daily_forecast': weather_state['daily_forecast_data'],
-        'last_update': weather_state['last_update']
+        'daily_forecast': state['daily_forecast_data'],
+        'last_update': state['last_update']
     })
 
 @app.route('/api/status')
 def api_status():
     """FAS 2+3: API endpoint för systemstatus med Netatmo-info, WeatherEffects och UV."""
+    state = state_snapshot()
+
     # FAS 2: Lägg till humidity-status
     smhi_humidity_available = (
-        weather_state['smhi_data'] is not None and
-        weather_state['smhi_data'].get('humidity') is not None
+        state['smhi_data'] is not None and
+        state['smhi_data'].get('humidity') is not None
     )
 
     return jsonify({
-        'status': weather_state['status'],
-        'last_update': weather_state['last_update'],
+        'status': state['status'],
+        'last_update': state['last_update'],
         'theme': get_current_theme(),
-        'config_loaded': weather_state['config'] is not None,
+        'config_loaded': state['config'] is not None,
         'smhi_active': smhi_client is not None,
         'smhi_humidity_available': smhi_humidity_available,  # FAS 2: NYT - SMHI luftfuktighet tillgänglig
-        'netatmo_configured': weather_state['use_netatmo'],  # FAS 2: Konfigurerat
-        'netatmo_active': weather_state['netatmo_available'],  # FAS 2: Faktiskt tillgängligt
+        'netatmo_configured': state['use_netatmo'],  # FAS 2: Konfigurerat
+        'netatmo_active': state['netatmo_available'],  # FAS 2: Faktiskt tillgängligt
         'sun_calc_active': sun_calculator is not None,
         'pressure_trend_available': (
-            weather_state['netatmo_data'] is not None and
-            'pressure_trend' in weather_state['netatmo_data'] and
-            weather_state['netatmo_data']['pressure_trend']['trend'] != 'n/a'
+            state['netatmo_data'] is not None and
+            'pressure_trend' in state['netatmo_data'] and
+            state['netatmo_data']['pressure_trend']['trend'] != 'n/a'
         ),
-        'system_mode': 'SMHI + Netatmo' if weather_state['netatmo_available'] else 'SMHI-only',  # FAS 2: Systemläge
-        'weather_effects_enabled': weather_state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status
-        'weather_effects_config_loaded': weather_state['weather_effects_config'] is not None,  # FAS 2: Config-status
-        'uv_enabled': weather_state['uv_enabled'],  # FAS 3: UV-status
-        'uv_available': weather_state['uv_data'] is not None  # FAS 3: UV-data tillgänglig
+        'system_mode': 'SMHI + Netatmo' if state['netatmo_available'] else 'SMHI-only',  # FAS 2: Systemläge
+        'weather_effects_enabled': state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status
+        'weather_effects_config_loaded': state['weather_effects_config'] is not None,  # FAS 2: Config-status
+        'uv_enabled': state['uv_enabled'],  # FAS 3: UV-status
+        'uv_available': state['uv_data'] is not None  # FAS 3: UV-data tillgänglig
     })
 
 @app.route('/api/theme')
@@ -754,7 +804,9 @@ def api_theme():
 @app.route('/api/pressure_trend')
 def api_pressure_trend():
     """Dedikerad API endpoint för trycktrend-data (för debugging)."""
-    if not weather_state['netatmo_data'] and not weather_state['smhi_data']:
+    state = state_snapshot()
+
+    if not state['netatmo_data'] and not state['smhi_data']:
         return jsonify({
             'error': 'Ingen väderdata tillgänglig',
             'pressure_trend': None,
@@ -762,22 +814,22 @@ def api_pressure_trend():
         })
 
     # FAS 2: Intelligent trycktrend-respons
-    if weather_state['netatmo_data'] and weather_state['netatmo_available']:
-        pressure_trend = weather_state['netatmo_data'].get('pressure_trend')
-        current_pressure = weather_state['netatmo_data'].get('pressure')
+    if state['netatmo_data'] and state['netatmo_available']:
+        pressure_trend = state['netatmo_data'].get('pressure_trend')
+        current_pressure = state['netatmo_data'].get('pressure')
         source = 'netatmo'
     else:
         # FAS 2: SMHI-fallback
-        pressure_trend = create_smhi_pressure_trend_fallback(weather_state['smhi_data'])
-        current_pressure = weather_state['smhi_data'].get('pressure') if weather_state['smhi_data'] else None
+        pressure_trend = create_smhi_pressure_trend_fallback(state['smhi_data'])
+        current_pressure = state['smhi_data'].get('pressure') if state['smhi_data'] else None
         source = 'smhi_fallback'
 
     return jsonify({
         'pressure_trend': pressure_trend,
         'current_pressure': current_pressure,
-        'timestamp': weather_state['last_update'],
+        'timestamp': state['last_update'],
         'source': source,
-        'system_mode': 'SMHI + Netatmo' if weather_state['netatmo_available'] else 'SMHI-only'
+        'system_mode': 'SMHI + Netatmo' if state['netatmo_available'] else 'SMHI-only'
     })
 
 # === FAS 3: NYT API ENDPOINT FÖR UV-INDEX ===
@@ -793,21 +845,23 @@ def api_uv():
     try:
         print("☀️ FAS 3: UV API anropat")
 
+        state = state_snapshot()
+
         # Kontrollera om UV är aktiverat
-        if not weather_state['uv_enabled']:
+        if not state['uv_enabled']:
             return jsonify({
                 'available': False,
                 'reason': 'UV-index inaktiverat i config'
             })
 
         # Kontrollera om UV-data finns
-        if not weather_state['uv_data']:
+        if not state['uv_data']:
             return jsonify({
                 'available': False,
                 'reason': 'UV-data ej tillgänglig'
             })
 
-        uv_data = weather_state['uv_data']
+        uv_data = state['uv_data']
 
         response = {
             'available': True,
@@ -854,23 +908,25 @@ def api_weather_effects_config():
                 'fallback_reason': 'main_config_missing'
             }), 500
 
+        state = state_snapshot()
+
         # Hämta WeatherEffects-konfiguration
-        raw_weather_effects_config = weather_state.get('weather_effects_config', {})
+        raw_weather_effects_config = state.get('weather_effects_config', {})
 
         # Validera konfigurationen
         validated_config = validate_weather_effects_config(raw_weather_effects_config)
 
         # Lägg till SMHI-integration data om SMHI-data finns
         smhi_integration = {}
-        if weather_state['smhi_data']:
-            weather_symbol = weather_state['smhi_data'].get('weather_symbol')
-            precipitation = weather_state['smhi_data'].get('precipitation', 0)
-            wind_direction = weather_state['smhi_data'].get('wind_direction', 0)
-            temperature = weather_state['smhi_data'].get('temperature')
+        if state['smhi_data']:
+            weather_symbol = state['smhi_data'].get('weather_symbol')
+            precipitation = state['smhi_data'].get('precipitation', 0)
+            wind_direction = state['smhi_data'].get('wind_direction', 0)
+            temperature = state['smhi_data'].get('temperature')
 
             if weather_symbol:
                 # INTELLIGENT BESLUT: Ta hänsyn till Netatmo-mätning
-                netatmo_data = weather_state.get('netatmo_data') if weather_state.get('netatmo_available') else None
+                netatmo_data = state.get('netatmo_data') if state.get('netatmo_available') else None
                 effect_type = get_intelligent_weather_effect_type(
                     weather_symbol,
                     netatmo_data=netatmo_data,
@@ -907,35 +963,38 @@ def api_weather_effects_config():
 @app.route('/api/weather')
 def api_weather():
     """Kombinerad API endpoint för all väderdata (inkl. WeatherEffects-info)."""
+    state = state_snapshot()
     return jsonify({
-        'current': weather_state['smhi_data'],
-        'netatmo': weather_state['netatmo_data'],
-        'forecast': weather_state['forecast_data'],
-        'daily_forecast': weather_state['daily_forecast_data'],
-        'sun': weather_state['sun_data'],
-        'last_update': weather_state['last_update'],
+        'current': state['smhi_data'],
+        'netatmo': state['netatmo_data'],
+        'forecast': state['forecast_data'],
+        'daily_forecast': state['daily_forecast_data'],
+        'sun': state['sun_data'],
+        'last_update': state['last_update'],
         'theme': get_current_theme(),
-        'status': weather_state['status'],
-        'weather_effects_enabled': weather_state['weather_effects_enabled']
+        'status': state['status'],
+        'weather_effects_enabled': state['weather_effects_enabled']
     })
 
 @app.route('/api/weather-effects-debug')
 def api_weather_effects_debug():
     """FAS 2: Debug endpoint för WeatherEffects troubleshooting."""
+    state = state_snapshot()
+
     debug_info = {
-        'enabled': weather_state['weather_effects_enabled'],
-        'config_loaded': weather_state['weather_effects_config'] is not None,
-        'smhi_data_available': weather_state['smhi_data'] is not None,
-        'netatmo_available': weather_state['netatmo_available'],
+        'enabled': state['weather_effects_enabled'],
+        'config_loaded': state['weather_effects_config'] is not None,
+        'smhi_data_available': state['smhi_data'] is not None,
+        'netatmo_available': state['netatmo_available'],
         'timestamp': datetime.now().isoformat()
     }
 
-    if weather_state['smhi_data']:
-        weather_symbol = weather_state['smhi_data'].get('weather_symbol')
-        precipitation = weather_state['smhi_data'].get('precipitation', 0)
-        temperature = weather_state['smhi_data'].get('temperature')
+    if state['smhi_data']:
+        weather_symbol = state['smhi_data'].get('weather_symbol')
+        precipitation = state['smhi_data'].get('precipitation', 0)
+        temperature = state['smhi_data'].get('temperature')
 
-        netatmo_data = weather_state.get('netatmo_data') if weather_state.get('netatmo_available') else None
+        netatmo_data = state.get('netatmo_data') if state.get('netatmo_available') else None
         effect_type = get_intelligent_weather_effect_type(
             weather_symbol,
             netatmo_data=netatmo_data,
@@ -981,7 +1040,11 @@ def background_updater():
 
     while True:
         time.sleep(refresh_seconds)
-        update_weather_data()
+        try:
+            update_weather_data()
+        except Exception as e:
+            # Loopen får aldrig dö - då slutar all datauppdatering tyst
+            print(f"❌ Oväntat fel i bakgrunds-uppdateraren: {e}")
 
 def netatmo_updater():
     """FAS 2: Villkorsstyrd snabb loop för Netatmo-uppdateringar."""
@@ -999,7 +1062,8 @@ def netatmo_updater():
         if netatmo_client and weather_state['netatmo_available']:
             try:
                 netatmo_data = netatmo_client.get_current_weather()
-                weather_state['netatmo_data'] = netatmo_data
+                with state_lock:
+                    weather_state['netatmo_data'] = netatmo_data
 
                 # Logga trycktrend-uppdatering
                 if netatmo_data and 'pressure_trend' in netatmo_data:
@@ -1030,36 +1094,57 @@ def uv_updater():
 
     try:
         update_hour, update_minute = map(int, update_time_str.split(':'))
-    except:
+    except (ValueError, AttributeError):
         print(f"⚠️ FAS 3: Ogiltig update_time '{update_time_str}', använder 01:00")
         update_hour, update_minute = 1, 0
 
     print(f"✅ FAS 3: UV-uppdaterare startad (daglig uppdatering kl. {update_hour:02d}:{update_minute:02d})")
 
+    # Initial hämtning om cache saknas - görs här i tråden (CAMS kan ta
+    # 60-180 s) så att Flask hinner börja lyssna på porten direkt vid start
+    cache_dir = uv_config.get('cache_dir', 'cache')
+    cache_file = os.path.join(cache_dir, 'uv_cache.json')
+    if uv_client and not os.path.exists(cache_file):
+        try:
+            print("☀️ FAS 3: Ingen UV-cache hittades - hämtar initial data i bakgrunden...")
+            uv_data = uv_client.get_uv_index()
+            with state_lock:
+                weather_state['uv_data'] = uv_data
+            if uv_data:
+                print(f"✅ FAS 3: Initial UV-data hämtad - UV {uv_data.get('uv_index', 0)} ({uv_data.get('risk_level', 'low')})")
+            else:
+                print("⚠️ FAS 3: Initial UV-hämtning returnerade ingen data")
+        except Exception as e:
+            print(f"⚠️ FAS 3: Initial UV-hämtning misslyckades: {e}")
+
     while True:
-        now = datetime.now()
+        # Hela loopkroppen är skyddad: ett oväntat fel (t.ex. i tidsberäkningen)
+        # får inte döda tråden - då slutar UV-uppdateringarna tyst för alltid
+        try:
+            now = datetime.now()
 
-        # Beräkna nästa uppdateringstid
-        next_update = now.replace(hour=update_hour, minute=update_minute, second=0, microsecond=0)
+            # Beräkna nästa uppdateringstid
+            next_update = now.replace(hour=update_hour, minute=update_minute, second=0, microsecond=0)
 
-        # Om tiden har passerat idag, schemalägg för imorgon
-        if now >= next_update:
-            next_update = next_update.replace(day=next_update.day + 1)
+            # Om tiden har passerat idag, schemalägg för imorgon
+            # (timedelta hanterar månads-/årsskiften korrekt)
+            if now >= next_update:
+                next_update = next_update + timedelta(days=1)
 
-        # Beräkna väntetid
-        wait_seconds = (next_update - now).total_seconds()
+            # Beräkna väntetid
+            wait_seconds = (next_update - now).total_seconds()
 
-        print(f"⏰ FAS 3: Nästa UV-uppdatering: {next_update.strftime('%Y-%m-%d %H:%M:%S')} (om {wait_seconds/3600:.1f}h)")
+            print(f"⏰ FAS 3: Nästa UV-uppdatering: {next_update.strftime('%Y-%m-%d %H:%M:%S')} (om {wait_seconds/3600:.1f}h)")
 
-        # Vänta till uppdateringstid
-        time.sleep(wait_seconds)
+            # Vänta till uppdateringstid
+            time.sleep(wait_seconds)
 
-        # Kör uppdatering
-        if uv_client and weather_state['uv_enabled']:
-            try:
+            # Kör uppdatering
+            if uv_client and weather_state['uv_enabled']:
                 print(f"🔄 FAS 3: Daglig UV-uppdatering startar... ({datetime.now().strftime('%H:%M:%S')})")
                 uv_data = uv_client.get_uv_index()
-                weather_state['uv_data'] = uv_data
+                with state_lock:
+                    weather_state['uv_data'] = uv_data
 
                 if uv_data:
                     uv_index = uv_data.get('uv_index', 0)
@@ -1068,11 +1153,12 @@ def uv_updater():
                     print(f"✅ FAS 3: UV-data uppdaterad - UV {uv_index} ({risk_level}), topp kl. {peak_hour:02d}:00" if isinstance(peak_hour, int) else f"✅ FAS 3: UV-data uppdaterad - UV {uv_index} ({risk_level})")
                 else:
                     print("⚠️ FAS 3: UV-uppdatering returnerade ingen data")
+            else:
+                print("⚠️ FAS 3: UV-klient ej tillgänglig vid uppdateringstid")
 
-            except Exception as e:
-                print(f"❌ FAS 3: Daglig UV-uppdatering misslyckades: {e}")
-        else:
-            print("⚠️ FAS 3: UV-klient ej tillgänglig vid uppdateringstid")
+        except Exception as e:
+            print(f"❌ FAS 3: Fel i UV-uppdateraren: {e}")
+            time.sleep(3600)  # Backa en timme och försök igen
 
 # === APP INITIALIZATION ===
 
@@ -1092,38 +1178,8 @@ def initialize_app():
     if not api_clients_ok:
         print("⚠️ FAS 2+3: Vissa API-klienter misslyckades - fortsätter ändå")
 
-    # FAS 3: Initial UV-hämtning vid uppstart om aktiverat och cache saknas
-    if weather_state['uv_enabled'] and uv_client:
-        try:
-            # Kontrollera om cache finns och är giltig
-            import os
-            uv_config = config.get('cams_uv', {})
-            cache_dir = uv_config.get('cache_dir', 'cache')
-            cache_file = os.path.join(cache_dir, 'uv_cache.json')
-
-            cache_exists = os.path.exists(cache_file)
-
-            if not cache_exists:
-                print("☀️ FAS 3: Ingen UV-cache hittades - hämtar initial data...")
-                uv_data = uv_client.get_uv_index()
-                weather_state['uv_data'] = uv_data
-
-                if uv_data:
-                    uv_index = uv_data.get('uv_index', 0)
-                    risk_level = uv_data.get('risk_level', 'low')
-                    peak_hour = uv_data.get('peak_hour')
-                    if isinstance(peak_hour, int):
-                        print(f"✅ FAS 3: Initial UV-data hämtad - UV {uv_index} ({risk_level}), topp kl. {peak_hour:02d}:00")
-                    else:
-                        print(f"✅ FAS 3: Initial UV-data hämtad - UV {uv_index} ({risk_level})")
-                else:
-                    print("⚠️ FAS 3: Initial UV-hämtning returnerade ingen data")
-            else:
-                print("💾 FAS 3: UV-cache finns - hoppar över initial hämtning")
-
-        except Exception as e:
-            print(f"⚠️ FAS 3: Initial UV-hämtning misslyckades: {e}")
-            print("🔄 FAS 3: Fortsätter utan initial UV-data (väntar till schemalagd uppdatering)")
+    # FAS 3: Initial UV-hämtning sker numera i uv_updater-tråden så att
+    # webbservern kan börja lyssna direkt (CAMS-hämtning kan ta 60-180 s)
 
     # FAS 2: Starta bakgrundstrådar villkorsstyrt
     bg_thread = threading.Thread(target=background_updater, daemon=True)
@@ -1205,12 +1261,19 @@ def initialize_app():
 
 if __name__ == '__main__':
     if initialize_app():
-        app.run(
-            host='0.0.0.0',
-            port=8036,
-            debug=False,
-            threaded=True
-        )
+        try:
+            # Produktionsserver (Werkzeugs devserver är inte avsedd för 24/7-drift)
+            from waitress import serve
+            print("🚀 Startar med waitress (produktionsserver)")
+            serve(app, host='0.0.0.0', port=8036, threads=8)
+        except ImportError:
+            print("⚠️ waitress ej installerat - faller tillbaka på Flasks devserver")
+            app.run(
+                host='0.0.0.0',
+                port=8036,
+                debug=False,
+                threaded=True
+            )
     else:
         print("❌ Kunde inte starta Flask-appen")
         sys.exit(1)
