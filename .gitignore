@@ -191,3 +191,4 @@ backup/experimental_*/
 backup/*_*/
 backup/**
 start_flask_weather.sh
+cache/
