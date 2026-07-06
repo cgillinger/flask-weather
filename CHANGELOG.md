@@ -3,6 +3,12 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.3.0] - 2026-07-06
+
+### Tillagt
+- **Ikonanimeringsläge** (`ui.icon_animations`): styr vilka väderikoner som animeras i SVG-paket som `amcharts` - `auto` (standard) ger Safari/iPad enbart animerad huvudikon medan prognosikonerna visas statiska, vilket åtgärdar animationslagg på WebKit-klienter (animerade SVG:er i `<img>` CPU-rastreras genom sitt feGaussianBlur-filter varje bildruta). Övriga lägen: `all`, `hero`, `none`. Chromium-kiosker påverkas inte av `auto`.
+- Statiska (icke-animerade) varianter av amCharts-ikonerna i `static/assets/icons/amcharts-svg-static/`, genererade med nya `scripts/generate_static_icons.py`
+
 ## [3.2.4] - 2026-07-06
 
 ### Ändrat

@@ -95,6 +95,11 @@ const ICON_PACKS = {
     'amcharts': {
         type: 'svg',
         basePath: '/static/assets/icons/amcharts-svg/',
+        // Icke-animerade kopior (utan <style>-block), genererade med
+        // scripts/generate_static_icons.py - används av animeringsläget
+        // ('hero'/'none') eftersom sidans CSS inte kan pausa animationer
+        // inuti en <img>
+        staticBasePath: '/static/assets/icons/amcharts-svg-static/',
         // Visuell skalning via CSS transform - kompenserar för luften i
         // SVG:ernas viewBox UTAN att påverka layouten (layoutboxen är
         // alltid exakt 1em, som en fontglyf)
@@ -137,9 +142,32 @@ const ICON_PACKS = {
     }
 };
 
+// === ANIMERINGSLÄGE ===
+
+/**
+ * Detektera WebKit-klienter (Safari samt ALLA webbläsare på iPad/iPhone,
+ * som är WebKit under huven). WebKit CPU-rastrerar animerade SVG:er i
+ * <img> genom deras feGaussianBlur-filter varje bildruta - med ~10 ikoner
+ * samtidigt laggar det. Auto-läget ger därför dessa klienter hero-only.
+ * OBS: iPadOS uppger sig som "Macintosh" i user agent - avslöjas av
+ * multi-touch (maxTouchPoints).
+ * @returns {boolean} true om klienten bör få reducerad ikonanimering
+ */
+function isWebKitClient() {
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+        (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    const isSafari = /Safari\//.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR/.test(ua);
+    return isIOS || isSafari;
+}
+
 // === REGISTRY ===
 const IconRegistry = {
     activePack: 'weather-icons',
+
+    // Upplöst animeringsläge: 'all' | 'hero' | 'none'
+    // ('auto' från config löses upp till 'all' eller 'hero' i setAnimationMode)
+    animationMode: 'all',
 
     /**
      * Sätt aktivt ikonpaket (anropas från fetch-api-client när config hämtats)
@@ -153,6 +181,23 @@ const IconRegistry = {
             console.log(`🎨 Ikonpaket bytt till: ${packName}`);
         } else {
             console.warn(`⚠️ Okänt ikonpaket '${packName}' - behåller '${this.activePack}'. Tillgängliga: ${Object.keys(ICON_PACKS).join(', ')}`);
+        }
+    },
+
+    /**
+     * Sätt ikonanimeringsläge (anropas från fetch-api-client när config hämtats)
+     * @param {string} mode - 'auto' | 'all' | 'hero' | 'none' (ui.icon_animations)
+     */
+    setAnimationMode(mode) {
+        if (!['auto', 'all', 'hero', 'none'].includes(mode)) {
+            console.warn(`⚠️ Okänt ikonanimeringsläge '${mode}' - behåller '${this.animationMode}'. Giltiga: auto, all, hero, none`);
+            return;
+        }
+
+        const resolved = mode === 'auto' ? (isWebKitClient() ? 'hero' : 'all') : mode;
+        if (resolved !== this.animationMode) {
+            this.animationMode = resolved;
+            console.log(`🎬 Ikonanimeringsläge: ${resolved}${mode === 'auto' ? ' (auto-detekterat)' : ''}`);
         }
     },
 
@@ -180,8 +225,19 @@ const IconRegistry = {
         // SVG-paket: <img> med TVINGAD layoutbox på 1em (som en fontglyf,
         // se styles.css) - paketets scale justerar bara det visuella via
         // transform och kan aldrig spränga layouten
+        //
+        // ANIMERINGSLÄGE: hero-ikonen (aktuellt väder) identifieras på sin
+        // CSS-klass från current-weather-view; övriga ikoner får statiska
+        // filer när läget är 'hero' eller 'none'
+        const isHero = extraClasses.includes('weather-main-icon');
+        const animate = this.animationMode === 'all' ||
+            (this.animationMode === 'hero' && isHero);
+        const basePath = animate
+            ? pack.basePath
+            : (pack.staticBasePath || pack.basePath);
+
         const img = document.createElement('img');
-        img.src = pack.basePath + iconName;
+        img.src = basePath + iconName;
         img.alt = '';
         img.draggable = false;
         img.className = ['svg-weather-icon', ...extraClasses].join(' ');
