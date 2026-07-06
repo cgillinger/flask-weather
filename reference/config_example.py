@@ -57,8 +57,14 @@ CONFIG = {
         'pressure_display': 'words',
 
         # IKONPAKET - vilken väderikonuppsättning som används
-        # 'weather-icons' = Weather Icons-fonten (klassiskt läge, färgkodas automatiskt)
-        # 'amcharts'      = animerade färg-SVG:er med dag/natt-varianter
+        # 'weather-icons'      = Weather Icons-fonten (klassiskt läge, färgkodas automatiskt)
+        # 'amcharts'           = animerade färg-SVG:er med dag/natt-varianter
+        # 'meteocons'          = animerade färg-SVG:er, fill-stil (MIT, modernast)
+        # 'amedia-meteo'       = statiska färg-SVG:er, komplett dag/natt
+        #                        OBS: CC BY-NC-SA 4.0 - ENDAST icke-kommersiell användning!
+        # 'open-weather-icons' = font, OpenWeatherMap-symboler (färgkodas automatiskt)
+        # 'kickstand-weather'  = font, minimalistisk (12 glyfer, färgkodas automatiskt)
+        # Licenser: se "Ikonpaketens licenser" i readme + licensfil i varje ikonmapp.
         # Nya paket läggs till i static/js/utils/icon-packs.js
         'icon_pack': 'weather-icons',
 
