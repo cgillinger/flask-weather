@@ -192,3 +192,4 @@ backup/*_*/
 backup/**
 start_flask_weather.sh
 cache/
+.cdsapirc
