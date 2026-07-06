@@ -138,15 +138,17 @@ body {
 
 .clock-dot {
     position: absolute;
-    width: clamp(4px, 0.4vw, 6px);
-    height: clamp(4px, 0.4vw, 6px);
+    /* OBS: margin-left/top måste alltid vara exakt halva bredden/höjden,
+       annars hamnar prickringen ur centrum */
+    width: clamp(6px, 0.6vw, 10px);
+    height: clamp(6px, 0.6vw, 10px);
     border-radius: 50%;
     background: var(--clock-dot-inactive);
     transition: all 0.3s ease;
     left: 50%;
     top: 50%;
-    margin-left: calc(-1 * clamp(2px, 0.2vw, 3px));
-    margin-top: calc(-1 * clamp(2px, 0.2vw, 3px));
+    margin-left: calc(-1 * clamp(3px, 0.3vw, 5px));
+    margin-top: calc(-1 * clamp(3px, 0.3vw, 5px));
 }
 
 .clock-dot.active {

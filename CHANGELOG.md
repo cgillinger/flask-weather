@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.2.4] - 2026-07-06
+
+### Ändrat
+- Större sekundprickar i klockan (max 6px → 10px) - verifierat kollisionsfritt på 1920x1080 (9.6px luft mellan prickar även när aktiv prick skalar upp)
+
 ## [3.2.3] - 2026-07-06
 
 ### Ändrat
