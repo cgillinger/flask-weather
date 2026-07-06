@@ -365,8 +365,12 @@ class CAMSUVClient:
             data: UV-data att cacha
         """
         try:
-            with open(self.cache_file, 'w') as f:
+            # Atomär skrivning: en krasch mitt i skrivningen får inte
+            # korrumpera cachen
+            tmp_path = self.cache_file + '.atomic-tmp'
+            with open(tmp_path, 'w') as f:
                 json.dump(data, f, indent=2)
+            os.replace(tmp_path, self.cache_file)
             print(f"💾 UV-data cachad: {self.cache_file}")
         except Exception as e:
             print(f"⚠️ Kunde inte spara cache: {e}")

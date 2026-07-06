@@ -26,11 +26,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Main CSS -->
-    <link rel="stylesheet" href="/static/css/styles.css">
-    
+    <link rel="stylesheet" href="/static/css/styles.css?v={{ asset_version }}">
+
     <!-- WeatherEffects CSS -->
     {% if weather_effects_enabled %}
-    <link rel="stylesheet" href="/static/css/weather-effects.css">
+    <link rel="stylesheet" href="/static/css/weather-effects.css?v={{ asset_version }}">
     {% endif %}
 </head>
 <body class="theme-{{ theme }}" translate="no">
@@ -176,6 +176,9 @@
                 
             </div>
 
+            <!-- Staleness-indikator: syns bara när data inte kan uppdateras -->
+            <div id="stale-indicator" class="stale-indicator" style="display: none;"></div>
+
             <!-- Status Section (dold) -->
             <div class="status-section" style="display: none;">
                 <div class="status-text" id="status-text">Laddar väderdata...</div>
@@ -189,36 +192,36 @@
     <!-- ========== JAVASCRIPT MODULES - FÄRGHANTERING v1.1.1 ========== -->
     
     <!-- STEG 1-3: Grundläggande utilities -->
-    <script src="/static/js/dashboard/formatters-dashboard.js"></script>
-    <script src="/static/js/dashboard/wind-calculations.js"></script>
-    <script src="/static/js/dashboard/dom-helpers.js"></script>
+    <script src="/static/js/dashboard/formatters-dashboard.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard/wind-calculations.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard/dom-helpers.js?v={{ asset_version }}"></script>
     
     <!-- FÄRGHANTERING: ColorManager - LADDA TIDIGT (före komponenter som använder den) -->
-    <script src="/static/js/utils/color-manager.js"></script>
+    <script src="/static/js/utils/color-manager.js?v={{ asset_version }}"></script>
     
     <!-- STEG 4-5: Icon renderers (använder ColorManager) -->
-    <script src="/static/js/dashboard-components/weather-icon-renderer.js"></script>
-    <script src="/static/js/dashboard-components/fontawesome-renderer.js"></script>
+    <script src="/static/js/dashboard-components/weather-icon-renderer.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard-components/fontawesome-renderer.js?v={{ asset_version }}"></script>
     
     <!-- STEG 6-9: Display och data komponenter -->
-    <script src="/static/js/dashboard-components/circular-clock.js"></script>
-    <script src="/static/js/dashboard-components/barometer-display.js"></script>
-    <script src="/static/js/dashboard-components/uv-display.js"></script>
-    <script src="/static/js/dashboard-components/rain-display.js"></script>
-    <script src="/static/js/dashboard-data/intelligent-data-source.js"></script>
-    <script src="/static/js/dashboard-components/ui-adaptation-engine.js"></script>
+    <script src="/static/js/dashboard-components/circular-clock.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard-components/barometer-display.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard-components/uv-display.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard-components/rain-display.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard-data/intelligent-data-source.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard-components/ui-adaptation-engine.js?v={{ asset_version }}"></script>
     
     <!-- STEG 10-12: API client och views (använder ColorManager) -->
-    <script src="/static/js/dashboard-data/fetch-api-client.js"></script>
-    <script src="/static/js/dashboard-views/current-weather-view.js"></script>
-    <script src="/static/js/dashboard-views/forecast-view.js"></script>
+    <script src="/static/js/dashboard-data/fetch-api-client.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard-views/current-weather-view.js?v={{ asset_version }}"></script>
+    <script src="/static/js/dashboard-views/forecast-view.js?v={{ asset_version }}"></script>
     
     <!-- MAIN: Dashboard orchestrator -->
-    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/dashboard.js?v={{ asset_version }}"></script>
     
     <!-- WeatherEffects (conditional) -->
     {% if weather_effects_enabled %}
-    <script src="/static/js/weather-effects.js"></script>
+    <script src="/static/js/weather-effects.js?v={{ asset_version }}"></script>
     {% endif %}
 </body>
 </html>

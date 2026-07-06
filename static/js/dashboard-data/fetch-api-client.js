@@ -6,6 +6,12 @@
 
 // === API CONSTANTS ===
 const API_TIMEOUT = 10000; // 10 sekunder
+const STALE_AFTER_FAILURES = 3; // Visa varning efter 3 misslyckade uppdateringar i rad
+
+// Re-entransvakt: setInterval fortsätter ticka var 30:e sekund även om en
+// tidigare uppdatering hängt sig - utan vakten staplas anrop på varandra
+let updateInFlight = false;
+let consecutiveFailures = 0;
 
 // === CORE API FUNCTIONS ===
 
@@ -43,6 +49,12 @@ async function fetchWithTimeout(url, timeout = API_TIMEOUT) {
  * @returns {Promise<void>}
  */
 async function updateAllData() {
+    if (updateInFlight) {
+        console.warn('⏳ Föregående uppdatering pågår fortfarande - hoppar över denna cykel');
+        return;
+    }
+    updateInFlight = true;
+
     try {
         const [currentData, forecastData, dailyData] = await Promise.all([
             fetchWithTimeout('/api/current'),
@@ -88,12 +100,44 @@ async function updateAllData() {
         if (typeof UVDisplay !== 'undefined' && UVDisplay.fetchAndUpdateUV) {
             await UVDisplay.fetchAndUpdateUV();
         }
-        
+
         dashboardState.lastUpdate = new Date().toISOString();
-        
+        consecutiveFailures = 0;
+        updateStaleIndicator(currentData.status);
+
     } catch (error) {
         console.error('❌ Fel vid datahämtning:', error);
+        consecutiveFailures++;
+        updateStaleIndicator(null);
         showError('Fel vid uppdatering av väderdata');
+    } finally {
+        updateInFlight = false;
+    }
+}
+
+/**
+ * Synlig staleness-indikator: kioskskärmen ska inte kunna visa timmar
+ * gammal data utan att det syns. Visas efter upprepade fetch-fel eller
+ * när backend själv rapporterar uppdateringsfel.
+ * @param {string|null} backendStatus - Status från /api/current, null vid fetch-fel
+ */
+function updateStaleIndicator(backendStatus) {
+    const indicator = document.getElementById('stale-indicator');
+    if (!indicator) return;
+
+    const fetchStale = consecutiveFailures >= STALE_AFTER_FAILURES;
+    const backendError = typeof backendStatus === 'string' && backendStatus.startsWith('Fel');
+
+    if (fetchStale || backendError) {
+        const since = dashboardState.lastUpdate
+            ? new Date(dashboardState.lastUpdate).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+            : null;
+        indicator.textContent = since
+            ? `⚠️ Data ej uppdaterad sedan ${since}`
+            : '⚠️ Väderdata kan inte hämtas';
+        indicator.style.display = 'block';
+    } else {
+        indicator.style.display = 'none';
     }
 }
 

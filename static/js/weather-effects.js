@@ -65,6 +65,10 @@ class WeatherEffectsManager {
 
         // 🛠️ FIX: Global timeout tracking för fullständig rensning
         this.globalTimeouts = new Set();
+        // Spårade övergångs-timeouts: en snabb clear→start-växling får inte
+        // låta en gammal fade/rensnings-callback slå mot den nya effekten
+        this.pendingClearTimeout = null;
+        this.fadeInTimeout = null;
         this.globalIntervals = new Set();
 
         // Bind methods för event handling
@@ -251,6 +255,30 @@ class WeatherEffectsManager {
     }
 
     /**
+     * NETATMO RAIN PRIORITY: Uppdatera regn-effekt från Netatmos regnmätare.
+     * Anropas från current-weather-view.js när Netatmo faktiskt mäter nederbörd
+     * (ground truth) - då visas regn oavsett vad SMHI-prognosen säger.
+     */
+    updateFromNetatmoRain(rainMm = 0, windDirection = 0) {
+        if (!this.initialized) {
+            this.log('WeatherEffects ej initialiserat, hoppar över Netatmo-uppdatering');
+            return;
+        }
+
+        try {
+            let intensity = this.calculateIntensity(rainMm, 'rain');
+            if (intensity === 'none') {
+                intensity = 'light'; // Netatmo mäter regn - visa åtminstone lätt effekt
+            }
+            this.log(`Netatmo-regn ${rainMm} mm → intensitet ${intensity}`);
+            this.handleWeatherChange('rain', intensity, windDirection);
+
+        } catch (error) {
+            this.logError('Fel vid Netatmo-regnuppdatering:', error);
+        }
+    }
+
+    /**
      * Bestäm vädertyp från SMHI symbol
      */
     getWeatherTypeFromSMHI(symbol) {
@@ -320,6 +348,13 @@ class WeatherEffectsManager {
      */
     startEffect(weatherType, intensity, windDirection) {
         try {
+            // Avbryt ev. väntande DOM-rensning från en tidigare clearEffects()
+            // så att den inte raderar den nya effektens partiklar
+            if (this.pendingClearTimeout) {
+                clearTimeout(this.pendingClearTimeout);
+                this.pendingClearTimeout = null;
+            }
+
             let effect = null;
 
             switch (weatherType) {
@@ -359,8 +394,9 @@ class WeatherEffectsManager {
                     effect: effect
                 };
 
-                // Fade in container
-                setTimeout(() => {
+                // Fade in container (spårad så clearEffects kan avbryta den)
+                this.fadeInTimeout = setTimeout(() => {
+                    this.fadeInTimeout = null;
                     if (this.effectContainer) {
                         this.effectContainer.style.opacity = '1';
                     }
@@ -381,7 +417,12 @@ class WeatherEffectsManager {
         this.log('🧹 clearEffects() körs - FÖRBÄTTRAD VERSION');
 
         try {
-            // 1. Fade ut container
+            // 1. Fade ut container (och avbryt ev. väntande fade-in så den
+            // inte sätter opacity till 1 igen efter rensningen)
+            if (this.fadeInTimeout) {
+                clearTimeout(this.fadeInTimeout);
+                this.fadeInTimeout = null;
+            }
             if (this.effectContainer) {
                 this.effectContainer.style.opacity = '0';
             }
@@ -411,7 +452,12 @@ class WeatherEffectsManager {
             this.globalIntervals.clear();
 
             // 4. Rensa DOM-innehåll efter en kort delay för fade-out
-            setTimeout(() => {
+            // (spårad så att startEffect kan avbryta om ny effekt hinner starta)
+            if (this.pendingClearTimeout) {
+                clearTimeout(this.pendingClearTimeout);
+            }
+            this.pendingClearTimeout = setTimeout(() => {
+                this.pendingClearTimeout = null;
                 if (this.effectContainer) {
                     while (this.effectContainer.firstChild) {
                         this.effectContainer.removeChild(this.effectContainer.firstChild);

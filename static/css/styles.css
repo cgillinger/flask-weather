@@ -844,3 +844,20 @@ body {
     gap: clamp(0.5rem, 0.7vw, 0.9rem) !important;
 }
 
+
+/* === STALENESS-INDIKATOR ===
+   Visas av fetch-api-client.js när väderdata inte kan uppdateras,
+   så att kioskskärmen aldrig visar gammal data utan att det syns */
+.stale-indicator {
+    position: fixed;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(180, 60, 30, 0.92);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: clamp(0.8rem, 1.2vw, 1.1rem);
+    z-index: 9000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}

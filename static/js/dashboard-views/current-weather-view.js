@@ -18,8 +18,6 @@
  * @param {object} data - Komplett väderdata från API
  */
 function updateCurrentWeather(data) {
-    removeWindDetailItems();
-    
     // SMHI Data
     if (data.smhi) {
         const smhi = data.smhi;
@@ -182,9 +180,6 @@ function updateCurrentWeather(data) {
         }
     }
     
-    setTimeout(() => {
-        removeWindDetailItems();
-    }, 100);
 }
 
 /**
@@ -284,31 +279,6 @@ function updateWindUnderFaktisk(smhiData) {
         
         console.log(`💨 FÖRSTÄRKT vinddata under FAKTISK: ${windText} (pil: 28px)`);
     }
-}
-
-/**
- * Ta bort vinddata från weather details grid
- */
-function removeWindDetailItems() {
-    const weatherDetailsGrid = document.querySelector('.weather-details-grid');
-    if (!weatherDetailsGrid) return;
-    
-    const allDetailItems = weatherDetailsGrid.querySelectorAll('.detail-item');
-    
-    allDetailItems.forEach(item => {
-        const text = item.textContent || '';
-        
-        if (text.includes('m/s') || 
-            text.includes('Vind') || 
-            text.includes('km/h') ||
-            text.includes('Beaufort') ||
-            item.classList.contains('wind-detail') ||
-            item.id && item.id.includes('wind')) {
-            
-            console.log(`🗑️ Tar bort vind detail-item: ${text}`);
-            item.remove();
-        }
-    });
 }
 
 /**
