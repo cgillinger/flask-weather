@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**Version 3.2.4** · [Changelog](CHANGELOG.md)
+**Version 3.3.0** · [Changelog](CHANGELOG.md)
 
 **GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 
@@ -472,6 +472,7 @@ Huvudkonfigurationen görs i `reference/config.py`.
     'wind_unit': 'land',  # Alternativ: 'sjo', 'beaufort', 'ms', 'kmh'
     'pressure_display': 'words',  # 'words' = barometerord, 'numeric' = siffror
     'icon_pack': 'weather-icons',  # Väderikonuppsättning, se nedan
+    'icon_animations': 'auto',  # Ikonanimeringsläge för SVG-paket, se nedan
     'theme': 'dark'  # Endast 'dark' är produktionsklar
 }
 ```
@@ -487,9 +488,24 @@ Väderikonerna kan bytas som uppsättning med `ui.icon_pack` i `reference/config
 
 Efter byte: starta om servern (Docker: `docker compose up -d --build`).
 
+**Ikonanimeringar (`ui.icon_animations`):**
+
+De animerade SVG-paketen (t.ex. `amcharts`) kan lagga på Safari och på iPad/iPhone (alla webbläsare där är WebKit under huven): ikonernas animationer renderas på CPU:n genom ett inbyggt skugg-filter, och med ~10 ikoner samtidigt på skärmen blir det tungt. `ui.icon_animations` styr därför vilka ikoner som animeras:
+
+| Läge | Beteende |
+|------|----------|
+| `auto` | Animera allt — utom på Safari/iPad, som bara animerar huvudikonen (standard, rekommenderat) |
+| `all` | Animera alla ikoner på alla klienter |
+| `hero` | Animera bara huvudikonen (aktuellt väder); prognosikoner visas statiska |
+| `none` | Alla ikoner statiska |
+
+Chromium-kiosker (t.ex. Pi5-uppsättningen) klarar full animering och påverkas inte av `auto`. Inställningen har ingen effekt på font-paketet `weather-icons`, som inte är animerat.
+
+De statiska ikonvarianterna ligger i `static/assets/icons/amcharts-svg-static/` och genereras med `python3 scripts/generate_static_icons.py` (behövs bara om ikonpaketet uppdateras — resultatet är incheckat).
+
 **Lägga till ett eget paket:**
 1. Lägg ikonfilerna under `static/assets/icons/<paketnamn>/`
-2. Lägg till en post i `ICON_PACKS` i `static/js/utils/icon-packs.js` — mappa de semantiska nycklarna (`clear`, `rain`, `snow`, …) till dina ikoner med dag/natt-varianter
+2. Lägg till en post i `ICON_PACKS` i `static/js/utils/icon-packs.js` — mappa de semantiska nycklarna (`clear`, `rain`, `snow`, …) till dina ikoner med dag/natt-varianter. För animerade SVG-paket: peka `staticBasePath` på en mapp med icke-animerade kopior (saknas den visas de animerade filerna i alla lägen)
 3. Välj paketet med `'icon_pack': '<paketnamn>'`
 
 Vyerna behöver aldrig ändras — all SMHI-symboltolkning sker i den kanoniska mappningen i samma fil.

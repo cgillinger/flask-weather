@@ -720,6 +720,7 @@ def api_current_weather():
             'wind_unit': state['config'].get('ui', {}).get('wind_unit', 'land'),
             'pressure_display': state['config'].get('ui', {}).get('pressure_display', 'numeric'),
             'icon_pack': state['config'].get('ui', {}).get('icon_pack', 'weather-icons'),  # IKONPAKET: väderikonuppsättning
+            'icon_animations': state['config'].get('ui', {}).get('icon_animations', 'auto'),  # IKONANIMERINGAR: auto/all/hero/none
             'use_netatmo': state['use_netatmo'],  # NYT: För frontend-detektering
             'netatmo_available': state['netatmo_available'],  # NYT: Faktisk tillgänglighet
             'weather_effects_enabled': state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status

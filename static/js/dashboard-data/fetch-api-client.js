@@ -80,6 +80,12 @@ async function updateAllData() {
                 IconRegistry.setActivePack(currentData.config.icon_pack);
             }
 
+            // IKONANIMERINGAR: Sätt animeringsläge (ui.icon_animations) -
+            // 'auto' ger Safari/iPad hero-only pga WebKit-prestanda
+            if (window.IconRegistry && currentData.config.icon_animations) {
+                IconRegistry.setAnimationMode(currentData.config.icon_animations);
+            }
+
             console.log(`🧠 FAS 2: Netatmo-läge: ${dashboardState.useNetatmo ? 'AKTIVT' : 'INAKTIVT'}`);
         }
         

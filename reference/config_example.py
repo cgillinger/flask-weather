@@ -62,6 +62,16 @@ CONFIG = {
         # Nya paket läggs till i static/js/utils/icon-packs.js
         'icon_pack': 'weather-icons',
 
+        # IKONANIMERINGAR - vilka väderikoner som animeras (gäller SVG-paket som 'amcharts')
+        # Safari och alla webbläsare på iPad/iPhone renderar animerade SVG-ikoner
+        # på CPU:n och laggar när ~10 ikoner animerar samtidigt - auto-läget ger
+        # därför dessa klienter enbart animerad huvudikon. Chromium-kiosker påverkas inte.
+        # 'auto' = animera allt, utom Safari/iPad som bara animerar huvudikonen (rekommenderat)
+        # 'all'  = animera alla ikoner på alla klienter
+        # 'hero' = animera bara huvudikonen (aktuellt väder), prognosikoner statiska
+        # 'none' = alla ikoner statiska
+        'icon_animations': 'auto',
+
         # TEMA - AKTIV: 'dark' (enda produktionsklara temat)
         'theme': 'dark',        # ALTERNATIV: 'light' (EJ produktionsklar!), 'dark', 'auto'
         
