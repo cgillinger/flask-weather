@@ -75,6 +75,11 @@ async function updateAllData() {
                 dashboardState.pressureDisplay = currentData.config.pressure_display;
             }
 
+            // IKONPAKET: Aktivera valt paket innan vyerna renderar ikoner
+            if (window.IconRegistry && currentData.config.icon_pack) {
+                IconRegistry.setActivePack(currentData.config.icon_pack);
+            }
+
             console.log(`🧠 FAS 2: Netatmo-läge: ${dashboardState.useNetatmo ? 'AKTIVT' : 'INAKTIVT'}`);
         }
         

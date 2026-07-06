@@ -56,9 +56,7 @@ function createForecastCard(forecast) {
     card.className = `forecast-card ${timeClass}`;
     
     const isDay = hour >= 6 && hour <= 20;
-    // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
-    const iconName = WeatherIconRenderer.getIconName(forecast.weather_symbol, isDay);
-    
+
     // POSITION 4+5 LOGIK: Visa vind ALLTID, och nederbörd UNDER om >2mm
     let windContent = '';
     let precipContent = '';
@@ -118,8 +116,8 @@ function createForecastCard(forecast) {
     
     const iconContainer = card.querySelector(`#${iconId}`);
     
-    // CENTRALISERAD FÄRGKODNING v1.1.0: Använd ColorManager istället för CSS-klasser
-    const weatherIcon = WeatherIconRenderer.createIcon(iconName, ['forecast-weather-icon']);
+    // IKONPAKET + CENTRALISERAD FÄRGKODNING (färgen påverkar bara font-ikoner)
+    const weatherIcon = WeatherIconRenderer.createWeatherIcon(forecast.weather_symbol, isDay, ['forecast-weather-icon']);
     const iconColor = ColorManager.getWeatherIconColor(forecast.weather_symbol);
     weatherIcon.style.color = iconColor;
     
@@ -161,9 +159,6 @@ function createDailyForecastItem(day) {
     const item = document.createElement('div');
     item.className = 'daily-forecast-item';
     
-    // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
-    const iconName = WeatherIconRenderer.getIconName(day.weather_symbol, true);
-    
     const weekdays = {
         'Monday': 'Måndag', 'Tuesday': 'Tisdag', 'Wednesday': 'Onsdag',
         'Thursday': 'Torsdag', 'Friday': 'Fredag', 'Saturday': 'Lördag', 'Sunday': 'Söndag'
@@ -194,8 +189,8 @@ function createDailyForecastItem(day) {
     
     const iconContainer = item.querySelector(`#${iconId}`);
     
-    // CENTRALISERAD FÄRGKODNING v1.1.0: Använd ColorManager istället för CSS-klasser
-    const weatherIcon = WeatherIconRenderer.createIcon(iconName, ['daily-weather-icon']);
+    // IKONPAKET + CENTRALISERAD FÄRGKODNING (färgen påverkar bara font-ikoner)
+    const weatherIcon = WeatherIconRenderer.createWeatherIcon(day.weather_symbol, true, ['daily-weather-icon']);
     const iconColor = ColorManager.getWeatherIconColor(day.weather_symbol);
     weatherIcon.style.color = iconColor;
     

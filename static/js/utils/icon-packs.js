@@ -1,0 +1,182 @@
+/**
+ * @file icon-packs.js
+ * @description Ikonpaketssystem: växla väderikonuppsättning via config (ui.icon_pack)
+ * @dependencies WeatherIconRenderer (weather-icon-renderer.js) för font-rendering
+ *
+ * Arkitektur:
+ *   SMHI-symbol (1-27) ──► semantisk nyckel ──► aktivt pakets ikon (dag/natt)
+ *
+ * SMHI_SEMANTIC_MAP är den ENDA platsen som tolkar SMHI-symbolnummer.
+ * Varje paket mappar semantiska nycklar till sina egna ikoner och behöver
+ * inte veta något om SMHI.
+ *
+ * Lägga till ett nytt paket:
+ *   1. Lägg ikonfilerna under static/assets/icons/<paketnamn>/
+ *   2. Lägg till en post i ICON_PACKS med type 'font' eller 'svg'
+ *      och en ikon per semantisk nyckel ({day: ..., night: ...})
+ *   3. Välj paketet med ui.icon_pack i reference/config.py
+ */
+
+// === KANONISK MAPPNING: SMHI-symbol → semantisk vädernyckel ===
+const SMHI_SEMANTIC_MAP = {
+    1: 'clear',
+    2: 'mostly-clear',
+    3: 'partly-cloudy',
+    4: 'mostly-cloudy',
+    5: 'cloudy',
+    6: 'overcast',
+    7: 'fog',
+    8: 'light-showers',
+    9: 'showers',
+    10: 'heavy-showers',
+    11: 'thunder',
+    12: 'light-sleet-showers',
+    13: 'sleet-showers',
+    14: 'heavy-sleet-showers',
+    15: 'light-snow-showers',
+    16: 'snow-showers',
+    17: 'heavy-snow-showers',
+    18: 'light-rain',
+    19: 'rain',
+    20: 'heavy-rain',
+    21: 'thunderstorm',
+    22: 'light-sleet',
+    23: 'sleet',
+    24: 'heavy-sleet',
+    25: 'light-snow',
+    26: 'snow',
+    27: 'heavy-snow'
+};
+
+// === IKONPAKET ===
+const ICON_PACKS = {
+    /**
+     * Weather Icons-fonten (Erik Flowers) - klassiskt läge.
+     * Monokrom font som färgkodas automatiskt av ColorManager.
+     */
+    'weather-icons': {
+        type: 'font',
+        icons: {
+            'clear':               {day: 'wi-day-sunny',          night: 'wi-night-clear'},
+            'mostly-clear':        {day: 'wi-day-sunny-overcast', night: 'wi-night-partly-cloudy'},
+            'partly-cloudy':       {day: 'wi-day-cloudy',         night: 'wi-night-alt-cloudy'},
+            'mostly-cloudy':       {day: 'wi-day-cloudy-high',    night: 'wi-night-cloudy-high'},
+            'cloudy':              {day: 'wi-cloudy',             night: 'wi-cloudy'},
+            'overcast':            {day: 'wi-cloud',              night: 'wi-cloud'},
+            'fog':                 {day: 'wi-fog',                night: 'wi-fog'},
+            'light-showers':       {day: 'wi-day-showers',        night: 'wi-night-showers'},
+            'showers':             {day: 'wi-day-rain',           night: 'wi-night-rain'},
+            'heavy-showers':       {day: 'wi-rain',               night: 'wi-rain'},
+            'thunder':             {day: 'wi-day-thunderstorm',   night: 'wi-night-thunderstorm'},
+            'light-sleet-showers': {day: 'wi-day-rain-mix',       night: 'wi-night-rain-mix'},
+            'sleet-showers':       {day: 'wi-rain-mix',           night: 'wi-rain-mix'},
+            'heavy-sleet-showers': {day: 'wi-rain-mix',           night: 'wi-rain-mix'},
+            'light-snow-showers':  {day: 'wi-day-snow',           night: 'wi-night-snow'},
+            'snow-showers':        {day: 'wi-snowflake-cold',     night: 'wi-snowflake-cold'},
+            'heavy-snow-showers':  {day: 'wi-snowflake-cold',     night: 'wi-snowflake-cold'},
+            'light-rain':          {day: 'wi-day-rain',           night: 'wi-night-rain'},
+            'rain':                {day: 'wi-rain',               night: 'wi-rain'},
+            'heavy-rain':          {day: 'wi-rain',               night: 'wi-rain'},
+            'thunderstorm':        {day: 'wi-thunderstorm',       night: 'wi-thunderstorm'},
+            'light-sleet':         {day: 'wi-day-sleet',          night: 'wi-night-sleet'},
+            'sleet':               {day: 'wi-sleet',              night: 'wi-sleet'},
+            'heavy-sleet':         {day: 'wi-sleet',              night: 'wi-sleet'},
+            'light-snow':          {day: 'wi-day-snow',           night: 'wi-night-snow'},
+            'snow':                {day: 'wi-snowflake-cold',     night: 'wi-snowflake-cold'},
+            'heavy-snow':          {day: 'wi-snowflake-cold',     night: 'wi-snowflake-cold'}
+        }
+    },
+
+    /**
+     * amCharts animerade väder-SVG:er - färgglada ikoner med inbyggd animation.
+     * Egna färger; ColorManager-färgen ignoreras (style.color påverkar inte <img>).
+     * Setet saknar dimma/snöblandat - närmaste ikon används som ersättare.
+     */
+    'amcharts': {
+        type: 'svg',
+        basePath: '/static/assets/icons/amcharts-svg/',
+        icons: {
+            'clear':               {day: 'day/day.svg',          night: 'night/night.svg'},
+            'mostly-clear':        {day: 'day/cloudy-day-1.svg', night: 'night/cloudy-night-1.svg'},
+            'partly-cloudy':       {day: 'day/cloudy-day-2.svg', night: 'night/cloudy-night-2.svg'},
+            'mostly-cloudy':       {day: 'day/cloudy-day-2.svg', night: 'night/cloudy-night-2.svg'},
+            'cloudy':              {day: 'day/cloudy-day-3.svg', night: 'night/cloudy-night-3.svg'},
+            'overcast':            {day: 'day/cloudy-day-3.svg', night: 'night/cloudy-night-3.svg'},
+            'fog':                 {day: 'day/cloudy-day-3.svg', night: 'night/cloudy-night-3.svg'},
+            'light-showers':       {day: 'day/rainy-1.svg',      night: 'day/rainy-4.svg'},
+            'showers':             {day: 'day/rainy-2.svg',      night: 'day/rainy-5.svg'},
+            'heavy-showers':       {day: 'day/rainy-3.svg',      night: 'day/rainy-6.svg'},
+            'thunder':             {day: 'animated/thunder.svg', night: 'animated/thunder.svg'},
+            'light-sleet-showers': {day: 'day/rainy-7.svg',      night: 'day/rainy-7.svg'},
+            'sleet-showers':       {day: 'day/rainy-7.svg',      night: 'day/rainy-7.svg'},
+            'heavy-sleet-showers': {day: 'day/rainy-7.svg',      night: 'day/rainy-7.svg'},
+            'light-snow-showers':  {day: 'day/snowy-1.svg',      night: 'day/snowy-4.svg'},
+            'snow-showers':        {day: 'day/snowy-2.svg',      night: 'day/snowy-5.svg'},
+            'heavy-snow-showers':  {day: 'day/snowy-3.svg',      night: 'day/snowy-6.svg'},
+            'light-rain':          {day: 'day/rainy-4.svg',      night: 'day/rainy-4.svg'},
+            'rain':                {day: 'day/rainy-5.svg',      night: 'day/rainy-5.svg'},
+            'heavy-rain':          {day: 'day/rainy-6.svg',      night: 'day/rainy-6.svg'},
+            'thunderstorm':        {day: 'animated/thunder.svg', night: 'animated/thunder.svg'},
+            'light-sleet':         {day: 'day/rainy-7.svg',      night: 'day/rainy-7.svg'},
+            'sleet':               {day: 'day/rainy-7.svg',      night: 'day/rainy-7.svg'},
+            'heavy-sleet':         {day: 'day/rainy-7.svg',      night: 'day/rainy-7.svg'},
+            'light-snow':          {day: 'day/snowy-4.svg',      night: 'day/snowy-4.svg'},
+            'snow':                {day: 'day/snowy-5.svg',      night: 'day/snowy-5.svg'},
+            'heavy-snow':          {day: 'day/snowy-6.svg',      night: 'day/snowy-6.svg'}
+        }
+    }
+};
+
+// === REGISTRY ===
+const IconRegistry = {
+    activePack: 'weather-icons',
+
+    /**
+     * Sätt aktivt ikonpaket (anropas från fetch-api-client när config hämtats)
+     * @param {string} packName - Nyckel i ICON_PACKS
+     */
+    setActivePack(packName) {
+        if (!packName || packName === this.activePack) return;
+
+        if (ICON_PACKS[packName]) {
+            this.activePack = packName;
+            console.log(`🎨 Ikonpaket bytt till: ${packName}`);
+        } else {
+            console.warn(`⚠️ Okänt ikonpaket '${packName}' - behåller '${this.activePack}'. Tillgängliga: ${Object.keys(ICON_PACKS).join(', ')}`);
+        }
+    },
+
+    /**
+     * Skapa väderikon-element för en SMHI-symbol med aktivt paket
+     * @param {number} symbol - SMHI vädersymbol (1-27)
+     * @param {boolean} isDay - Dag- eller nattvariant
+     * @param {Array} extraClasses - Extra CSS-klasser (t.ex. storleksklass)
+     * @returns {HTMLElement} <i>-element (font) eller <img>-element (svg)
+     */
+    createWeatherIcon(symbol, isDay = true, extraClasses = []) {
+        const semanticKey = SMHI_SEMANTIC_MAP[parseInt(symbol)];
+        const pack = ICON_PACKS[this.activePack];
+        const variants = semanticKey && pack ? pack.icons[semanticKey] : null;
+        const iconName = variants ? (isDay ? variants.day : variants.night) : null;
+
+        if (!iconName) {
+            return WeatherIconRenderer.createIcon('wi-na', extraClasses);
+        }
+
+        if (pack.type === 'font') {
+            return WeatherIconRenderer.createIcon(iconName, extraClasses);
+        }
+
+        // SVG-paket: <img> som storleksmässigt följer font-ikonerna via em (se styles.css)
+        const img = document.createElement('img');
+        img.src = pack.basePath + iconName;
+        img.alt = '';
+        img.draggable = false;
+        img.className = ['svg-weather-icon', ...extraClasses].join(' ');
+        return img;
+    }
+};
+
+window.IconRegistry = IconRegistry;
+
+console.log(`✅ Icon Packs laddat - ${Object.keys(ICON_PACKS).length} paket tillgängliga: ${Object.keys(ICON_PACKS).join(', ')}`);

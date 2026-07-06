@@ -861,3 +861,16 @@ body {
     z-index: 9000;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
+
+/* === IKONPAKET: SVG-ikoner ===
+   <img>-ikoner från SVG-paket (t.ex. amcharts) storleksmatchas mot
+   font-ikonerna via em - containerklassernas font-size styr storleken */
+img.svg-weather-icon {
+    /* 1.5em kompenserar för luften i SVG:ernas viewBox så att de
+       upplevs lika stora som font-glyferna */
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    object-fit: contain;
+    user-select: none;
+}
