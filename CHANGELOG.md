@@ -3,6 +3,27 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.2.0] - 2026-07-06
+
+### Tillagt
+- **Ikonpaketssystem**: väderikonuppsättning växlas med `ui.icon_pack` i config (`weather-icons` = font/klassiskt, `amcharts` = animerade färg-SVG:er). Nya paket läggs till som manifest-poster i `static/js/utils/icon-packs.js`.
+- Synlig staleness-indikator på skärmen när väderdata inte kan uppdateras
+- Cache-busting (`?v=<VERSION>`) på alla lokala statiska filer - klienter ser ny kod direkt efter deploy
+- waitress som produktionsserver (automatisk fallback till Flasks devserver)
+
+### Fixat
+- Trådsäkerhet: lås runt delad väderstate (tre uppdateringstrådar + requests kunde ge trasiga svar)
+- UV-uppdateraren dog permanent vid månadsskiften (ogiltig datumberäkning) - trådlooparna är nu felskyddade
+- Atomära skrivningar av tokens/tryckhistorik/cachefiler (korrupta filer vid krasch mitt i skrivning)
+- `tokens.json` flyttad till `cache/` (volym-monterad) - roterade Netatmo-tokens överlever container-rebuilds, migreras automatiskt
+- Netatmo-regnprioriteten för vädereffekter fungerade aldrig (saknad metod, felet svaldes tyst)
+- Status rapporterade "Uppdaterad" även när SMHI-hämtningen misslyckats
+- Blockerande CAMS-hämtning vid uppstart (upp till 3 min innan porten öppnades) flyttad till bakgrundstråd
+- Halvårsgammal `uv_cache.json` låg incheckad i git och visades som färsk data i nya installationer
+
+### Borttaget
+- Oanvänt `core/`-paket (divergerad död kod), dubblett av `cams_uv_client.py`, bakupkopior av template/CSS
+
 ## [3.1.1] - 2026-06-17
 
 ### Fixat

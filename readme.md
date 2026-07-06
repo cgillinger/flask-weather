@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**Version 3.0.0** · [Changelog](CHANGELOG.md)
+**Version 3.2.0** · [Changelog](CHANGELOG.md)
 
 **GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 
@@ -470,9 +470,29 @@ Huvudkonfigurationen görs i `reference/config.py`.
     'refresh_interval_minutes': 15,
     'netatmo_refresh_interval_minutes': 10,
     'wind_unit': 'land',  # Alternativ: 'sjo', 'beaufort', 'ms', 'kmh'
+    'pressure_display': 'words',  # 'words' = barometerord, 'numeric' = siffror
+    'icon_pack': 'weather-icons',  # Väderikonuppsättning, se nedan
     'theme': 'dark'  # Endast 'dark' är produktionsklar
 }
 ```
+
+### 🖼️ Ikonpaket
+
+Väderikonerna kan bytas som uppsättning med `ui.icon_pack` i `reference/config.py`:
+
+| Paket | Utseende |
+|-------|----------|
+| `weather-icons` | Weather Icons-fonten - monokrom, färgkodas automatiskt efter vädertyp (standard) |
+| `amcharts` | Animerade färg-SVG:er med dag/natt-varianter |
+
+Efter byte: starta om servern (Docker: `docker compose up -d --build`).
+
+**Lägga till ett eget paket:**
+1. Lägg ikonfilerna under `static/assets/icons/<paketnamn>/`
+2. Lägg till en post i `ICON_PACKS` i `static/js/utils/icon-packs.js` — mappa de semantiska nycklarna (`clear`, `rain`, `snow`, …) till dina ikoner med dag/natt-varianter
+3. Välj paketet med `'icon_pack': '<paketnamn>'`
+
+Vyerna behöver aldrig ändras — all SMHI-symboltolkning sker i den kanoniska mappningen i samma fil.
 
 ### 🌦️ Weather Effects
 
