@@ -95,6 +95,10 @@ const ICON_PACKS = {
     'amcharts': {
         type: 'svg',
         basePath: '/static/assets/icons/amcharts-svg/',
+        // Visuell skalning via CSS transform - kompenserar för luften i
+        // SVG:ernas viewBox UTAN att påverka layouten (layoutboxen är
+        // alltid exakt 1em, som en fontglyf)
+        scale: 1.3,
         icons: {
             'clear':               {day: 'day/day.svg',          night: 'night/night.svg'},
             'mostly-clear':        {day: 'day/cloudy-day-1.svg', night: 'night/cloudy-night-1.svg'},
@@ -167,12 +171,17 @@ const IconRegistry = {
             return WeatherIconRenderer.createIcon(iconName, extraClasses);
         }
 
-        // SVG-paket: <img> som storleksmässigt följer font-ikonerna via em (se styles.css)
+        // SVG-paket: <img> med TVINGAD layoutbox på 1em (som en fontglyf,
+        // se styles.css) - paketets scale justerar bara det visuella via
+        // transform och kan aldrig spränga layouten
         const img = document.createElement('img');
         img.src = pack.basePath + iconName;
         img.alt = '';
         img.draggable = false;
         img.className = ['svg-weather-icon', ...extraClasses].join(' ');
+        if (pack.scale && pack.scale !== 1) {
+            img.style.setProperty('--icon-scale', String(pack.scale));
+        }
         return img;
     }
 };

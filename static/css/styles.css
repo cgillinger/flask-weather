@@ -863,14 +863,21 @@ body {
 }
 
 /* === IKONPAKET: SVG-ikoner ===
-   <img>-ikoner från SVG-paket (t.ex. amcharts) storleksmatchas mot
-   font-ikonerna via em - containerklassernas font-size styr storleken */
+   Ikon-slotten är storleksauktoritet: layoutboxen är ALLTID exakt 1em
+   (som en fontglyf) och hårt takad till slottens yta - inget ikonpaket
+   kan spränga layouten. display:block tar bort inline-bildens
+   baslinjeluft (som annars gör prognosraderna högre än med font-ikoner).
+   Visuell finjustering per paket sker med transform: scale() via
+   --icon-scale (sätts av icon-packs.js) - transform påverkar aldrig
+   layoutflödet. */
 img.svg-weather-icon {
-    /* 1.5em kompenserar för luften i SVG:ernas viewBox så att de
-       upplevs lika stora som font-glyferna */
-    width: 1.5em;
-    height: 1.5em;
-    vertical-align: middle;
+    display: block;
+    width: 1em;
+    height: 1em;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 auto;
     object-fit: contain;
+    transform: scale(var(--icon-scale, 1));
     user-select: none;
 }
