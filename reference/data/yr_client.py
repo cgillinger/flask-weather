@@ -217,8 +217,9 @@ class YRClient(SMHIClient):
         humidity = weather_data.get('humidity')
         weather_data['humidity'] = humidity
         weather_data['humidity_timestamp'] = weather_data.get('valid_time')
-        weather_data['humidity_station'] = 'YR-prognos' if humidity is not None else None
+        # DATA_SOURCE-etiketten gör raden rätt även för subklasser (Open-Meteo)
+        weather_data['humidity_station'] = f'{self.DATA_SOURCE}-prognos' if humidity is not None else None
         weather_data['humidity_age_minutes'] = 0 if humidity is not None else None
         if humidity is not None:
-            print(f"✅ Väderdata med luftfuktighet från YR-prognos: {humidity}%")
+            print(f"✅ Väderdata med luftfuktighet från {self.DATA_SOURCE}-prognos: {humidity}%")
         return weather_data

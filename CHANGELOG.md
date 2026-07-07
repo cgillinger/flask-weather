@@ -3,6 +3,14 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.7.0] - 2026-07-07
+
+### Tillagt
+- **Projekt Weatherprovider, milstolpe 2 - global täckning**: Open-Meteo som tredje väderleverantör (`weather_provider: 'open-meteo'`). Gratis utan API-nyckel, global täckning med bästa modell per plats (DWD/NOAA/Meteo-France/ECMWF m.fl.). WMO-vaderkoder mappas till SMHI-skalan 1-27; luftfuktighet ur prognosen. Verifierad med både Stockholm och New York - dashboarden fungerar nu var som helst i världen med `yr` eller `open-meteo`
+
+### Fixat
+- Luftfuktighetsetiketten i API-svaret var hårdkodad "YR-prognos" - nu leverantörsmedveten (visar t.ex. "Open-Meteo-prognos")
+
 ## [3.6.0] - 2026-07-07
 
 ### Tillagt
