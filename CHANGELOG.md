@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.9.1] - 2026-07-07
+
+### Ändrat
+- **README på åtta språk**: huvud-readme.md är nu på engelska (fullständig guide, uppdaterad med leverantörsval, språk och ikonrotation i tekniska översikten). Svenska originalet ligger kvar i sin helhet som readme.sv.md. Kortversioner med snabbstart och grundkonfig på norska (readme.nb.md), danska (.da), finska (.fi), tyska (.de), franska (.fr) och spanska (.es) - alla med språkväxlarrad överst och hänvisning till den engelska/svenska för djupsektionerna. Licensnoten om amedia-meteo (CC BY-NC-SA) finns i samtliga versioner
+
 ## [3.9.0] - 2026-07-07
 
 ### Tillagt
