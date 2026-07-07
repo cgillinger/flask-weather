@@ -200,6 +200,9 @@ const ICON_PACKS = {
     'amedia-meteo': {
         type: 'svg',
         basePath: '/static/assets/icons/amedia-meteo/',
+        // Ikonerna ritar sitt innehåll med mer viewBox-luft än övriga
+        // SVG-paket - kompensera visuellt (påverkar bara detta paket)
+        scale: 1.2,
         icons: {
             'clear':               {day: 'day/1.svg',  night: 'night/1.svg'},
             'mostly-clear':        {day: 'day/2.svg',  night: 'night/2.svg'},
@@ -350,6 +353,9 @@ const IconRegistry = {
 
         if (ICON_PACKS[packName]) {
             this.activePack = packName;
+            // Exponera aktivt paket för CSS - möjliggör paketspecifika
+            // slot-regler (t.ex. amedia-meteo som ritar nättare än övriga)
+            document.documentElement.dataset.iconPack = packName;
             console.log(`🎨 Ikonpaket bytt till: ${packName}`);
         } else {
             console.warn(`⚠️ Okänt ikonpaket '${packName}' - behåller '${this.activePack}'. Tillgängliga: ${Object.keys(ICON_PACKS).join(', ')}`);
@@ -431,5 +437,6 @@ const IconRegistry = {
 };
 
 window.IconRegistry = IconRegistry;
+document.documentElement.dataset.iconPack = IconRegistry.activePack;
 
 console.log(`✅ Icon Packs laddat - ${Object.keys(ICON_PACKS).length} paket tillgängliga: ${Object.keys(ICON_PACKS).join(', ')}`);

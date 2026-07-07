@@ -892,3 +892,35 @@ img.svg-weather-icon {
 .forecast-icon img.svg-weather-icon {
     --slot-scale: 1.2;
 }
+
+/* Paketspecifika slot-justeringar (html[data-icon-pack] sätts av
+   icon-packs.js). amedia-meteo ritar sitt innehåll nättare än övriga
+   SVG-paket: hero och 12-timmarskorten behöver extra boost, medan
+   femdygnsraden redan är rätt med paketets scale × 1.5. */
+[data-icon-pack="amedia-meteo"] img.svg-weather-icon.weather-main-icon {
+    --slot-scale: 1.25;
+}
+
+[data-icon-pack="amedia-meteo"] .forecast-icon img.svg-weather-icon {
+    --slot-scale: 1.35;
+}
+
+/* kickstand-weather (fontpaket): tunna linjeglyfer med luft i teckenrutan
+   ritar smått i alla slottar - boosta visuellt med transform, som för
+   SVG-paketen. inline-block krävs för att transform ska bita på <i>;
+   layoutboxen (fontstorleken) är oförändrad så inget kan förskjutas. */
+[data-icon-pack="kickstand-weather"] i.weather-main-icon,
+[data-icon-pack="kickstand-weather"] .forecast-icon i,
+[data-icon-pack="kickstand-weather"] .daily-icon i {
+    display: inline-block;
+    transform: scale(1.3);
+}
+
+/* weather-icons: skur-glyferna (wi-day-showers m.fl.) målar regndroppar
+   UNDER sin teckenruta (ink overflow) - vid två regndagar i rad flyter
+   femdygnsikonerna visuellt ihop. Krymp glyfen inom sin oförändrade
+   layoutbox så dropparna ryms i raden. */
+[data-icon-pack="weather-icons"] .daily-icon i {
+    display: inline-block;
+    transform: scale(0.82);
+}

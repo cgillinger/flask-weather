@@ -3,6 +3,18 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.4.1] - 2026-07-07
+
+### Tillagt
+- Paketspecifika ikonjusteringar: `icon-packs.js` sätter nu `data-icon-pack` på dokumentroten, vilket låter CSS rikta storleksregler mot ett enskilt ikonpaket utan att påverka de andra
+
+### Ändrat
+- amedia-meteo: paketskala 1.2 plus extra slot-boost i hero (1.25) och 12-timmarskorten (1.35) - paketet ritar sitt innehåll med mer viewBox-luft än övriga SVG-paket. Okulärbesiktigat på 1920x1080
+- kickstand-weather: fontglyferna transform-skalas 1.3× i hero, 12-timmars och femdygns - de tunna linjeikonerna ritade smått i alla slottar
+
+### Fixat
+- weather-icons: skur-glyferna (wi-day-showers m.fl.) målar regndroppar under sin teckenruta, vilket gav synligt ihopflutna ikoner i femdygnsprognosen när två regndagar hamnade i följd. Glyfen krymps nu visuellt (0.82) inom sin oförändrade layoutbox
+
 ## [3.4.0] - 2026-07-06
 
 ### Tillagt
