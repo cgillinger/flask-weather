@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**Version 3.7.2** · [Changelog](CHANGELOG.md)
+**Version 3.8.0** · [Changelog](CHANGELOG.md)
 
 **GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 
@@ -484,9 +484,16 @@ Huvudkonfigurationen görs i `reference/config.py`.
         'interval': 'week',  # 'day' | 'week' | 'month'
         'exclude': [],
     },
+    'language': 'sv',  # UI-språk, se Språk nedan
     'theme': 'dark'  # Endast 'dark' är produktionsklar
 }
 ```
+
+### 🌐 Språk
+
+Dashboardens UI-språk väljs med `ui.language` i `reference/config.py`. Tillgängliga språk är filerna i `static/translations/` (för närvarande `sv`; `en` och `nb` är på väg). All användartext slås upp via översättningsnycklar med svenska som fallback, och datum/veckodagar följer språket automatiskt via webbläsarens `Intl`-API — inga översättningstabeller behövs för dem.
+
+**Lägga till ett språk:** kopiera `static/translations/sv.js` till `<kod>.js`, översätt värdena, lägg till `<script>`-taggen i `templates/index.html` och sätt `'language': '<kod>'`. Vädereffekter, ikonval och färgkodning påverkas inte av språket — de styrs av språkneutrala symbolkoder (SMHI-skalan 1-27).
 
 ### 🖼️ Ikonpaket
 

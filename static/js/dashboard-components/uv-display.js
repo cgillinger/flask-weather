@@ -36,7 +36,9 @@ const UVDisplay = {
         const uvValue = uvData.uv_index.toFixed(1);
         
         // Formatera text med tvåradslayout (UV-värde + mindre risk-text på rad under)
-        text.innerHTML = `UV ${uvValue}<br><span class="uv-risk-text">${uvData.risk_text}</span>`;
+        // SPRÅK: översätt via risk_level-nyckel; backend-texten är fallback
+        const riskText = uvData.risk_level ? t(`UV_RISK_${uvData.risk_level}`) : uvData.risk_text;
+        text.innerHTML = `UV ${uvValue}<br><span class="uv-risk-text">${riskText}</span>`;
         
         // Ta bort alla gamla risk-klasser
         icon.classList.remove('uv-low', 'uv-moderate', 'uv-high', 'uv-very_high', 'uv-extreme');

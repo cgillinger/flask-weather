@@ -740,6 +740,7 @@ def api_current_weather():
             'icon_pack': state['config'].get('ui', {}).get('icon_pack', 'weather-icons'),  # IKONPAKET: väderikonuppsättning
             'icon_animations': state['config'].get('ui', {}).get('icon_animations', 'auto'),  # IKONANIMERINGAR: auto/all/hero/none
             'icon_pack_rotation': state['config'].get('ui', {}).get('icon_pack_rotation', {'enabled': False}),  # IKONPAKETSROTATION: dag/vecka/månad
+            'language': state['config'].get('ui', {}).get('language', 'sv'),  # SPRÅK: UI-språk (sv/en/nb/...)
             'use_netatmo': state['use_netatmo'],  # NYT: För frontend-detektering
             'netatmo_available': state['netatmo_available'],  # NYT: Faktisk tillgänglighet
             'weather_effects_enabled': state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status

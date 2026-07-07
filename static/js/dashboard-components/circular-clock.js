@@ -64,15 +64,12 @@ function updateCircularClock() {
         clockTimeElement.textContent = timeString;
     }
     
-    // Uppdatera datum
-    const weekdays = ['söndag', 'måndag', 'tisdag', 'onsdag', 'torsdag', 'fredag', 'lördag'];
-    const months = ['januari', 'februari', 'mars', 'april', 'maj', 'juni',
-                   'juli', 'augusti', 'september', 'oktober', 'november', 'december'];
-    
-    const weekday = weekdays[now.getDay()];
+    // Uppdatera datum - SPRÅK: veckodag/månad via Intl med aktivt språks locale
+    const locale = I18n.locale();
+    const weekday = now.toLocaleDateString(locale, { weekday: 'long' });
     const day = now.getDate();
-    const month = months[now.getMonth()];
-    
+    const month = now.toLocaleDateString(locale, { month: 'long' });
+
     const dateString = `${weekday}, ${day} ${month}`;
     
     const clockDateElement = document.querySelector('.clock-date');

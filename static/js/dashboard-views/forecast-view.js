@@ -159,11 +159,12 @@ function createDailyForecastItem(day) {
     const item = document.createElement('div');
     item.className = 'daily-forecast-item';
     
-    const weekdays = {
-        'Monday': 'Måndag', 'Tuesday': 'Tisdag', 'Wednesday': 'Onsdag',
-        'Thursday': 'Torsdag', 'Friday': 'Fredag', 'Saturday': 'Lördag', 'Sunday': 'Söndag'
-    };
-    const weekdaySwedish = weekdays[day.weekday] || day.weekday;
+    // SPRÅK: veckodag via Intl från ISO-datumet (versal initial som tidigare)
+    let weekdaySwedish = day.weekday;
+    if (day.date) {
+        const wd = new Date(`${day.date}T12:00:00`).toLocaleDateString(I18n.locale(), { weekday: 'long' });
+        weekdaySwedish = wd.charAt(0).toUpperCase() + wd.slice(1);
+    }
     
     let dateDisplay = day.date;
     try {

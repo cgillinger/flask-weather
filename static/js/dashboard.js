@@ -123,7 +123,7 @@ function updateTheme(newTheme) {
 
 function updateStatus(statusText) {
     // STEG 3: Använd updateElement från dom-helpers.js
-    updateElement('status-text', statusText || 'Väderdata uppdaterad');
+    updateElement('status-text', statusText || t('STATUS_UPDATED'));
 }
 
 function showError(message) {

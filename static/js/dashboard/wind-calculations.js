@@ -6,51 +6,53 @@
 
 // === WIND SCALE CONVERSION SYSTEM ===
 
+// SPRÅK: value/name är översättningsnycklar (static/translations/) och
+// översätts med t() i convertWindSpeed - enda accessorn till tabellerna
 const WIND_SCALES = {
     beaufort: [
-        { max: 1, value: 0, name: 'Lugn', icon: 'wi-wind-beaufort-0' },
-        { max: 5, value: 1, name: 'Svag vind', icon: 'wi-wind-beaufort-1' },
-        { max: 11, value: 2, name: 'Svag vind', icon: 'wi-wind-beaufort-2' },
-        { max: 19, value: 3, name: 'Måttlig vind', icon: 'wi-wind-beaufort-3' },
-        { max: 28, value: 4, name: 'Måttlig vind', icon: 'wi-wind-beaufort-4' },
-        { max: 38, value: 5, name: 'Frisk vind', icon: 'wi-wind-beaufort-5' },
-        { max: 49, value: 6, name: 'Frisk vind', icon: 'wi-wind-beaufort-6' },
-        { max: 61, value: 7, name: 'Hård vind', icon: 'wi-wind-beaufort-7' },
-        { max: 74, value: 8, name: 'Hård vind', icon: 'wi-wind-beaufort-8' },
-        { max: 88, value: 9, name: 'Hård vind', icon: 'wi-wind-beaufort-9' },
-        { max: 102, value: 10, name: 'Storm', icon: 'wi-wind-beaufort-10' },
-        { max: 117, value: 11, name: 'Storm', icon: 'wi-wind-beaufort-11' },
-        { max: Infinity, value: 12, name: 'Orkan', icon: 'wi-wind-beaufort-12' }
+        { max: 1, value: 0, name: 'WIND_BEAUFORT_CALM', icon: 'wi-wind-beaufort-0' },
+        { max: 5, value: 1, name: 'WIND_LAND_WEAK', icon: 'wi-wind-beaufort-1' },
+        { max: 11, value: 2, name: 'WIND_LAND_WEAK', icon: 'wi-wind-beaufort-2' },
+        { max: 19, value: 3, name: 'WIND_LAND_MODERATE', icon: 'wi-wind-beaufort-3' },
+        { max: 28, value: 4, name: 'WIND_LAND_MODERATE', icon: 'wi-wind-beaufort-4' },
+        { max: 38, value: 5, name: 'WIND_LAND_FRESH', icon: 'wi-wind-beaufort-5' },
+        { max: 49, value: 6, name: 'WIND_LAND_FRESH', icon: 'wi-wind-beaufort-6' },
+        { max: 61, value: 7, name: 'WIND_LAND_STRONG', icon: 'wi-wind-beaufort-7' },
+        { max: 74, value: 8, name: 'WIND_LAND_STRONG', icon: 'wi-wind-beaufort-8' },
+        { max: 88, value: 9, name: 'WIND_LAND_STRONG', icon: 'wi-wind-beaufort-9' },
+        { max: 102, value: 10, name: 'WIND_LAND_STORM', icon: 'wi-wind-beaufort-10' },
+        { max: 117, value: 11, name: 'WIND_LAND_STORM', icon: 'wi-wind-beaufort-11' },
+        { max: Infinity, value: 12, name: 'WIND_LAND_HURRICANE', icon: 'wi-wind-beaufort-12' }
     ],
     sjo: [
-        { max: 1, value: 'Stiltje', icon: 'wi-strong-wind' },
-        { max: 5, value: 'Bris', icon: 'wi-strong-wind' },
-        { max: 11, value: 'Bris', icon: 'wi-strong-wind' },
-        { max: 19, value: 'Bris', icon: 'wi-strong-wind' },
-        { max: 28, value: 'Bris', icon: 'wi-strong-wind' },
-        { max: 38, value: 'Bris', icon: 'wi-strong-wind' },
-        { max: 49, value: 'Bris', icon: 'wi-strong-wind' },
-        { max: 61, value: 'Kuling', icon: 'wi-strong-wind' },
-        { max: 74, value: 'Kuling', icon: 'wi-strong-wind' },
-        { max: 88, value: 'Kuling', icon: 'wi-strong-wind' },
-        { max: 102, value: 'Storm', icon: 'wi-strong-wind' },
-        { max: 117, value: 'Storm', icon: 'wi-strong-wind' },
-        { max: Infinity, value: 'Orkan', icon: 'wi-strong-wind' }
+        { max: 1, value: 'WIND_SEA_CALM', icon: 'wi-strong-wind' },
+        { max: 5, value: 'WIND_SEA_BREEZE', icon: 'wi-strong-wind' },
+        { max: 11, value: 'WIND_SEA_BREEZE', icon: 'wi-strong-wind' },
+        { max: 19, value: 'WIND_SEA_BREEZE', icon: 'wi-strong-wind' },
+        { max: 28, value: 'WIND_SEA_BREEZE', icon: 'wi-strong-wind' },
+        { max: 38, value: 'WIND_SEA_BREEZE', icon: 'wi-strong-wind' },
+        { max: 49, value: 'WIND_SEA_BREEZE', icon: 'wi-strong-wind' },
+        { max: 61, value: 'WIND_SEA_GALE', icon: 'wi-strong-wind' },
+        { max: 74, value: 'WIND_SEA_GALE', icon: 'wi-strong-wind' },
+        { max: 88, value: 'WIND_SEA_GALE', icon: 'wi-strong-wind' },
+        { max: 102, value: 'WIND_SEA_STORM', icon: 'wi-strong-wind' },
+        { max: 117, value: 'WIND_SEA_STORM', icon: 'wi-strong-wind' },
+        { max: Infinity, value: 'WIND_SEA_HURRICANE', icon: 'wi-strong-wind' }
     ],
     land: [
-        { max: 1, value: 'Lugnt', icon: 'wi-strong-wind' },
-        { max: 5, value: 'Svag vind', icon: 'wi-strong-wind' },
-        { max: 11, value: 'Svag vind', icon: 'wi-strong-wind' },
-        { max: 19, value: 'Måttlig vind', icon: 'wi-strong-wind' },
-        { max: 28, value: 'Måttlig vind', icon: 'wi-strong-wind' },
-        { max: 38, value: 'Frisk vind', icon: 'wi-strong-wind' },
-        { max: 49, value: 'Frisk vind', icon: 'wi-strong-wind' },
-        { max: 61, value: 'Hård vind', icon: 'wi-strong-wind' },
-        { max: 74, value: 'Hård vind', icon: 'wi-strong-wind' },
-        { max: 88, value: 'Hård vind', icon: 'wi-strong-wind' },
-        { max: 102, value: 'Storm', icon: 'wi-strong-wind' },
-        { max: 117, value: 'Storm', icon: 'wi-strong-wind' },
-        { max: Infinity, value: 'Orkan', icon: 'wi-strong-wind' }
+        { max: 1, value: 'WIND_LAND_CALM', icon: 'wi-strong-wind' },
+        { max: 5, value: 'WIND_LAND_WEAK', icon: 'wi-strong-wind' },
+        { max: 11, value: 'WIND_LAND_WEAK', icon: 'wi-strong-wind' },
+        { max: 19, value: 'WIND_LAND_MODERATE', icon: 'wi-strong-wind' },
+        { max: 28, value: 'WIND_LAND_MODERATE', icon: 'wi-strong-wind' },
+        { max: 38, value: 'WIND_LAND_FRESH', icon: 'wi-strong-wind' },
+        { max: 49, value: 'WIND_LAND_FRESH', icon: 'wi-strong-wind' },
+        { max: 61, value: 'WIND_LAND_STRONG', icon: 'wi-strong-wind' },
+        { max: 74, value: 'WIND_LAND_STRONG', icon: 'wi-strong-wind' },
+        { max: 88, value: 'WIND_LAND_STRONG', icon: 'wi-strong-wind' },
+        { max: 102, value: 'WIND_LAND_STORM', icon: 'wi-strong-wind' },
+        { max: 117, value: 'WIND_LAND_STORM', icon: 'wi-strong-wind' },
+        { max: Infinity, value: 'WIND_LAND_HURRICANE', icon: 'wi-strong-wind' }
     ]
 };
 
@@ -71,11 +73,11 @@ function convertWindSpeed(speedKmh, targetUnit) {
     
     switch (targetUnit) {
         case 'beaufort':
-            return { 
-                value: data.value.toString(), 
-                unit: 'Beaufort', 
+            return {
+                value: data.value.toString(),
+                unit: 'Beaufort',
                 icon: data.icon,
-                name: data.name
+                name: t(data.name)
             };
         case 'ms':
             const ms = (speedKmh / 3.6).toFixed(1);
@@ -83,7 +85,8 @@ function convertWindSpeed(speedKmh, targetUnit) {
         case 'kmh':
             return { value: `${Math.round(speedKmh)} km/h`, unit: 'km/h', icon: 'wi-strong-wind' };
         default:
-            return { value: data.value, unit: targetUnit, icon: 'wi-strong-wind' };
+            // 'land'/'sjo': value är en översättningsnyckel
+            return { value: t(data.value), unit: targetUnit, icon: 'wi-strong-wind' };
     }
 }
 

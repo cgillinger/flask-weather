@@ -121,16 +121,16 @@ function adaptLabels(netatmoAvailable) {
     if (!netatmoAvailable) {
         // SMHI-only: Visa "TEMPERATUR" som etikett under den stora temperaturen
         if (netatmoLabel) {
-            netatmoLabel.textContent = 'TEMPERATUR';
+            netatmoLabel.textContent = t('LABEL_TEMPERATURE');
             console.log('🏷️ FAS 3: Primär etikett ändrad till "TEMPERATUR"');
         }
     } else {
         // Båda källor: Återställ etiketter
         if (netatmoLabel) {
-            netatmoLabel.textContent = 'FAKTISK';
+            netatmoLabel.textContent = t('LABEL_ACTUAL');
         }
         if (smhiLabel) {
-            smhiLabel.textContent = 'PROGNOS';
+            smhiLabel.textContent = t('LABEL_FORECAST');
         }
     }
 }

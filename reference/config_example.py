@@ -90,6 +90,12 @@ CONFIG = {
         # 'none' = alla ikoner statiska
         'icon_animations': 'auto',
 
+        # SPRÅK - UI-språk för dashboarden (SPRÅKPROJEKTET)
+        # Tillgängliga språk = filerna i static/translations/ ('sv' just nu;
+        # 'en'/'nb' på väg). Okänt språk faller tillbaka på svenska.
+        # Datum och veckodagar följer språket automatiskt (via webbläsarens Intl).
+        'language': 'sv',
+
         # IKONPAKETSROTATION - rotera automatiskt mellan ikonpaketen.
         # När enabled=True ignoreras 'icon_pack' ovan. Rotationen omfattar ALLA
         # paket i static/js/utils/icon-packs.js (aldrig hårdkodad lista - nya

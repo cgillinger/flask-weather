@@ -291,7 +291,7 @@ function updateWindUnderFaktisk(smhiData) {
  */
 function initializeRobustIcons() {
     console.log('🎨 FAS 3: Initialiserar graciös ikon-hantering med HUMIDITY FIX...');
-    updateHumidityDisplay('50% Luftfuktighet');
+    updateHumidityDisplay(t('FMT_HUMIDITY', {value: 50}));
     console.log('✅ FAS 3: Graciös ikon-hantering med HUMIDITY FIX initialiserad');
 }
 

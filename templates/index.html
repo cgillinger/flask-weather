@@ -43,7 +43,7 @@
     <div id="loading-overlay" class="loading-overlay">
         <div class="loading-content">
             <div class="loading-spinner"></div>
-            <div class="loading-text">Laddar väderdata...</div>
+            <div class="loading-text" data-i18n="LOADING_WEATHER">Laddar väderdata...</div>
         </div>
     </div>
 
@@ -80,14 +80,14 @@
                         <!-- FAKTISK COLUMN (Netatmo - primär/stor) -->
                         <div class="faktisk-column" id="netatmo-temperature-section">
                             <div class="main-temperature" id="netatmo-temperature-small">--.-°</div>
-                            <div class="netatmo-label">FAKTISK</div>
+                            <div class="netatmo-label" data-i18n="LABEL_ACTUAL">FAKTISK</div>
                             <!-- Vinddata läggs till här av JavaScript -->
                         </div>
 
                         <!-- PROGNOS COLUMN (SMHI - sekundär/liten) -->
                         <div class="prognos-column">
                             <div class="smhi-temp-small" id="smhi-temperature">--.-°</div>
-                            <div class="smhi-label" id="smhi-label">PROGNOS</div>
+                            <div class="smhi-label" id="smhi-label" data-i18n="LABEL_FORECAST">PROGNOS</div>
                             <div class="smhi-provider" id="smhi-provider"></div>
                         </div>
                     </div>
@@ -164,18 +164,18 @@
                 
                 <!-- 12H-PROGNOS UNIT -->
                 <div class="hourly-forecast-unit">
-                    <h2 class="section-title">12-timmarsprognos</h2>
+                    <h2 class="section-title" data-i18n="SECTION_12H">12-timmarsprognos</h2>
                     <div class="hourly-forecast" id="hourly-forecast">
-                        <div class="forecast-placeholder">Laddar prognos...</div>
+                        <div class="forecast-placeholder" data-i18n="LOADING_FORECAST">Laddar prognos...</div>
                     </div>
                 </div>
 
                 <!-- 5-DAGAR UNIT -->
                 <div class="daily-forecast-unit">
-                    <h2 class="section-title">5-dagarsprognos</h2>
+                    <h2 class="section-title" data-i18n="SECTION_5DAY">5-dagarsprognos</h2>
                     <div class="daily-forecast-content">
                         <div class="daily-forecast" id="daily-forecast">
-                            <div class="forecast-placeholder">Laddar prognos...</div>
+                            <div class="forecast-placeholder" data-i18n="LOADING_FORECAST">Laddar prognos...</div>
                         </div>
                     </div>
                 </div>
@@ -196,7 +196,11 @@
     </div>
 
     <!-- ========== JAVASCRIPT MODULES - FÄRGHANTERING v1.1.1 ========== -->
-    
+
+    <!-- SPRÅK: I18n-motorn + språkkataloger - MÅSTE laddas före allt annat -->
+    <script src="/static/js/utils/i18n.js?v={{ asset_version }}"></script>
+    <script src="/static/translations/sv.js?v={{ asset_version }}"></script>
+
     <!-- STEG 1-3: Grundläggande utilities -->
     <script src="/static/js/dashboard/formatters-dashboard.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard/wind-calculations.js?v={{ asset_version }}"></script>

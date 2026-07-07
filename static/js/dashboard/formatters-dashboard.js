@@ -42,20 +42,10 @@ function getTemperatureColorClass(temperature) {
 // === VÄDER- OCH VINDBESKRIVNINGAR ===
 
 function getWeatherDescription(symbol) {
+    // SPRÅK: texterna bor i static/translations/<språk>.js (WEATHER_1-27)
     const numSymbol = parseInt(symbol);
-    if (isNaN(numSymbol)) return "Okänt";
-    
-    const descriptions = {
-        1: "Klart", 2: "Nästan klart", 3: "Växlande", 4: "Halvklart",
-        5: "Molnigt", 6: "Mulet", 7: "Dimma", 8: "Regnskurar",
-        9: "Regnskurar", 10: "Regnskurar", 11: "Åska", 12: "Snöblandat",
-        13: "Snöblandat", 14: "Snöblandat", 15: "Snöbyar", 16: "Snöbyar",
-        17: "Snöbyar", 18: "Regn", 19: "Regn", 20: "Regn", 21: "Åska",
-        22: "Snöblandat", 23: "Snöblandat", 24: "Snöblandat", 25: "Snöfall",
-        26: "Snöfall", 27: "Snöfall"
-    };
-    
-    return descriptions[numSymbol] || "Okänt";
+    if (isNaN(numSymbol) || numSymbol < 1 || numSymbol > 27) return t('UNKNOWN');
+    return t(`WEATHER_${numSymbol}`);
 }
 
 function getWindDirection(degrees) {
