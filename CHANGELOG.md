@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.7.2] - 2026-07-07
+
+### Fixat
+- CO2/luftkvalitet-rutan döljs nu i prognosläge (use_netatmo=False) - den visade ett statiskt baslinjevärde (400 ppm) utan datakälla. ui-adaptation-engine satte redan klasserna `netatmo-hidden` och `smhi-only-mode` men CSS:en för dem saknades och de hade aldrig haft effekt. Rutnätet fördelar nu också kvarvarande rutor jämnt i prognosläge istället för att lämna tomma kolumner; Netatmo-lägets layout är helt oförändrad
+
 ## [3.7.1] - 2026-07-07
 
 ### Tillagt
