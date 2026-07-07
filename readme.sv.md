@@ -190,7 +190,7 @@ CONFIG = {
 
 **Byta väderleverantör (valfritt):**
 ```python
-'weather_provider': 'yr',  # 'smhi' (default, endast Norden) | 'yr' | 'open-meteo' (båda globala)
+'weather_provider': 'yr',  # 'yr' (default vid installation, global) | 'smhi' (endast Norden) | 'open-meteo' (global)
 ```
 Koordinaterna i `smhi`-blocket används oavsett leverantör — med `yr` (met.no) eller `open-meteo` fungerar dashboarden **var som helst i världen**. Ingen leverantör kräver API-nyckel; luftfuktigheten tas då ur prognosen istället för från SMHI:s observationsstationer, och leverantörens symbolkoder (YR symbol_code respektive WMO-koder) översätts automatiskt till SMHI-skalan 1-27 så ikonpaket och väder-effekter fungerar identiskt.
 
@@ -497,14 +497,14 @@ Dashboardens UI-språk väljs med `ui.language` i `reference/config.py`. Åtta s
 
 | Kod | Språk | Vindterminologi enligt |
 |-----|-------|------------------------|
-| `sv` | Svenska (default) | SMHI |
+| `sv` | Svenska | SMHI |
 | `nb` / `no` | Norska (bokmål) | YR / Meteorologisk institutt |
 | `da` | Danska | DMI |
 | `fi` | Finska | Ilmatieteen laitos (FMI) |
 | `de` | Tyska | DWD |
 | `fr` | Franska | Météo-France (Beaufort) |
 | `es` | Spanska | AEMET (Beaufort) |
-| `en` | Engelska | Met Office (Beaufort) |
+| `en` | Engelska (default vid installation) | Met Office (Beaufort) |
 
 All användartext slås upp via översättningsnycklar med svenska som fallback. Datum, veckodagar och månadsnamn följer språket automatiskt via webbläsarens `Intl`-API, och även kompassbokstäverna för vindriktning är språkanpassade (svenskt `V` = engelskt `W` = norskt/danskt `V`, öst är `O`/`E`/`Ø` beroende på språk). Barometerns nivåord följer respektive språks klassiska barometerurtavlor (t.ex. tyska `Sturm/Regen/Veränderlich/Schön/Sehr trocken`).
 

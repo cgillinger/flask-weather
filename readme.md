@@ -176,10 +176,11 @@ CONFIG = {
 }
 ```
 
-**Switching weather provider (optional):**
+**Weather provider:**
 ```python
-'weather_provider': 'yr',  # 'smhi' (default, Nordics only) | 'yr' | 'open-meteo' (both global)
+'weather_provider': 'yr',  # 'yr' (default, global) | 'smhi' (Nordics only) | 'open-meteo' (global)
 ```
+The shipped example config defaults to **YR/met.no** (global coverage), **English UI** and **forecast-only mode** (no Netatmo).
 The coordinates in the `smhi` block are used regardless of provider — with `yr` (met.no) or `open-meteo` the dashboard works **anywhere in the world**. No provider requires an API key; humidity then comes from the forecast instead of SMHI's observation stations, and the provider's symbol codes (YR symbol_code or WMO codes) are automatically translated to the SMHI 1-27 scale, so icon packs and weather effects work identically.
 
 **UV index (optional, requires .cdsapirc setup):**
@@ -345,7 +346,7 @@ The main configuration lives in `reference/config.py`.
 
 **Weather provider (mandatory, no key required):**
 ```python
-'weather_provider': 'smhi',  # 'smhi' | 'yr' | 'open-meteo'
+'weather_provider': 'yr',  # 'yr' | 'smhi' | 'open-meteo'
 'smhi': {
     'latitude': 59.3293,   # Your coordinates (used by all providers)
     'longitude': 18.0686
@@ -383,7 +384,7 @@ The main configuration lives in `reference/config.py`.
         'interval': 'week',  # 'day' | 'week' | 'month'
         'exclude': [],
     },
-    'language': 'sv',  # UI language, see Languages below
+    'language': 'en',  # UI language, see Languages below
     'theme': 'dark'  # Only 'dark' is production-ready
 }
 ```
@@ -394,14 +395,14 @@ The dashboard UI language is set with `ui.language`. Eight languages are include
 
 | Code | Language | Wind terminology follows |
 |------|----------|--------------------------|
-| `sv` | Swedish (default) | SMHI |
+| `sv` | Swedish | SMHI |
 | `nb` / `no` | Norwegian (bokmål) | YR / Norwegian Meteorological Institute |
 | `da` | Danish | DMI |
 | `fi` | Finnish | Finnish Meteorological Institute (FMI) |
 | `de` | German | DWD |
 | `fr` | French | Météo-France (Beaufort) |
 | `es` | Spanish | AEMET (Beaufort) |
-| `en` | English | Met Office (Beaufort) |
+| `en` | English (install default) | Met Office (Beaufort) |
 
 All user-facing text is looked up via translation keys with Swedish as fallback. Dates, weekdays and month names follow the language automatically via the browser's `Intl` API, and even the compass letters for wind direction are localized (Swedish `V` = English `W`, east is `O`/`E`/`Ø` depending on language). The barometer's level words follow each language's classic barometer dial (e.g. German `Sturm/Regen/Veränderlich/Schön/Sehr trocken`).
 
