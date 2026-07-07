@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.8.0] - 2026-07-07
+
+### Tillagt
+- **Språkprojektet, etapp 1+2 - språkfilsstöd**: all användartext går nu via en i18n-motor (`static/js/utils/i18n.js`) med språkkataloger i `static/translations/` (MagicMirror-mönstret). UI-språket väljs med `ui.language` i config och plumbas via API:t; fallback-kedja valt språk → svenska → nyckeln. Svenska (`sv.js`) är komplett och renderar identiskt mot tidigare. Datum och veckodagar översätts via webbläsarens Intl (`__locale` per språkfil) - inga egna tabeller. Vädereffekter, ikonval, trend- och UV-färger är verifierat språkneutrala (styrs av symbolkoder, inte texter). Engelska och norska kommer i etapp 3
+
 ## [3.7.2] - 2026-07-07
 
 ### Fixat

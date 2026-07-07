@@ -64,6 +64,11 @@ async function updateAllData() {
         
         // FAS 2: Uppdatera Netatmo-intelligence state
         if (currentData.config) {
+            // SPRÅK: sätt aktivt språk INNAN vyerna renderar (ui.language)
+            if (window.I18n && currentData.config.language) {
+                I18n.setLanguage(currentData.config.language);
+            }
+
             dashboardState.useNetatmo = currentData.config.use_netatmo || false;
             dashboardState.config = currentData.config;
             
@@ -151,11 +156,11 @@ function updateStaleIndicator(backendStatus) {
 
     if (fetchStale || backendError) {
         const since = dashboardState.lastUpdate
-            ? new Date(dashboardState.lastUpdate).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+            ? new Date(dashboardState.lastUpdate).toLocaleTimeString(I18n.locale(), { hour: '2-digit', minute: '2-digit' })
             : null;
         indicator.textContent = since
-            ? `⚠️ Data ej uppdaterad sedan ${since}`
-            : '⚠️ Väderdata kan inte hämtas';
+            ? t('STALE_SINCE', {time: since})
+            : t('STALE_UNAVAILABLE');
         indicator.style.display = 'block';
     } else {
         indicator.style.display = 'none';

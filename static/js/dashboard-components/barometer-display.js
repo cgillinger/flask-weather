@@ -12,12 +12,13 @@
  * Gränser i hPa (= mbar). Slå upp med: hPa < band.max.
  * Se pressure-descriptions.md i roten.
  */
+// SPRÅK: label är översättningsnycklar - slås upp med t() i describePressureLevel
 const PRESSURE_BANDS = [
-    { max: 980,      label: 'Storm' },
-    { max: 1000,     label: 'Regn' },
-    { max: 1013,     label: 'Ostadigt' },
-    { max: 1040,     label: 'Vackert' },
-    { max: Infinity, label: 'Mycket torrt' }
+    { max: 980,      label: 'BARO_STORM' },
+    { max: 1000,     label: 'BARO_RAIN' },
+    { max: 1013,     label: 'BARO_UNSTABLE' },
+    { max: 1040,     label: 'BARO_FAIR' },
+    { max: Infinity, label: 'BARO_VERY_DRY' }
 ];
 
 /**
@@ -27,12 +28,13 @@ const PRESSURE_BANDS = [
  * och en kraftigare färgklass — displayens markör för en snabb väderomställning.
  * Nyckel = backend-fältet 'trend5'; tregradiga 'trend' funkar som fallback (utan snabbt).
  */
+// SPRÅK: word/text är översättningsnycklar - slås upp med t() vid rendering
 const TREND_META = {
-    rising_fast:  { arrow: '⇈', word: 'stiger snabbt', text: 'Stigande snabbt', cls: 'rising-fast' },
-    rising:       { arrow: '↗', word: 'stiger',        text: 'Stigande',        cls: 'rising' },
-    stable:       { arrow: '→', word: 'stabilt',       text: 'Stabilt',         cls: 'stable' },
-    falling:      { arrow: '↘', word: 'faller',        text: 'Fallande',        cls: 'falling' },
-    falling_fast: { arrow: '⇊', word: 'faller snabbt', text: 'Fallande snabbt', cls: 'falling-fast' }
+    rising_fast:  { arrow: '⇈', word: 'TREND_RISING_FAST_WORD',  text: 'TREND_RISING_FAST',  cls: 'rising-fast' },
+    rising:       { arrow: '↗', word: 'TREND_RISING_WORD',       text: 'TREND_RISING',       cls: 'rising' },
+    stable:       { arrow: '→', word: 'TREND_STABLE_WORD',       text: 'TREND_STABLE',       cls: 'stable' },
+    falling:      { arrow: '↘', word: 'TREND_FALLING_WORD',      text: 'TREND_FALLING',      cls: 'falling' },
+    falling_fast: { arrow: '⇊', word: 'TREND_FALLING_FAST_WORD', text: 'TREND_FALLING_FAST', cls: 'falling-fast' }
 };
 
 class BarometerDisplay {
@@ -42,7 +44,7 @@ class BarometerDisplay {
      * @returns {string} Nivåord, t.ex. "Vackert"
      */
     static describePressureLevel(hPa) {
-        return PRESSURE_BANDS.find(band => hPa < band.max).label;
+        return t(PRESSURE_BANDS.find(band => hPa < band.max).label);
     }
 
     /**
@@ -95,16 +97,16 @@ class BarometerDisplay {
             if (hasPressure) {
                 barometerPressureLine.textContent = this.describePressureLevel(roundedPressure);
                 const arrow = trend ? `${trend.arrow} ` : '';
-                const word = trend ? ` · ${trend.word}` : '';
+                const word = trend ? ` · ${t(trend.word)}` : '';
                 barometerTrendLine.textContent = `${arrow}${roundedPressure} hPa${word}`;
             } else {
                 barometerPressureLine.textContent = '--';
-                barometerTrendLine.textContent = trend ? `${trend.arrow} ${trend.word}` : 'Samlar data...';
+                barometerTrendLine.textContent = trend ? `${trend.arrow} ${t(trend.word)}` : t('TREND_COLLECTING');
             }
         } else {
             // NUMERISKT LÄGE (klassiskt): siffra + texttrend
             barometerPressureLine.textContent = hasPressure ? `${roundedPressure} hPa` : '-- hPa';
-            barometerTrendLine.textContent = `Trend: ${trend ? trend.text : 'Okänt'}`;
+            barometerTrendLine.textContent = `${t('TREND_PREFIX')}${trend ? t(trend.text) : t('UNKNOWN')}`;
         }
 
         console.log(`📊 FAS 2: Barometer uppdaterad (${mode}): ${finalPressureTrend.trend} (källa: ${finalPressureTrend.source || 'netatmo'})`);
@@ -117,7 +119,7 @@ class BarometerDisplay {
      */
     static setBarometerDetailFallback(iconElement, trendElement) {
         this.updateBarometerIcon(iconElement, 'n/a');
-        trendElement.textContent = 'Trend: Samlar data...';
+        trendElement.textContent = `${t('TREND_PREFIX')}${t('TREND_COLLECTING')}`;
     }
     
     /**

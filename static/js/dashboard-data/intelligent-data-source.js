@@ -129,16 +129,16 @@ function formatDataWithSource(value, dataType) {
     // Datatyp-specifik formatering
     switch (dataType) {
         case 'humidity':
-            formatted = value ? `${Math.round(value)}% Luftfuktighet` : null;
+            formatted = value ? t('FMT_HUMIDITY', {value: Math.round(value)}) : null;
             break;
         case 'pressure':
             formatted = value ? `${Math.round(value)} hPa` : null;
             break;
         case 'co2':
-            formatted = value ? `${value} ppm Luftkvalitet` : null;
+            formatted = value ? t('FMT_AIR_QUALITY', {value: value}) : null;
             break;
         case 'noise':
-            formatted = value ? `${value} dB Ljud` : null;
+            formatted = value ? t('FMT_NOISE', {value: value}) : null;
             break;
         case 'temperature_actual':
             formatted = value ? formatTemperature(value) : null;
