@@ -24,6 +24,9 @@ class SMHIClient:
     BASE_URL = "https://opendata-download-metfcst.smhi.se/api"
     CATEGORY = "snow1g"  # Meteorological forecasts
     VERSION = "1"
+
+    # Etikett i API-svar (subklasser/andra leverantörer sätter sin egen)
+    DATA_SOURCE = "SMHI"
     
     # SMHI API konstanter - METEOROLOGISKA OBSERVATIONER (FAS 1)
     METOBS_BASE_URL = "https://opendata-download-metobs.smhi.se/api"
@@ -637,7 +640,7 @@ class SMHIClient:
         # LÃ¤gg till metadata
         weather['valid_time'] = best_entry.get('time')
         weather['time_diff_minutes'] = int(min_time_diff / 60)
-        weather['data_source'] = 'SMHI'
+        weather['data_source'] = self.DATA_SOURCE
         weather['coordinates'] = {'lat': self.latitude, 'lon': self.longitude}
         
         # LÃ¤gg till grid-koordinater frÃ¥n response

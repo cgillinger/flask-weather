@@ -27,6 +27,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'reference', 'data'))
 
 try:
     from smhi_client import SMHIClient
+    from yr_client import YRClient  # PROJEKT WEATHERPROVIDER: YR/met.no
     from netatmo_client import NetatmoClient
     from utils import SunCalculator, get_weather_icon_unicode_char, get_weather_description_short
     from cams_uv_client import CAMSUVClient  # FAS 3: UV-integration
@@ -381,11 +382,22 @@ def init_api_clients(config):
     use_uv = weather_state['uv_enabled']  # FAS 3
 
     try:
-        # SMHI Client (alltid obligatorisk)
+        # Väderleverantör (alltid obligatorisk). PROJEKT WEATHERPROVIDER:
+        # väljs med 'weather_provider' i config ('smhi' | 'yr'), SMHI är
+        # default. Alla leverantörer delar SMHIClients publika gränssnitt
+        # och normaliserar sina symboler till SMHI-skalan 1-27, så resten
+        # av systemet (API-kontrakt, ikoner, WeatherEffects) är opåverkat.
+        # Koordinaterna läses ur smhi-blocket oavsett leverantör.
+        WEATHER_PROVIDERS = {'smhi': SMHIClient, 'yr': YRClient}
+        provider_name = str(config.get('weather_provider', 'smhi')).lower()
+        provider_class = WEATHER_PROVIDERS.get(provider_name)
+        if provider_class is None:
+            print(f"⚠️ Okänd weather_provider '{provider_name}' - använder SMHI. Tillgängliga: {', '.join(WEATHER_PROVIDERS)}")
+            provider_class = SMHIClient
         smhi_lat = config['smhi']['latitude']
         smhi_lon = config['smhi']['longitude']
-        smhi_client = SMHIClient(smhi_lat, smhi_lon)
-        print(f"✅ SMHI-klient initierad för {smhi_lat}, {smhi_lon}")
+        smhi_client = provider_class(smhi_lat, smhi_lon)
+        print(f"✅ Väderleverantör {provider_class.DATA_SOURCE} initierad för {smhi_lat}, {smhi_lon}")
 
         # FAS 2: Villkorsstyrd Netatmo Client
         if use_netatmo:

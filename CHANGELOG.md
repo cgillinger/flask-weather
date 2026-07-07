@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.6.0] - 2026-07-07
+
+### Tillagt
+- **Projekt Weatherprovider, milstolpe 1**: valbar väderleverantör via `weather_provider` i config (`'smhi'` default, `'yr'` = YR/met.no). YRClient ärver SMHIClient och översätter locationforecast-svaret till samma timeSeries-struktur med symbolerna mappade till SMHI-skalan 1-27 - all befintlig logik (cache, prognosurval, animation triggers, femdygnsvägning) och hela API-kontraktet mot frontend är oförändrat, så ikonpaket, rotation och WeatherEffects fungerar identiskt oavsett leverantör. YR kräver ingen API-nyckel (identifierande User-Agent skickas enligt met.no:s villkor, cache förlängd till deras 10-minutersgräns); luftfuktighet tas ur YR-prognosen istället för SMHI:s observationsstationer. Okänd leverantör i config faller tillbaka på SMHI med varning
+
 ## [3.5.0] - 2026-07-07
 
 ### Tillagt

@@ -12,6 +12,15 @@ CONFIG = {
     # 🏠 True = SMHI+Netatmo - Prognos från SMHI + faktisk data från din väderstation
     'use_netatmo': False,  # ← ÄNDRA TILL True OM du har Netatmo-väderstation
     
+    # VÄDERLEVERANTÖR - vem som levererar prognosdata (PROJEKT WEATHERPROVIDER)
+    # 'smhi' = SMHI (Sverige, default) | 'yr' = YR/met.no (Norge, fungerar globalt)
+    # Alla leverantörer normaliseras till SMHI:s symbolskala 1-27, så ikoner,
+    # WeatherEffects och frontend fungerar identiskt oavsett val.
+    # Koordinaterna nedan (smhi-blocket) används av alla leverantörer.
+    # OBS: YR kräver ingen API-nyckel men luftfuktigheten kommer ur prognosen
+    # istället för från SMHI:s observationsstationer.
+    'weather_provider': 'smhi',
+
     'smhi': {
         # 📍 OFFENTLIGA KOORDINATER - Stockholm som standard
         'latitude': 59.3293,    # Stockholm koordinater (offentlig information)
