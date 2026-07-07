@@ -417,11 +417,21 @@ class SunCalculator:
                 sunrise_hour = 12 - hour_angle / 15
                 sunset_hour = 12 + hour_angle / 15
                 
-                # Justera för longitud (grov korrektion för tidszon)
-                time_correction = longitude / 15  # 15 grader per timme
+                # Soltid -> UTC (longitudkorrektion, 15 grader per timme)...
+                time_correction = longitude / 15
                 sunrise_hour -= time_correction
                 sunset_hour -= time_correction
-                
+
+                # ...och UTC -> PLATSENS lokala tid via longitudbaserad
+                # tidszonsuppskattning (round(lon/15) = normaltidszonen,
+                # t.ex. +7 för Jakarta, +1 för Stockholm). Utan detta
+                # visades fallback-tiderna i rå UTC. Approximation:
+                # sommartid och politiska zongränser fångas inte - för
+                # exakta tider används ipgeolocation-API:t (med nyckel).
+                utc_offset = round(longitude / 15)
+                sunrise_hour += utc_offset
+                sunset_hour += utc_offset
+
                 # Normalisera timmar
                 while sunrise_hour < 0:
                     sunrise_hour += 24
