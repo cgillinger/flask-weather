@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**Version 3.7.0** · [Changelog](CHANGELOG.md)
+**Version 3.7.1** · [Changelog](CHANGELOG.md)
 
 **GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 

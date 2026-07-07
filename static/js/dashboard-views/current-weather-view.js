@@ -24,6 +24,12 @@ function updateCurrentWeather(data) {
         
         // SMHI Temperatur
         updateElementHTML('smhi-temperature', smhi.temperature ? formatTemperature(smhi.temperature) : '--.-°');
+
+        // Väderleverantör under PROGNOS-etiketten (data_source: SMHI/YR/Open-Meteo)
+        const providerEl = document.getElementById('smhi-provider');
+        if (providerEl) {
+            providerEl.textContent = smhi.data_source ? `(${smhi.data_source})` : '';
+        }
         
         // SMHI Väder-ikon
         if (smhi.weather_symbol) {

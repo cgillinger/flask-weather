@@ -282,6 +282,16 @@ body {
     margin-top: 0.2rem;
 }
 
+/* Väderleverantör under PROGNOS - diskret grå parentes, t.ex. "(SMHI)" */
+.smhi-provider {
+    font-size: clamp(0.6rem, 0.75vw, 0.9rem);
+    font-weight: 400;
+    color: var(--text-secondary);
+    opacity: 0.55;
+    letter-spacing: 0.05em;
+    margin-top: 0.1rem;
+}
+
 /* Vind under faktisk (läggs till av JS) */
 .netatmo-wind-data {
     display: flex;
