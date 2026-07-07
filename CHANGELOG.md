@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.5.0] - 2026-07-07
+
+### Tillagt
+- **Automatisk ikonpaketsrotation** (`ui.icon_pack_rotation`): dashboarden kan rotera mellan ikonpaketen per dag, vecka eller månad. Rotationen utgår från ICON_PACKS-registryt (aldrig hårdkodad paketlista - nya paket kommer med automatiskt) minus paket i `exclude`-listan. Valet är deterministiskt ur datumet så alla klienter visar samma paket utan synk; `ui.icon_pack` gäller som reserv när rotationen är avstängd eller alla paket uteslutits
+
 ## [3.4.1] - 2026-07-07
 
 ### Tillagt

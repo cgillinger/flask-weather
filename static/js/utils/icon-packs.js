@@ -380,6 +380,38 @@ const IconRegistry = {
     },
 
     /**
+     * Lös upp ikonpaketsrotation (ui.icon_pack_rotation) till dagens paket.
+     * Deterministiskt ur datumet - alla klienter (kiosk, iPad, ...) landar
+     * i samma paket utan servertillstånd eller synk. Paketlistan hämtas
+     * ur ICON_PACKS-registryt (i manifestordning), aldrig hårdkodad:
+     * paket som läggs till i registryt kommer med i rotationen automatiskt.
+     * @param {Object} rotation - {enabled, interval: 'day'|'week'|'month', exclude: []}
+     * @param {Date} at - Tidpunkt att lösa upp för (default nu; injicerbar för test)
+     * @returns {string|null} Paketnamn, eller null om alla paket uteslutits
+     */
+    resolveRotationPack(rotation, at = new Date()) {
+        const exclude = Array.isArray(rotation.exclude) ? rotation.exclude : [];
+        const packs = Object.keys(ICON_PACKS).filter(p => !exclude.includes(p));
+        if (packs.length === 0) {
+            console.warn('⚠️ Ikonpaketsrotation: alla paket uteslutna - faller tillbaka på ui.icon_pack');
+            return null;
+        }
+
+        // Monotona periodräknare (lokal tid) - inga hopp vid årsskiften
+        const epochDays = Math.floor((at.getTime() - at.getTimezoneOffset() * 60000) / 86400000);
+        let period;
+        switch (rotation.interval) {
+            case 'day':   period = epochDays; break;
+            case 'month': period = at.getFullYear() * 12 + at.getMonth(); break;
+            case 'week':  period = Math.floor((epochDays + 3) / 7); break; // epoch var en torsdag - +3 ger måndagsgräns
+            default:
+                console.warn(`⚠️ Ikonpaketsrotation: okänt intervall '${rotation.interval}' - använder 'week'`);
+                period = Math.floor((epochDays + 3) / 7);
+        }
+        return packs[period % packs.length];
+    },
+
+    /**
      * Skapa väderikon-element för en SMHI-symbol med aktivt paket
      * @param {number} symbol - SMHI vädersymbol (1-27)
      * @param {boolean} isDay - Dag- eller nattvariant

@@ -78,6 +78,21 @@ CONFIG = {
         # 'none' = alla ikoner statiska
         'icon_animations': 'auto',
 
+        # IKONPAKETSROTATION - rotera automatiskt mellan ikonpaketen.
+        # När enabled=True ignoreras 'icon_pack' ovan. Rotationen omfattar ALLA
+        # paket i static/js/utils/icon-packs.js (aldrig hårdkodad lista - nya
+        # paket kommer med automatiskt), minus de som anges i 'exclude'.
+        # Paketet väljs deterministiskt ur datumet, så alla klienter (kiosk,
+        # iPad, ...) visar samma paket utan synk. Byte sker vid midnatt lokal
+        # tid / måndag / månadsskifte beroende på intervall.
+        # 'interval': 'day' | 'week' | 'month'
+        # 'exclude':  paketnamn som hoppas över, t.ex. ['kickstand-weather']
+        'icon_pack_rotation': {
+            'enabled': False,
+            'interval': 'week',
+            'exclude': [],
+        },
+
         # TEMA - AKTIV: 'dark' (enda produktionsklara temat)
         'theme': 'dark',        # ALTERNATIV: 'light' (EJ produktionsklar!), 'dark', 'auto'
         
