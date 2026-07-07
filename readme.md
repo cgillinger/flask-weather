@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**Version 3.8.0** · [Changelog](CHANGELOG.md)
+**Version 3.9.0** · [Changelog](CHANGELOG.md)
 
 **GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 
@@ -491,7 +491,20 @@ Huvudkonfigurationen görs i `reference/config.py`.
 
 ### 🌐 Språk
 
-Dashboardens UI-språk väljs med `ui.language` i `reference/config.py`. Tillgängliga språk är filerna i `static/translations/` (för närvarande `sv`; `en` och `nb` är på väg). All användartext slås upp via översättningsnycklar med svenska som fallback, och datum/veckodagar följer språket automatiskt via webbläsarens `Intl`-API — inga översättningstabeller behövs för dem.
+Dashboardens UI-språk väljs med `ui.language` i `reference/config.py`. Åtta språk ingår:
+
+| Kod | Språk | Vindterminologi enligt |
+|-----|-------|------------------------|
+| `sv` | Svenska (default) | SMHI |
+| `nb` / `no` | Norska (bokmål) | YR / Meteorologisk institutt |
+| `da` | Danska | DMI |
+| `fi` | Finska | Ilmatieteen laitos (FMI) |
+| `de` | Tyska | DWD |
+| `fr` | Franska | Météo-France (Beaufort) |
+| `es` | Spanska | AEMET (Beaufort) |
+| `en` | Engelska | Met Office (Beaufort) |
+
+All användartext slås upp via översättningsnycklar med svenska som fallback. Datum, veckodagar och månadsnamn följer språket automatiskt via webbläsarens `Intl`-API, och även kompassbokstäverna för vindriktning är språkanpassade (svenskt `V` = engelskt `W` = norskt/danskt `V`, öst är `O`/`E`/`Ø` beroende på språk). Barometerns nivåord följer respektive språks klassiska barometerurtavlor (t.ex. tyska `Sturm/Regen/Veränderlich/Schön/Sehr trocken`).
 
 **Lägga till ett språk:** kopiera `static/translations/sv.js` till `<kod>.js`, översätt värdena, lägg till `<script>`-taggen i `templates/index.html` och sätt `'language': '<kod>'`. Vädereffekter, ikonval och färgkodning påverkas inte av språket — de styrs av språkneutrala symbolkoder (SMHI-skalan 1-27).
 

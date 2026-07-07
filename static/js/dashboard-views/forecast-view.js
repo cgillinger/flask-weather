@@ -169,9 +169,9 @@ function createDailyForecastItem(day) {
     let dateDisplay = day.date;
     try {
         const dateObj = new Date(day.date);
-        const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 
-                       'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
-        dateDisplay = `${dateObj.getDate()} ${months[dateObj.getMonth()]}`;
+        // SPRÅK: månadsförkortning via Intl med aktivt språks locale
+        const monthShort = dateObj.toLocaleDateString(I18n.locale(), { month: 'short' }).replace('.', '');
+        dateDisplay = `${dateObj.getDate()} ${monthShort}`;
     } catch (e) {
         // Använd original om parsning misslyckas
     }

@@ -3,6 +3,15 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.9.0] - 2026-07-07
+
+### Tillagt
+- **Språkprojektet, etapp 3 - åtta språk**: svenska, norska (nb/no), danska, finska, tyska, franska, spanska och engelska. Vindterminologin per språk följer respektive lands väderinstitut (SMHI/YR/DMI/FMI/DWD/Météo-France/AEMET/Met Office Beaufort-benämningar), barometerorden följer klassiska barometerurtavlor per språk och kompassbokstäverna är språkanpassade (ny COMPASS-nyckel - svenskt V/O blev tidigare fel på alla andra språk). Franska/spanska använder fristående adjektiv för vind (Modéré/Moderado) eftersom 12h-korten visar termens första ord
+
+### Fixat
+- Femdygnsprognosens datum ("8 jul") använde en hårdkodad svensk månadslista - nu Intl med aktivt språks locale
+- Hårdkodat "Lugnt" i vindtextformateraren
+
 ## [3.8.0] - 2026-07-07
 
 ### Tillagt

@@ -53,10 +53,8 @@ function getWindDirection(degrees) {
         return "N/A";
     }
     
-    const directions = [
-        "N", "NNO", "NO", "ONO", "O", "OSO", "SO", "SSO",
-        "S", "SSV", "SV", "VSV", "V", "VNV", "NV", "NNV"
-    ];
+    // SPRÅK: kompassbokstäver skiljer sig per språk (sv V/O, en W/E, ...)
+    const directions = t('COMPASS').split(',');
     
     const index = Math.round(degrees / 22.5) % 16;
     return directions[index];

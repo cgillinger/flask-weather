@@ -91,9 +91,12 @@ CONFIG = {
         'icon_animations': 'auto',
 
         # SPRÅK - UI-språk för dashboarden (SPRÅKPROJEKTET)
-        # Tillgängliga språk = filerna i static/translations/ ('sv' just nu;
-        # 'en'/'nb' på väg). Okänt språk faller tillbaka på svenska.
-        # Datum och veckodagar följer språket automatiskt (via webbläsarens Intl).
+        # 'sv' svenska | 'nb'/'no' norska | 'da' danska | 'fi' finska
+        # 'de' tyska | 'fr' franska | 'es' spanska | 'en' engelska
+        # Okänt språk faller tillbaka på svenska. Datum/veckodagar följer
+        # språket automatiskt (webbläsarens Intl). Vindterminologin per språk
+        # följer respektive lands väderinstitut (SMHI/YR/DMI/FMI/DWD/
+        # Météo-France/AEMET/Met Office).
         'language': 'sv',
 
         # IKONPAKETSROTATION - rotera automatiskt mellan ikonpaketen.
