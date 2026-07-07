@@ -32,6 +32,7 @@ try:
     from netatmo_client import NetatmoClient
     from utils import SunCalculator, get_weather_icon_unicode_char, get_weather_description_short
     from cams_uv_client import CAMSUVClient  # FAS 3: UV-integration
+    from air_quality_client import get_outdoor_air_quality  # Utomhus-luftkvalitet (SMHI-station + CAMS-fallback)
 except ImportError as e:
     print(f"❌ Import fel: {e}")
     print("🔧 Kontrollera att reference/data/ finns och innehåller smhi_client.py m.fl.")
@@ -85,7 +86,11 @@ weather_state = {
 
     # FAS 3: UV-index state tracking
     'uv_enabled': False,        # Läses från config
-    'uv_data': None            # Cachad UV-data från CAMS
+    'uv_data': None,           # Cachad UV-data från CAMS
+
+    # Luftkvalitet: läge + cachad utomhusdata (SMHI-station -> CAMS-fallback)
+    'air_quality_mode': 'both',      # 'indoor' | 'outdoor' | 'both'
+    'air_quality_outdoor': None      # Cachad utomhus-AQI
 }
 
 # API clients (initialiseras villkorsstyrt i init_api_clients)
@@ -139,6 +144,14 @@ def load_config():
             update_time = uv_config.get('update_time', '01:00')
             print(f"   💾 Cache: {cache_dir}/uv_cache.json | ⏰ Uppdatering: {update_time}")
 
+        # Luftkvalitet: läge (indoor/outdoor/both). Default 'both'.
+        aq_config = CONFIG.get('air_quality', {})
+        aq_mode = str(aq_config.get('mode', 'both')).lower()
+        if aq_mode not in ('indoor', 'outdoor', 'both'):
+            aq_mode = 'both'
+        weather_state['air_quality_mode'] = aq_mode
+        print(f"🍃 Luftkvalitet: läge '{aq_mode}' (utomhus = SMHI-station → CAMS-fallback)")
+
         return CONFIG
 
     except ImportError as e:
@@ -171,6 +184,10 @@ def load_config_json_fallback():
 
         # FAS 3: Fallback för UV
         weather_state['uv_enabled'] = config.get('cams_uv', {}).get('enabled', False)
+
+        # Luftkvalitet-läge (fallback)
+        _aq_mode = str(config.get('air_quality', {}).get('mode', 'both')).lower()
+        weather_state['air_quality_mode'] = _aq_mode if _aq_mode in ('indoor', 'outdoor', 'both') else 'both'
 
         print(f"🧠 FAS 2: Netatmo-läge (fallback): {'AKTIVT' if weather_state['use_netatmo'] else 'INAKTIVT'}")
         print(f"🌦️ FAS 2: WeatherEffects (fallback): {'AKTIVERAT' if weather_state['weather_effects_enabled'] else 'INAKTIVERAT'}")
@@ -555,6 +572,27 @@ def update_weather_data():
             with state_lock:
                 weather_state['uv_data'] = None
 
+        # Utomhus-luftkvalitet (SMHI-station i första hand, CAMS globalt som fallback).
+        # Klienten cachar 1h internt, så det är billigt att anropa varje uppdateringscykel.
+        aq_mode = weather_state['air_quality_mode']
+        if aq_mode in ('outdoor', 'both') and smhi_client:
+            try:
+                aq_outdoor = get_outdoor_air_quality(smhi_client.latitude, smhi_client.longitude)
+                with state_lock:
+                    weather_state['air_quality_outdoor'] = aq_outdoor
+                if aq_outdoor:
+                    src = aq_outdoor.get('source')
+                    where = aq_outdoor.get('station_name') or 'CAMS-modell'
+                    print(f"✅ Luftkvalitet (utomhus): AQI {aq_outdoor.get('aqi')} "
+                          f"({aq_outdoor.get('band')}) via {src} – {where}")
+                else:
+                    print("⚠️ Luftkvalitet (utomhus): ingen data (behåller ev. cache)")
+            except Exception as e:
+                print(f"❌ Luftkvalitet (utomhus) misslyckades: {e}")
+        else:
+            with state_lock:
+                weather_state['air_quality_outdoor'] = None
+
         # Soltider
         if sun_calculator and smhi_client:
             sun_data = sun_calculator.get_sun_times(
@@ -754,7 +792,12 @@ def api_current_weather():
         'last_update': state['last_update'],
         'theme': get_current_theme(),
         'status': state['status'],
-        'config': ui_config
+        'config': ui_config,
+        # Luftkvalitet: läge + utomhusdata. Inomhus-CO2 läses ur netatmo-blocket ovan.
+        'air_quality': {
+            'mode': state['air_quality_mode'],       # 'indoor' | 'outdoor' | 'both'
+            'outdoor': state['air_quality_outdoor']  # {aqi,band,level,source,station_name,distance_km,...} | None
+        }
     }
 
     # FAS 2+3: Debug-logging för API-respons

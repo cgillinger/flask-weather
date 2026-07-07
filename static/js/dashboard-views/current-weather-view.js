@@ -100,36 +100,8 @@ function updateCurrentWeather(data) {
             }
         }
         
-        // CO2/Luftkvalitet - FAS 3: Villkorsstyrd visning
-        // STEG 8: Använd Intelligent Data Source istället för lokal funktion
-        const co2Data = formatDataWithSource(netatmo.co2, 'co2');
-        if (co2Data.shouldShow) {
-            const airQualityElement = document.getElementById('air-quality');
-            const airQualityContainer = document.querySelector('.air-quality-container');
-            
-            if (airQualityElement && airQualityContainer && !airQualityContainer.classList.contains('netatmo-hidden')) {
-                airQualityElement.textContent = co2Data.formatted;
-                
-                let iconClass = 'good';
-                if (co2Data.value > 1500) {
-                    iconClass = 'poor';
-                } else if (co2Data.value > 800) {
-                    iconClass = 'moderate';
-                }
-                
-                const existingIcon = airQualityContainer.querySelector('.air-quality-fa-icon');
-                if (existingIcon) {
-                    existingIcon.remove();
-                }
-                
-                // STEG 5: Använd FontAwesomeRenderer istället för FontAwesomeManager
-                const leafIcon = FontAwesomeRenderer.createLeafIcon(iconClass);
-                airQualityContainer.insertBefore(leafIcon, airQualityElement);
-                
-                console.log(`🍃 ${co2Data.debug} - SEPARERAD FÄRGKODNING: ${iconClass}`);
-            }
-        }
-        
+        // Luftkvalitet hanteras enhetligt av AirQualityDisplay längre ned (inomhus + utomhus)
+
         // BAROMETER UPDATE med smart källa
         const pressureTrend = netatmo.pressure_trend;
         // STEG 8: Använd Intelligent Data Source istället för lokal funktion
@@ -166,6 +138,10 @@ function updateCurrentWeather(data) {
         console.log('🔄 FAS 3: Prognos-kolumn och CO2 dolda via UI-anpassningar');
     }
     
+    // LUFTKVALITET: inomhus-CO2 (Netatmo) och/eller utomhus-AQI (SMHI→CAMS) enligt air_quality.mode.
+    // Körs efter applyUIAdaptations() så att denna komponent äger rutans synlighet.
+    try { AirQualityDisplay.update(data); } catch (e) { console.warn('AirQuality update failed:', e); }
+
     // SOL-TIDER (Oförändrade)
     if (data.sun) {
         try {

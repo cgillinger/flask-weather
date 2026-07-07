@@ -96,5 +96,18 @@ I18n.register('fi', {
     UV_RISK_moderate: 'Kohtalainen UV-riski',
     UV_RISK_high: 'Korkea UV-riski',
     UV_RISK_very_high: 'Hyvin korkea UV-riski',
-    UV_RISK_extreme: 'Äärimmäinen UV-riski'
+    UV_RISK_extreme: 'Äärimmäinen UV-riski',
+
+    // === ILMANLAATU ===
+    AQ_LABEL: 'Ilmanlaatu',
+    AQ_INDOOR: 'Sisällä',
+    AQ_OUTDOOR: 'Ulkona',
+    AQ_INDOOR_SHORT: 'Sis',
+    AQ_OUTDOOR_SHORT: 'Ulk',
+    AQI_BAND_good: 'Hyvä',
+    AQI_BAND_fair: 'Tyydyttävä',
+    AQI_BAND_moderate: 'Kohtalainen',
+    AQI_BAND_poor: 'Huono',
+    AQI_BAND_very_poor: 'Erittäin huono',
+    AQI_BAND_extremely_poor: 'Äärimmäisen huono'
 });

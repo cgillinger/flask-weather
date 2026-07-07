@@ -52,7 +52,17 @@ CONFIG = {
         'location_name': 'Stockholm',  # Ortnamn som visas på skärmen
         'comment': 'Namn på ort som visas på skärmen - hjälper användaren förstå var data kommer ifrån'
     },
-    
+
+    # === 🍃 LUFTKVALITET ===
+    # Utomhus-luftkvalitet (European AQI) hämtas från närmaste SMHI-mätstation i
+    # Sverige, och faller globalt tillbaka på Open-Meteo/CAMS. Ingen API-nyckel krävs.
+    'air_quality': {
+        # 'indoor'  = bara Netatmo-CO2 inomhus (kräver use_netatmo=True)
+        # 'outdoor' = bara utomhus-AQI (funkar utan Netatmo, var som helst i världen)
+        # 'both'    = visa båda. Utan Netatmo visas bara utomhus automatiskt.
+        'mode': 'outdoor',
+    },
+
     'ui': {
         # 🎛️ OFFENTLIGA UI-INSTÄLLNINGAR - Anpassa efter behov
         'fullscreen': True,                      # True/False - Fullskärmsläge för kiosk

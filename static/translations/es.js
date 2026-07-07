@@ -98,5 +98,18 @@ I18n.register('es', {
     UV_RISK_moderate: 'Riesgo UV moderado',
     UV_RISK_high: 'Riesgo UV alto',
     UV_RISK_very_high: 'Riesgo UV muy alto',
-    UV_RISK_extreme: 'Riesgo UV extremo'
+    UV_RISK_extreme: 'Riesgo UV extremo',
+
+    // === CALIDAD DEL AIRE ===
+    AQ_LABEL: 'Calidad del aire',
+    AQ_INDOOR: 'Interior',
+    AQ_OUTDOOR: 'Exterior',
+    AQ_INDOOR_SHORT: 'Int',
+    AQ_OUTDOOR_SHORT: 'Ext',
+    AQI_BAND_good: 'Buena',
+    AQI_BAND_fair: 'Razonable',
+    AQI_BAND_moderate: 'Regular',
+    AQI_BAND_poor: 'Mala',
+    AQI_BAND_very_poor: 'Muy mala',
+    AQI_BAND_extremely_poor: 'Extremadamente mala'
 });

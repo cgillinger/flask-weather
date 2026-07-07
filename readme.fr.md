@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard
 
-**Version 3.9.1** · [Changelog](CHANGELOG.md)
+**Version 3.10.1** · [Changelog](CHANGELOG.md)
 
 🌐 [English](readme.md) · [Svenska](readme.sv.md) · [Norsk](readme.nb.md) · [Dansk](readme.da.md) · [Suomi](readme.fi.md) · [Deutsch](readme.de.md) · **Français** · [Español](readme.es.md)
 
@@ -18,6 +18,7 @@ Un tableau de bord météo moderne et responsive pour tablettes, téléphones et
 
 - **Fournisseur météo au choix** : SMHI (par défaut, pays nordiques uniquement), **YR/met.no** ou **Open-Meteo** — les deux derniers offrent une **couverture mondiale** (Open-Meteo utilise entre autres les modèles de Météo-France). Aucune clé API requise. Prévisions sur 12 heures et 5 jours.
 - **Intégration Netatmo (optionnelle)** : température réelle, CO2/qualité de l'air et tendance barométrique précise depuis votre station météo.
+- **Qualité de l'air extérieur** (`air_quality.mode`) : AQI européen depuis la station de mesure SMHI la plus proche, avec repli mondial Open-Meteo/CAMS (sans clé). Intérieur, extérieur ou les deux.
 - **Huit langues** (`ui.language`) : la terminologie du vent en français suit l'échelle de Beaufort de Météo-France. Dates et jours de la semaine suivent la langue automatiquement.
 - **Six jeux d'icônes** avec rotation automatique optionnelle (jour/semaine/mois).
 - **Weather Effects** : pluie et neige animées, pilotées par les symboles météo.

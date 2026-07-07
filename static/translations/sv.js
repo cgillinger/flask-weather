@@ -103,5 +103,18 @@ I18n.register('sv', {
     UV_RISK_moderate: 'Måttlig UV-risk',
     UV_RISK_high: 'Hög UV-risk',
     UV_RISK_very_high: 'Mycket hög UV-risk',
-    UV_RISK_extreme: 'Extrem UV-risk'
+    UV_RISK_extreme: 'Extrem UV-risk',
+
+    // === LUFTKVALITET: etiketter + European-AQI-band (EEA-nivåer) ===
+    AQ_LABEL: 'Luftkvalitet',
+    AQ_INDOOR: 'Inomhus',
+    AQ_OUTDOOR: 'Utomhus',
+    AQ_INDOOR_SHORT: 'Inne',
+    AQ_OUTDOOR_SHORT: 'Ute',
+    AQI_BAND_good: 'God',
+    AQI_BAND_fair: 'Skälig',
+    AQI_BAND_moderate: 'Måttlig',
+    AQI_BAND_poor: 'Dålig',
+    AQI_BAND_very_poor: 'Mycket dålig',
+    AQI_BAND_extremely_poor: 'Extremt dålig'
 });

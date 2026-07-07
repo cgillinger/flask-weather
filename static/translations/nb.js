@@ -96,7 +96,20 @@ const NB_CATALOG = {
     UV_RISK_moderate: 'Moderat UV-risiko',
     UV_RISK_high: 'Høy UV-risiko',
     UV_RISK_very_high: 'Svært høy UV-risiko',
-    UV_RISK_extreme: 'Ekstrem UV-risiko'
+    UV_RISK_extreme: 'Ekstrem UV-risiko',
+
+    // === LUFTKVALITET ===
+    AQ_LABEL: 'Luftkvalitet',
+    AQ_INDOOR: 'Innendørs',
+    AQ_OUTDOOR: 'Utendørs',
+    AQ_INDOOR_SHORT: 'Inne',
+    AQ_OUTDOOR_SHORT: 'Ute',
+    AQI_BAND_good: 'God',
+    AQI_BAND_fair: 'Rimelig',
+    AQI_BAND_moderate: 'Moderat',
+    AQI_BAND_poor: 'Dårlig',
+    AQI_BAND_very_poor: 'Svært dårlig',
+    AQI_BAND_extremely_poor: 'Ekstremt dårlig'
 };
 
 I18n.register('nb', NB_CATALOG);

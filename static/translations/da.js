@@ -95,5 +95,18 @@ I18n.register('da', {
     UV_RISK_moderate: 'Moderat UV-risiko',
     UV_RISK_high: 'Høj UV-risiko',
     UV_RISK_very_high: 'Meget høj UV-risiko',
-    UV_RISK_extreme: 'Ekstrem UV-risiko'
+    UV_RISK_extreme: 'Ekstrem UV-risiko',
+
+    // === LUFTKVALITET ===
+    AQ_LABEL: 'Luftkvalitet',
+    AQ_INDOOR: 'Indendørs',
+    AQ_OUTDOOR: 'Udendørs',
+    AQ_INDOOR_SHORT: 'Inde',
+    AQ_OUTDOOR_SHORT: 'Ude',
+    AQI_BAND_good: 'God',
+    AQI_BAND_fair: 'Rimelig',
+    AQI_BAND_moderate: 'Moderat',
+    AQI_BAND_poor: 'Ringe',
+    AQI_BAND_very_poor: 'Meget ringe',
+    AQI_BAND_extremely_poor: 'Ekstremt ringe'
 });
