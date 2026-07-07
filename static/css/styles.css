@@ -398,6 +398,19 @@ body {
     /* Alla barn tar 1 kolumn vardera */
 }
 
+/* UI-degradering (ui-adaptation-engine.js sätter klasserna - CSS:en
+   saknades tidigare så de hade ingen effekt): utan Netatmo döljs
+   CO2/luftkvalitet (ingen datakälla i prognosläge) och rutnätet
+   fördelar kvarvarande rutor jämnt istället för att lämna tomma
+   kolumner. Netatmo-lägets layout är helt oförändrad. */
+.netatmo-hidden {
+    display: none !important;
+}
+
+.data-points-grid.smhi-only-mode {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr)) !important;
+}
+
 .data-point {
     display: flex;
     align-items: center;
