@@ -9,7 +9,7 @@
 [![Forecasts: SMHI · YR · Open-Meteo](https://img.shields.io/badge/Forecasts-SMHI%20%C2%B7%20YR%20%C2%B7%20Open--Meteo-0A9EDC.svg)](#-weather-data)
 [![Netatmo: station integration](https://img.shields.io/badge/Netatmo-station%20integration-00A7A7.svg)](#-configuration)
 [![UI: 8 languages](https://img.shields.io/badge/UI-8%20languages-6f42c1.svg)](#-languages)
-[![Version 3.9.1](https://img.shields.io/badge/version-3.9.1-blue.svg)](CHANGELOG.md)
+[![Version 3.10.1](https://img.shields.io/badge/version-3.10.1-blue.svg)](CHANGELOG.md)
 
 🌐 **English** · [Svenska](readme.sv.md) · [Norsk](readme.nb.md) · [Dansk](readme.da.md) · [Suomi](readme.fi.md) · [Deutsch](readme.de.md) · [Français](readme.fr.md) · [Español](readme.es.md)
 
@@ -116,12 +116,13 @@ Flask Weather Dashboard is an elegant weather dashboard that combines a national
 - ✅ Shows the weather forecast from the selected provider
 - ✅ Humidity from SMHI observations or the provider forecast
 - ✅ Simple pressure trend based on forecast data
+- ✅ **Outdoor air quality** (European AQI) from the nearest SMHI reference station, with a global Open-Meteo/CAMS fallback — no API key
 - ✅ UV index from CAMS (optional, requires API key)
 
 **🏠 Forecast + Netatmo (for users with a Netatmo weather station)**
 - ✅ Everything from forecast-only mode PLUS:
 - ✅ Actual temperature from your Netatmo weather station
-- ✅ CO2 measurement and air quality with color coding
+- ✅ Indoor **CO₂/air quality** measurement — shown next to the outdoor value (choose indoor, outdoor or both)
 - ✅ Advanced pressure trend based on historical data
 - 🔧 Noise level measurement (backend support exists, frontend not enabled)
 
@@ -132,6 +133,7 @@ Flask Weather Dashboard is an elegant weather dashboard that combines a national
 - **Current temperature**: From the selected provider or Netatmo, with color coding (freezing → hot)
 - **Humidity**: SMHI observations, provider forecast (YR/Open-Meteo) or Netatmo
 - **Air pressure**: Five-step pressure trend (falling fast · falling · steady · rising · rising fast) with color-coded indicators and a double arrow for rapid weather changes. Optional word mode (`pressure_display: 'words'`) that shows descriptive level words like a physical barometer.
+- **🍃 Air quality** (`air_quality.mode`): indoor **CO₂** (Netatmo), **outdoor European AQI**, or **both** side by side. Outdoor data comes from the nearest **SMHI reference station** (the outdoor tile then shows how far away it is), falling back to **Open-Meteo/CAMS** anywhere in the world — no API key. Color-coded by the EEA index (good → extremely poor); in *both* mode the leaf takes the worse of the two levels.
 - **Wind data**: Beaufort color-coded wind icons (green → yellow → orange → red) with several unit options
 - **Precipitation**: Forecasts with rain intensity
 - **☀️ UV index**: Real-time UV data from CAMS with WHO/WMO color coding (low → extreme)
@@ -156,7 +158,7 @@ Flask Weather Dashboard is an elegant weather dashboard that combines a national
 
 ### 🌅 Extras
 - **Sun times**: Sunrise/sunset via the ipgeolocation API or fallback calculation
-- **Air quality**: CO2 measurement with color coding (Netatmo only; the tile is hidden in forecast-only mode)
+- **Air quality**: outdoor European AQI (SMHI station → CAMS fallback) and/or indoor CO₂ (Netatmo), configurable via `air_quality.mode` — see [Features](#-features)
 - **Auto refresh**: Configurable update intervals
 
 ## 🖥️ Server installation
@@ -419,6 +421,13 @@ The main configuration lives in `reference/config.py`.
     },
     'language': 'en',  # UI language, see Languages below
     'theme': 'dark'  # Only 'dark' is production-ready
+}
+
+'air_quality': {
+    # 'indoor'  = Netatmo CO₂ only (requires use_netatmo=True)
+    # 'outdoor' = outdoor European AQI only (nearest SMHI station → global CAMS fallback, no key)
+    # 'both'    = show both; without Netatmo it automatically shows outdoor only
+    'mode': 'both',
 }
 ```
 

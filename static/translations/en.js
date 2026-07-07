@@ -96,5 +96,18 @@ I18n.register('en', {
     UV_RISK_moderate: 'Moderate UV risk',
     UV_RISK_high: 'High UV risk',
     UV_RISK_very_high: 'Very high UV risk',
-    UV_RISK_extreme: 'Extreme UV risk'
+    UV_RISK_extreme: 'Extreme UV risk',
+
+    // === AIR QUALITY: labels + European AQI bands (EEA levels) ===
+    AQ_LABEL: 'Air quality',
+    AQ_INDOOR: 'Indoor',
+    AQ_OUTDOOR: 'Outdoor',
+    AQ_INDOOR_SHORT: 'In',
+    AQ_OUTDOOR_SHORT: 'Out',
+    AQI_BAND_good: 'Good',
+    AQI_BAND_fair: 'Fair',
+    AQI_BAND_moderate: 'Moderate',
+    AQI_BAND_poor: 'Poor',
+    AQI_BAND_very_poor: 'Very poor',
+    AQI_BAND_extremely_poor: 'Extremely poor'
 });

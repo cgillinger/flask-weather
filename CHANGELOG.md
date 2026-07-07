@@ -3,6 +3,16 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.10.1] - 2026-07-08
+
+### Tillagt
+- **Utomhus-luftkvalitet (European AQI)** som ny datakälla, valbar via `air_quality.mode` (`indoor` | `outdoor` | `both`). Utomhusvärdet hämtas från **närmaste SMHI-mätstation** (Datavärdskap luftkvalitet, OGC SOS med JSON) och beräknar European AQI från PM2.5/PM10/NO₂/O₃; **global fallback till Open-Meteo/CAMS** när ingen svensk station finns nära (fungerar var som helst i världen, ingen API-nyckel). Ny klient `reference/data/air_quality_client.py` med 1h-cache.
+- **Ny frontend-komponent** `AirQualityDisplay`: inomhus-CO₂ och/eller utomhus-AQI på samma rad som barometer/UV. I `both`-läget visas `INNE`/`UTE` med "Luftkvalitet" överst, och löv-ikonen tar den *sämsta* av de två nivåerna. I `outdoor`-läget visas avståndet till mätstationen (📍, dolt vid CAMS-fallback som saknar station). Färgkodning är index-driven och därmed språkneutral.
+- **i18n på alla åtta språk**: etiketter (Inomhus/Utomhus/Luftkvalitet) och de sex EEA-banden (God → Extremt dålig).
+
+### Ändrat
+- Prognosläge (utan Netatmo) visar nu **utomhus-luftkvalitet** i stället för att dölja rutan helt. `air_quality.mode` styr; utan Netatmo faller `both`/`indoor` tillbaka på utomhus automatiskt.
+
 ## [3.9.1] - 2026-07-07
 
 ### Ändrat

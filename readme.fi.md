@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard
 
-**Versio 3.9.1** · [Changelog](CHANGELOG.md)
+**Versio 3.10.1** · [Changelog](CHANGELOG.md)
 
 🌐 [English](readme.md) · [Svenska](readme.sv.md) · [Norsk](readme.nb.md) · [Dansk](readme.da.md) · **Suomi** · [Deutsch](readme.de.md) · [Français](readme.fr.md) · [Español](readme.es.md)
 
@@ -18,6 +18,7 @@ Moderni, responsiivinen sääkojelauta tableteille, puhelimille ja kiinteille n�
 
 - **Valittava säädata­lähde**: SMHI (oletus, vain Pohjoismaat), **YR/met.no** tai **Open-Meteo** — kaksi jälkimmäistä kattavat **koko maailman**. API-avainta ei tarvita. 12 tunnin ja 5 vuorokauden ennusteet.
 - **Netatmo-integraatio (valinnainen)**: todellinen lämpötila, CO2/ilmanlaatu ja tarkka ilmanpaineen kehitys omalta sääasemalta.
+- **Ulkoilman laatu** (`air_quality.mode`): European AQI lähimmältä SMHI-mittausasemalta, globaali Open-Meteo/CAMS-varajärjestelmä (ei avainta). Valitse sisä, ulko tai molemmat.
 - **Kahdeksan kieltä** (`ui.language`): suomen tuuliterminologia noudattaa Ilmatieteen laitoksen nimityksiä (heikkoa, kohtalaista, navakkaa, kovaa tuulta, myrskyä, hirmumyrskyä). Päivämäärät ja viikonpäivät seuraavat kieltä automaattisesti.
 - **Kuusi kuvakepakettia** ja valinnainen automaattinen kierto (päivä/viikko/kuukausi).
 - **Weather Effects**: animoitu sade ja lumi sääsymbolien ohjaamana.

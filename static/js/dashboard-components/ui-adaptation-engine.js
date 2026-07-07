@@ -90,23 +90,13 @@ function adaptTemperatureSection(netatmoAvailable) {
 }
 
 /**
- * Anpassa luftkvalitet-sektionen
+ * Anpassa luftkvalitet-sektionen.
+ * Synligheten ägs numera helt av AirQualityDisplay.update() (som körs efter denna
+ * och känner till air_quality.mode + utomhusdata). Denna funktion är därför en
+ * medveten no-op - lämnad kvar så anropet i applyUIAdaptations() inte behöver ändras.
  */
 function adaptAirQualitySection(netatmoAvailable) {
-    const airQualityContainer = document.querySelector('.air-quality-container');
-
-    if (!netatmoAvailable) {
-        // FAS 3: Dölj CO2/luftkvalitet
-        if (airQualityContainer) {
-            airQualityContainer.classList.add('netatmo-hidden');
-            console.log('🙈 FAS 3: Luftkvalitet-sektion dold');
-        }
-    } else {
-        // FAS 3: Visa CO2/luftkvalitet
-        if (airQualityContainer) {
-            airQualityContainer.classList.remove('netatmo-hidden');
-        }
-    }
+    // Avsiktligt tom - se AirQualityDisplay (air-quality-display.js).
 }
 
 /**

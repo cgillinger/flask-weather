@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard
 
-**Version 3.9.1** · [Changelog](CHANGELOG.md)
+**Version 3.10.1** · [Changelog](CHANGELOG.md)
 
 🌐 [English](readme.md) · [Svenska](readme.sv.md) · [Norsk](readme.nb.md) · **Dansk** · [Suomi](readme.fi.md) · [Deutsch](readme.de.md) · [Français](readme.fr.md) · [Español](readme.es.md)
 
@@ -18,6 +18,7 @@ Et moderne, responsivt vejrdashboard til tablets, telefoner og dedikerede skærm
 
 - **Valgbar vejrleverandør**: SMHI (standard, kun Norden), **YR/met.no** eller **Open-Meteo** — de to sidste giver **global dækning**. Ingen API-nøgle kræves. 12-timers og 5-døgns prognoser.
 - **Netatmo-integration (valgfrit)**: faktisk temperatur, CO2/luftkvalitet og avanceret trykudvikling fra din egen vejrstation.
+- **Udendørs luftkvalitet** (`air_quality.mode`): European AQI fra nærmeste SMHI-målestation, med global Open-Meteo/CAMS-fallback (ingen nøgle). Vælg inde, ude eller begge.
 - **Otte sprog** (`ui.language`): dansk vindterminologi følger DMI (svag vind, jævn vind, frisk vind, kuling, storm, orkan). Dato og ugedage følger sproget automatisk.
 - **Seks ikonpakker** med valgfri automatisk rotation (dag/uge/måned).
 - **Weather Effects**: animeret regn og sne styret af vejrsymbolerne.
