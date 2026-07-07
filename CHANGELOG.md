@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.7.1] - 2026-07-07
+
+### Tillagt
+- Aktiv väderleverantör visas diskret i grått inom parentes under PROGNOS-etiketten, t.ex. "(SMHI)" eller "(YR)" - hämtas ur data_source i API-svaret och följer weather_provider-valet automatiskt
+
 ## [3.7.0] - 2026-07-07
 
 ### Tillagt
