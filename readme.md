@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**Version 3.4.0** · [Changelog](CHANGELOG.md)
+**Version 3.5.0** · [Changelog](CHANGELOG.md)
 
 **GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 
@@ -473,6 +473,11 @@ Huvudkonfigurationen görs i `reference/config.py`.
     'pressure_display': 'words',  # 'words' = barometerord, 'numeric' = siffror
     'icon_pack': 'weather-icons',  # Väderikonuppsättning, se nedan
     'icon_animations': 'auto',  # Ikonanimeringsläge för SVG-paket, se nedan
+    'icon_pack_rotation': {  # Automatisk paketrotation, se nedan
+        'enabled': False,
+        'interval': 'week',  # 'day' | 'week' | 'month'
+        'exclude': [],
+    },
     'theme': 'dark'  # Endast 'dark' är produktionsklar
 }
 ```
@@ -491,6 +496,8 @@ Väderikonerna kan bytas som uppsättning med `ui.icon_pack` i `reference/config
 | `kickstand-weather` | Font (KickstandApps) - minimalistiskt Climacons-manér, 12 glyfer, färgkodas automatiskt | SIL OFL 1.1 |
 
 Efter byte: starta om servern (Docker: `docker compose up -d --build`).
+
+**Automatisk paketrotation** (`ui.icon_pack_rotation`): med `enabled: True` roterar dashboarden mellan ikonpaketen per dag, vecka eller månad (`interval`). Rotationen omfattar **alla paket som är registrerade i `icon-packs.js`** — listan är aldrig hårdkodad, så nya paket kommer med automatiskt. Vill du hoppa över något anges det i `exclude`, t.ex. `'exclude': ['kickstand-weather']`. Paketet väljs deterministiskt ur datumet (byte vid midnatt lokal tid, måndag respektive månadsskifte), så alla klienter visar samma paket utan synkronisering, och `ui.icon_pack` används som reserv om rotationen är avstängd eller alla paket uteslutits.
 
 **Anmärkningar per paket:**
 

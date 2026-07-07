@@ -75,9 +75,19 @@ async function updateAllData() {
                 dashboardState.pressureDisplay = currentData.config.pressure_display;
             }
 
-            // IKONPAKET: Aktivera valt paket innan vyerna renderar ikoner
-            if (window.IconRegistry && currentData.config.icon_pack) {
-                IconRegistry.setActivePack(currentData.config.icon_pack);
+            // IKONPAKET: Aktivera valt paket innan vyerna renderar ikoner.
+            // Med rotation aktiv (ui.icon_pack_rotation) väljs paketet
+            // deterministiskt ur datumet - omvärderas varje pollcykel så
+            // bytet sker automatiskt vid dygns-/vecko-/månadsskifte.
+            if (window.IconRegistry) {
+                const rotation = currentData.config.icon_pack_rotation;
+                const rotated = (rotation && rotation.enabled)
+                    ? IconRegistry.resolveRotationPack(rotation)
+                    : null;
+                const pack = rotated || currentData.config.icon_pack;
+                if (pack) {
+                    IconRegistry.setActivePack(pack);
+                }
             }
 
             // IKONANIMERINGAR: Sätt animeringsläge (ui.icon_animations) -
