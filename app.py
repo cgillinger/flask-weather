@@ -28,6 +28,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'reference', 'data'))
 try:
     from smhi_client import SMHIClient
     from yr_client import YRClient  # PROJEKT WEATHERPROVIDER: YR/met.no
+    from open_meteo_client import OpenMeteoClient  # PROJEKT WEATHERPROVIDER: Open-Meteo (global)
     from netatmo_client import NetatmoClient
     from utils import SunCalculator, get_weather_icon_unicode_char, get_weather_description_short
     from cams_uv_client import CAMSUVClient  # FAS 3: UV-integration
@@ -388,7 +389,12 @@ def init_api_clients(config):
         # och normaliserar sina symboler till SMHI-skalan 1-27, så resten
         # av systemet (API-kontrakt, ikoner, WeatherEffects) är opåverkat.
         # Koordinaterna läses ur smhi-blocket oavsett leverantör.
-        WEATHER_PROVIDERS = {'smhi': SMHIClient, 'yr': YRClient}
+        WEATHER_PROVIDERS = {
+            'smhi': SMHIClient,
+            'yr': YRClient,
+            'open-meteo': OpenMeteoClient,
+            'openmeteo': OpenMeteoClient,  # alias utan bindestreck
+        }
         provider_name = str(config.get('weather_provider', 'smhi')).lower()
         provider_class = WEATHER_PROVIDERS.get(provider_name)
         if provider_class is None:

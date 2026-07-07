@@ -13,12 +13,15 @@ CONFIG = {
     'use_netatmo': False,  # ← ÄNDRA TILL True OM du har Netatmo-väderstation
     
     # VÄDERLEVERANTÖR - vem som levererar prognosdata (PROJEKT WEATHERPROVIDER)
-    # 'smhi' = SMHI (Sverige, default) | 'yr' = YR/met.no (Norge, fungerar globalt)
+    # 'smhi'       = SMHI (Sverige, default - täcker bara Norden)
+    # 'yr'         = YR/met.no (Norge, global täckning)
+    # 'open-meteo' = Open-Meteo (global täckning, väljer bästa modell per plats:
+    #                DWD/NOAA/Meteo-France/ECMWF m.fl.)
     # Alla leverantörer normaliseras till SMHI:s symbolskala 1-27, så ikoner,
     # WeatherEffects och frontend fungerar identiskt oavsett val.
     # Koordinaterna nedan (smhi-blocket) används av alla leverantörer.
-    # OBS: YR kräver ingen API-nyckel men luftfuktigheten kommer ur prognosen
-    # istället för från SMHI:s observationsstationer.
+    # Ingen av leverantörerna kräver API-nyckel. För YR/Open-Meteo tas
+    # luftfuktigheten ur prognosen istället för SMHI:s observationsstationer.
     'weather_provider': 'smhi',
 
     'smhi': {

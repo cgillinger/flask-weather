@@ -1,6 +1,6 @@
 # 🌤️ Flask Weather Dashboard - Komplett Guide
 
-**Version 3.6.0** · [Changelog](CHANGELOG.md)
+**Version 3.7.0** · [Changelog](CHANGELOG.md)
 
 **GitHub Repository:** [https://github.com/cgillinger/flask-weather](https://github.com/cgillinger/flask-weather)
 
@@ -93,9 +93,9 @@ Flask Weather Dashboard är en elegant väder-dashboard som kombinerar SMHI:s v�
 ## ✨ Funktioner
 
 ### 🌡️ Väderdata
-- **Valbar väderleverantör** (`weather_provider`): SMHI (default) eller YR/met.no — 12-timmars och 5-dagars prognoser med färgkodade temperaturer. Alla leverantörer normaliseras till SMHI:s symbolskala så ikoner och effekter fungerar identiskt; YR fungerar även utanför Norden
+- **Valbar väderleverantör** (`weather_provider`): SMHI (default), YR/met.no eller Open-Meteo — 12-timmars och 5-dagars prognoser med färgkodade temperaturer. Alla leverantörer normaliseras till SMHI:s symbolskala så ikoner och effekter fungerar identiskt; YR och Open-Meteo har **global täckning** (SMHI täcker bara Norden)
 - **Aktuell Temperatur**: Från vald leverantör eller Netatmo med färgkodning (frys → varmt)
-- **Luftfuktighet**: SMHI observationer, YR-prognos eller Netatmo
+- **Luftfuktighet**: SMHI observationer, leverantörsprognos (YR/Open-Meteo) eller Netatmo
 - **Lufttryck**: Femgradig trycktrend (faller snabbt · faller · stabilt · stiger · stiger snabbt) med färgkodade indikatorer och dubbelpil för snabb väderomställning. Valbart ordläge (`pressure_display: 'words'`) som visar beskrivande nivåord som en fysisk barometer.
 - **Vinddata**: Beaufort-färgkodade vindikoner (grön → gul → orange → röd) med flera enhetsalternativ
 - **Nederbörd**: Prognoser med regnintensitet
@@ -188,9 +188,9 @@ CONFIG = {
 
 **Byta väderleverantör (valfritt):**
 ```python
-'weather_provider': 'yr',  # 'smhi' (default) eller 'yr' (YR/met.no - fungerar globalt)
+'weather_provider': 'yr',  # 'smhi' (default, endast Norden) | 'yr' | 'open-meteo' (båda globala)
 ```
-Koordinaterna i `smhi`-blocket används oavsett leverantör. YR kräver ingen API-nyckel; luftfuktigheten tas då ur prognosen istället för från SMHI:s observationsstationer, och leverantörens symbolkoder översätts automatiskt till SMHI-skalan 1-27 så ikonpaket och väder-effekter fungerar identiskt.
+Koordinaterna i `smhi`-blocket används oavsett leverantör — med `yr` (met.no) eller `open-meteo` fungerar dashboarden **var som helst i världen**. Ingen leverantör kräver API-nyckel; luftfuktigheten tas då ur prognosen istället för från SMHI:s observationsstationer, och leverantörens symbolkoder (YR symbol_code respektive WMO-koder) översätts automatiskt till SMHI-skalan 1-27 så ikonpaket och väder-effekter fungerar identiskt.
 
 **För UV-index (valfritt, kräver .cdsapirc setup):**
 
