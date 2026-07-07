@@ -21,6 +21,7 @@ I18n.register('sv', {
     STATUS_UPDATED: 'Väderdata uppdaterad',
     STALE_SINCE: '⚠️ Data ej uppdaterad sedan {time}',
     STALE_UNAVAILABLE: '⚠️ Väderdata kan inte hämtas',
+    COMPASS: 'N,NNO,NO,ONO,O,OSO,SO,SSO,S,SSV,SV,VSV,V,VNV,NV,NNV',
     UNKNOWN: 'Okänt',
 
     // === DATAPUNKTER (mid-zone) ===

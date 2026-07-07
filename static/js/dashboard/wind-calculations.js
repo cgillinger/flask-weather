@@ -98,7 +98,7 @@ function convertWindSpeed(speedKmh, targetUnit) {
  */
 function formatWindTextForTwoLines(windText) {
     if (!windText || windText === '0') {
-        return { line1: 'Lugnt', line2: '' };
+        return { line1: t('WIND_LAND_CALM'), line2: '' };
     }
     
     // Dela upp sammansatta vindtermer
