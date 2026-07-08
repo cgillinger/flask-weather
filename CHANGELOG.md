@@ -3,6 +3,14 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.10.3] - 2026-07-08
+
+### Fixat
+- **Luftkvalitetsvärdena** (CO₂-ppm och AQI-siffran) visas nu i vit text (`--text-primary`) i stället för nivåfärgen — den gröna "God"-färgen var nästan oläslig på mörk bakgrund. Statusfärgen (grön/gul/röd) bärs fortfarande av löv-ikonen, och etiketterna INNE/UTE förblir dämpat grå.
+
+### Dokumentation
+- Engelska readme.md behandlar nu SMHI som **en av flera** väderleverantörer (luftfuktighet och luftkvalitet formulerade villkorat) och har en kort **ursprungsnot** om projektets Sverige-only-arv (därav SMHI som basklass, `smhi`-configblock och symbolskala 1-27). Svenska readme.sv.md förblir medvetet SMHI-centrerad.
+
 ## [3.10.2] - 2026-07-08
 
 ### Ändrat

@@ -72,19 +72,19 @@ const AirQualityDisplay = {
             infoHtml =
                 `<div class="barometer-trend-line" style="margin-bottom:.05rem">${label}</div>` +
                 `<div class="barometer-pressure-line"><span style="${preStyle}">${t('AQ_INDOOR_SHORT')}</span> ` +
-                `<span style="color:${this._color(inLevel)}">${Math.round(co2)} ppm</span></div>` +
+                `<span style="color:var(--text-primary)">${Math.round(co2)} ppm</span></div>` +
                 `<div class="barometer-pressure-line"><span style="${preStyle}">${t('AQ_OUTDOOR_SHORT')}</span> ` +
-                `<span style="color:${this._color(outLevel)}">AQI ${outdoor.aqi}</span></div>`;
+                `<span style="color:var(--text-primary)">AQI ${outdoor.aqi}</span></div>`;
         } else if (showIndoor) {
             leafLevel = this._co2Level(co2);
             infoHtml =
-                `<div class="barometer-pressure-line" style="color:${this._color(leafLevel)}">${Math.round(co2)} ppm</div>` +
+                `<div class="barometer-pressure-line" style="color:var(--text-primary)">${Math.round(co2)} ppm</div>` +
                 `<div class="barometer-trend-line">${label} (${t('AQ_INDOOR')})</div>`;
         } else {
             leafLevel = outdoor.level || 'good';
             const band = t('AQI_BAND_' + (outdoor.band || 'good'));
             infoHtml =
-                `<div class="barometer-pressure-line" style="color:${this._color(leafLevel)}">AQI ${outdoor.aqi} · ${band}</div>` +
+                `<div class="barometer-pressure-line" style="color:var(--text-primary)">AQI ${outdoor.aqi} · ${band}</div>` +
                 `<div class="barometer-trend-line">${label} (${t('AQ_OUTDOOR')})</div>` +
                 this._distanceLine(outdoor);
         }
