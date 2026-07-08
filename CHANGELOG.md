@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.11.3] - 2026-07-08
+
+### Ändrat
+- **Soluppgång/solnedgång förstorade ~20 %**: tidstexten (`clamp 0.8→0.95rem`-skalan) och solikonerna (`clamp 1.3→1.55rem`-skalan) i FAKTISK-sektionen.
+
 ## [3.11.2] - 2026-07-08
 
 ### Ändrat
