@@ -14,6 +14,8 @@
 🌐 **English** · [Svenska](readme.sv.md) · [Norsk](readme.nb.md) · [Dansk](readme.da.md) · [Suomi](readme.fi.md) · [Deutsch](readme.de.md) · [Français](readme.fr.md) · [Español](readme.es.md)
 
 > 🧑‍🔧 **This is a personal hobby project, shared as-is.** I mostly built it for the weather screen on my own wall. I'm putting it on GitHub in case someone else wants a clean, good-looking weather display — especially one with real **Netatmo** support — but I may not have time to answer bug reports or review pull requests. You're very welcome to fork it and make it your own. See [Support & contributing](#-support--contributing) for the friendly details.
+>
+> 📖 **A note on its Swedish origins:** this started life as a *Sweden-only* project built around **SMHI** (the Swedish meteorological institute), and that heritage still shows in the code — SMHI is the base class the other providers extend, coordinates live in a `smhi` config block, the internal weather-symbol scale is SMHI's 1–27, humidity can come from SMHI observation stations, and outdoor air quality uses SMHI's national reference network. Global **YR/met.no** and **Open-Meteo** support was added later, so wherever you see "SMHI" in the code or config it's usually the *shared* mechanism the other providers build on — not a hard dependency. The dashboard works anywhere in the world.
 
 ![Flask Weather Dashboard with Netatmo — measured temperature and air quality next to the forecast](screenshots/hero-netatmo.png)
 
@@ -115,9 +117,9 @@ Flask Weather Dashboard is an elegant weather dashboard that combines a national
 **📊 Forecast-only (for users without Netatmo equipment)**
 - ✅ Works immediately without extra configuration
 - ✅ Shows the weather forecast from the selected provider
-- ✅ Humidity from SMHI observations or the provider forecast
+- ✅ Humidity from the provider forecast — or SMHI observation stations when the provider is SMHI
 - ✅ Simple pressure trend based on forecast data
-- ✅ **Outdoor air quality** (European AQI) from the nearest SMHI reference station, with a global Open-Meteo/CAMS fallback — no API key
+- ✅ **Outdoor air quality** (European AQI): the nearest SMHI air-quality station in Sweden, or a global Open-Meteo/CAMS model everywhere else — no API key
 - ✅ UV index from CAMS (optional, requires API key)
 
 **🏠 Forecast + Netatmo (for users with a Netatmo weather station)**
@@ -130,11 +132,11 @@ Flask Weather Dashboard is an elegant weather dashboard that combines a national
 ## ✨ Features
 
 ### 🌡️ Weather data
-- **Selectable weather provider** (`weather_provider`): SMHI (default), YR/met.no or Open-Meteo — 12-hour and 5-day forecasts with color-coded temperatures. All providers are normalized to SMHI's symbol scale so icons and effects work identically; YR and Open-Meteo have **global coverage** (SMHI only covers the Nordics)
+- **Selectable weather provider** (`weather_provider`): **SMHI**, **YR/met.no** or **Open-Meteo** (the shipped example config uses YR) — 12-hour and 5-day forecasts with color-coded temperatures. All providers are normalized to SMHI's symbol scale so icons and effects work identically; YR and Open-Meteo have **global coverage** (SMHI only covers the Nordics)
 - **Current temperature**: From the selected provider or Netatmo, with color coding (freezing → hot)
-- **Humidity**: SMHI observations, provider forecast (YR/Open-Meteo) or Netatmo
+- **Humidity**: Netatmo, the provider forecast (YR/Open-Meteo), or SMHI observation stations when the provider is SMHI
 - **Air pressure**: Five-step pressure trend (falling fast · falling · steady · rising · rising fast) with color-coded indicators and a double arrow for rapid weather changes. Optional word mode (`pressure_display: 'words'`) that shows descriptive level words like a physical barometer.
-- **🍃 Air quality** (`air_quality.mode`): indoor **CO₂** (Netatmo), **outdoor European AQI**, or **both** side by side. Outdoor data comes from the nearest **SMHI reference station** (the outdoor tile then shows how far away it is), falling back to **Open-Meteo/CAMS** anywhere in the world — no API key. Color-coded by the EEA index (good → extremely poor); in *both* mode the leaf takes the worse of the two levels.
+- **🍃 Air quality** (`air_quality.mode`): indoor **CO₂** (Netatmo), **outdoor European AQI**, or **both** side by side. Outdoor data comes from the nearest **SMHI air-quality station** — Sweden's national network, so inside Sweden the outdoor tile shows how far away the station is — falling back to a global **Open-Meteo/CAMS** model anywhere else in the world — no API key. Color-coded by the EEA index (good → extremely poor); in *both* mode the leaf takes the worse of the two levels.
 - **Wind data**: Beaufort color-coded wind icons (green → yellow → orange → red) with several unit options
 - **Precipitation**: Forecasts with rain intensity
 - **☀️ UV index**: Real-time UV data from CAMS with WHO/WMO color coding (low → extreme)
@@ -159,7 +161,7 @@ Flask Weather Dashboard is an elegant weather dashboard that combines a national
 
 ### 🌅 Extras
 - **Sun times**: Sunrise/sunset via the ipgeolocation API or fallback calculation
-- **Air quality**: outdoor European AQI (SMHI station → CAMS fallback) and/or indoor CO₂ (Netatmo), configurable via `air_quality.mode` — see [Features](#-features)
+- **Air quality**: outdoor European AQI (SMHI station in Sweden → global CAMS fallback) and/or indoor CO₂ (Netatmo), configurable via `air_quality.mode` — see [Features](#-features)
 - **Auto refresh**: Configurable update intervals
 
 ## 🛡️ Graceful fallback
@@ -173,10 +175,10 @@ Here is exactly what happens when each source is unavailable:
 | **Forecast** (temp, wind, symbols, precipitation) | Selected `weather_provider` (SMHI/YR/Open-Meteo) | — (mandatory) | The last successful forecast stays on screen; the status line reports the failure and the "updated" time stops advancing, so stale data is visible as stale — never blanked or zeroed |
 | **Actual temperature, CO₂, noise** | Netatmo station | — | Automatically switched off (forecast-only mode). These tiles are omitted, not shown as `0` |
 | **Pressure trend** | Netatmo's own ≥3 h measured history (five-step, high precision) | **Provider forecast tendency** — the real pressure change over the next 3 h from the forecast (works with any provider) | Only if even the forecast pressure is missing does it show *n/a / collecting* |
-| **Outdoor air quality** | Nearest SMHI reference station | Global Open-Meteo/CAMS model (no API key) | Tile hidden |
+| **Outdoor air quality** | Nearest **SMHI air-quality station** — Sweden's national network, tried first regardless of your forecast provider (so it only applies in Sweden) | Global **Open-Meteo/CAMS** model, used everywhere outside Sweden — no API key | Tile hidden |
 | **UV index** | CAMS (requires API config) | — | Tile hidden — never a fake "0 / low" |
 | **Rain (Netatmo module)** | Netatmo rain gauge | — | Tile hidden — a silent gauge is not reported as "0 mm" |
-| **Humidity** | Netatmo | SMHI observation / provider forecast | Tile hidden |
+| **Humidity** | Netatmo | Provider forecast (or an SMHI observation station when the provider is SMHI) | Tile hidden |
 | **Sun times** | ipgeolocation API | Built-in astronomical calculation | — |
 
 ### Why the pressure trend has a warm-up fallback

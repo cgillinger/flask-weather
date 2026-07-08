@@ -175,7 +175,7 @@ Så här hanteras varje källa när den inte är tillgänglig:
 | **Prognos** (temp, vind, symboler, nederbörd) | Vald `weather_provider` (SMHI/YR/Open-Meteo) | — (obligatorisk) | Den senaste lyckade prognosen ligger kvar; statusraden rapporterar felet och "uppdaterad"-tiden slutar räknas upp, så gammal data syns som gammal – aldrig tömd eller nollad |
 | **Faktisk temperatur, CO₂, ljudnivå** | Netatmo-station | — | Stängs av automatiskt (prognos-only-läge). Rutorna utelämnas, visas inte som `0` |
 | **Trycktrend** | Netatmos egen uppmätta ≥3h-historik (femgradig, hög precision) | **Prognostendens** – den verkliga tryckförändringen kommande 3h ur prognosen (fungerar med vilken leverantör som helst) | Först om inte ens prognostrycket finns visas *n/a / samlar data* |
-| **Utomhus-luftkvalitet** | Närmaste SMHI-referensstation | Global Open-Meteo/CAMS-modell (ingen nyckel) | Rutan döljs |
+| **Utomhus-luftkvalitet** | Närmaste **SMHI-luftkvalitetsstation** — Sveriges nationella nät, provas först oavsett väderleverantör (gäller alltså bara i Sverige) | Global **Open-Meteo/CAMS**-modell, används överallt utanför Sverige — ingen nyckel | Rutan döljs |
 | **UV-index** | CAMS (kräver API-konfiguration) | — | Rutan döljs – aldrig ett falskt "0 / låg" |
 | **Nederbörd (Netatmo-modul)** | Netatmos regnmätare | — | Rutan döljs – en tyst mätare rapporteras inte som "0 mm" |
 | **Luftfuktighet** | Netatmo | SMHI-observation / prognos | Rutan döljs |
