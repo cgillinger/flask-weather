@@ -164,7 +164,7 @@ Flask Weather Dashboard is an elegant weather dashboard that combines a national
 - **Air quality**: outdoor European AQI (SMHI station in Sweden → global CAMS fallback) and/or indoor CO₂ (Netatmo), configurable via `air_quality.mode` — see [Features](#-features)
 - **Auto refresh**: Configurable update intervals
 
-## 🛡️ Graceful fallback
+## 🪂 Graceful fallback
 
 A wall-mounted dashboard is only trustworthy if it never quietly shows a made-up number. This app follows one rule: **every value on screen is real data from a source, or it isn't shown at all.** When a source is missing it degrades honestly rather than filling in zeros or placeholders.
 

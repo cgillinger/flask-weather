@@ -164,7 +164,7 @@ Flask Weather Dashboard är en elegant väder-dashboard som kombinerar SMHI:s v�
 - **Ljudnivå**: Decibel-mätning (backend-stöd finns, frontend ej aktiverat)
 - **Auto-uppdatering**: Konfigurerbara uppdateringsintervall (standard: 30s)
 
-## 🛡️ Graceful fallback
+## 🪂 Graceful fallback
 
 En väggmonterad dashboard är bara pålitlig om den aldrig tyst visar ett påhittat värde. Appen följer en regel: **varje värde på skärmen är äkta data från en källa – annars visas det inte alls.** När en källa saknas degraderar den ärligt istället för att fylla i nollor eller platshållare.
 
