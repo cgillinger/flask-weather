@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.10.6] - 2026-07-08
+
+### Borttaget
+- **Regnmätarpanelen urkopplad igen** (inkopplades i 3.10.4 utöver själva buggfixen): regn kommuniceras redan av huvudikonen och vädereffekterna, så panelen var redundant och trängde datapunktsraden. Komponenten `RainDisplay` behålls komplett men medvetet oanropad (dokumenterat i filhuvudet). Buggfixens kärna är opåverkad: regnfälten levereras i `/api/current` och uppmätt regn triggar regneffekten.
+
 ## [3.10.5] - 2026-07-08
 
 ### Ändrat

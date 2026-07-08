@@ -1,5 +1,11 @@
-// rain-display.js - Module for displaying precipitation from the Netatmo rain module
-// Prioritized data from NAModule3 (rain gauge)
+// rain-display.js - Module for displaying precipitation from the Netatmo rain module (NAModule3)
+//
+// DELIBERATELY NOT WIRED IN (decision by Christian, 2026-07-08): rain is already
+// communicated by the hero weather icon and the WeatherEffects rain animation, so
+// this panel would be redundant and crowd the data-point row. The component is kept
+// complete and working (update()/hide()) in case a dedicated rain readout is wanted
+// later — see #rain-data-container in templates/index.html. The rain FIELDS in
+// /api/current stay live and drive the rain effect via updateWeatherEffects().
 
 const RainDisplay = (function() {
     'use strict';
