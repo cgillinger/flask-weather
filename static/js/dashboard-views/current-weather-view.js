@@ -22,8 +22,8 @@ function updateCurrentWeather(data) {
     if (data.smhi) {
         const smhi = data.smhi;
 
-        // SMHI temperature
-        updateElementHTML('smhi-temperature', smhi.temperature ? formatTemperature(smhi.temperature) : '--.-°');
+        // SMHI temperature (!= null, not truthy: 0.0°C is a valid reading)
+        updateElementHTML('smhi-temperature', smhi.temperature != null ? formatTemperature(smhi.temperature) : '--.-°');
 
         // Weather provider under the PROGNOS label (data_source: SMHI/YR/Open-Meteo)
         const providerEl = document.getElementById('smhi-provider');
@@ -119,7 +119,8 @@ function updateCurrentWeather(data) {
         console.log('📊 FAS 3: SMHI-only mode med UI-degradering + HUMIDITY FIX');
 
         // SWAPPED: show SMHI temp in the primary (large) position
-        if (data.smhi && data.smhi.temperature) {
+        // (!= null, not truthy: at exactly 0.0°C the display froze on the old value)
+        if (data.smhi && data.smhi.temperature != null) {
             const primaryTempElement = document.getElementById('netatmo-temperature-small');
             if (primaryTempElement) {
                 primaryTempElement.innerHTML = formatTemperature(data.smhi.temperature);

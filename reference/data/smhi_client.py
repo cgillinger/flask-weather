@@ -84,7 +84,7 @@ class SMHIClient:
         self.humidity_cache_duration = 600  # 10-minute cache (observations update less often)
         self.nearest_humidity_station = None
         
-        print(f"ðŸŒ SMHI-klient initierad fÃ¶r position: {latitude}, {longitude}")
+        print(f"🌍 SMHI-klient initierad för position: {latitude}, {longitude}")
     
     # === PHASE 1: HUMIDITY METHODS ===
 
@@ -127,13 +127,13 @@ class SMHIClient:
         """
         # Use the cached station if we have already found one
         if self.nearest_humidity_station:
-            print(f"ðŸ’¾ AnvÃ¤nder cachad nÃ¤rmaste station: {self.nearest_humidity_station}")
+            print(f"💾 Använder cachad närmaste station: {self.nearest_humidity_station}")
             return self.nearest_humidity_station
         
         url = f"{self.METOBS_BASE_URL}/version/{self.METOBS_VERSION}/parameter/{self.HUMIDITY_PARAMETER}.json"
         
         try:
-            print(f"ðŸ” SÃ¶ker nÃ¤rmaste luftfuktighetsstation: {url}")
+            print(f"🔍 Söker närmaste luftfuktighetsstation: {url}")
             
             response = requests.get(url, timeout=self.REQUEST_TIMEOUT)
             response.raise_for_status()
@@ -141,11 +141,11 @@ class SMHIClient:
             data = response.json()
             
             if 'station' not in data:
-                print("âŒ Ingen station-data frÃ¥n SMHI observations API")
+                print("❌ Ingen station-data från SMHI observations API")
                 return self._get_fallback_station()
             
             stations = data['station']
-            print(f"ðŸ“ Hittade {len(stations)} luftfuktighetsstationer")
+            print(f"📍 Hittade {len(stations)} luftfuktighetsstationer")
             
             # Find the nearest active station
             nearest_station = None
@@ -176,25 +176,25 @@ class SMHIClient:
                         nearest_station = station_id
                         
                 except (ValueError, TypeError) as e:
-                    print(f"âš ï¸ Fel vid parsning av station {station.get('id', 'N/A')}: {e}")
+                    print(f"⚠️ Fel vid parsning av station {station.get('id', 'N/A')}: {e}")
                     continue
             
             if nearest_station:
                 self.nearest_humidity_station = nearest_station
-                print(f"âœ… NÃ¤rmaste luftfuktighetsstation: {nearest_station} (avstÃ¥nd: {min_distance:.1f} km)")
+                print(f"✅ Närmaste luftfuktighetsstation: {nearest_station} (avstånd: {min_distance:.1f} km)")
                 return nearest_station
             else:
-                print("âŒ Ingen giltig nÃ¤rmaste station hittad")
+                print("❌ Ingen giltig närmaste station hittad")
                 return self._get_fallback_station()
                 
         except requests.exceptions.Timeout:
-            print(f"â° Timeout vid sÃ¶kning av nÃ¤rmaste station ({self.REQUEST_TIMEOUT}s)")
+            print(f"⏰ Timeout vid sökning av närmaste station ({self.REQUEST_TIMEOUT}s)")
             return self._get_fallback_station()
         except requests.exceptions.RequestException as e:
-            print(f"ðŸŒ NÃ¤tverksfel vid stationssÃ¶kning: {e}")
+            print(f"🌐 Nätverksfel vid stationssökning: {e}")
             return self._get_fallback_station()
         except Exception as e:
-            print(f"âŒ OvÃ¤ntat fel vid stationssÃ¶kning: {e}")
+            print(f"❌ Oväntat fel vid stationssökning: {e}")
             return self._get_fallback_station()
     
     def _get_fallback_station(self) -> int:
@@ -212,7 +212,7 @@ class SMHIClient:
         else:  # Southern Sweden
             fallback = self.HUMIDITY_FALLBACK_STATIONS[2]  # Malmo
         
-        print(f"ðŸ”„ AnvÃ¤nder fallback-station: {fallback}")
+        print(f"🔄 Använder fallback-station: {fallback}")
         return fallback
     
     def get_station_humidity(self, station_id: Optional[int] = None) -> Optional[Dict]:
@@ -230,14 +230,15 @@ class SMHIClient:
         if (self.humidity_cache and 
             self.humidity_cache_time and 
             time.time() - self.humidity_cache_time < self.humidity_cache_duration):
-            print("ðŸ’¾ AnvÃ¤nder cachad luftfuktighetsdata")
+            print("💾 Använder cachad luftfuktighetsdata")
             return self.humidity_cache
         
         # Determine station
+        auto_detected = station_id is None
         if station_id is None:
             station_id = self.find_nearest_humidity_station()
             if station_id is None:
-                print("âŒ Ingen luftfuktighetsstation tillgÃ¤nglig")
+                print("❌ Ingen luftfuktighetsstation tillgänglig")
                 return None
         
         url = (f"{self.METOBS_BASE_URL}/version/{self.METOBS_VERSION}/"
@@ -245,7 +246,7 @@ class SMHIClient:
                f"period/latest-hour/data.json")
         
         try:
-            print(f"ðŸ’§ HÃ¤mtar luftfuktighet frÃ¥n station {station_id}: {url}")
+            print(f"💧 Hämtar luftfuktighet från station {station_id}: {url}")
             
             response = requests.get(url, timeout=self.REQUEST_TIMEOUT)
             response.raise_for_status()
@@ -253,7 +254,12 @@ class SMHIClient:
             data = response.json()
             
             if 'value' not in data or not data['value']:
-                print(f"âŒ Ingen luftfuktighetsdata fÃ¶r station {station_id}")
+                print(f"❌ Ingen luftfuktighetsdata för station {station_id}")
+                if auto_detected:
+                    # The cached nearest station stopped delivering: forget it so
+                    # the next cycle re-searches (incl. fallback stations) instead
+                    # of returning None forever.
+                    self.nearest_humidity_station = None
                 return None
             
             # Take the latest value
@@ -273,18 +279,22 @@ class SMHIClient:
                     timestamp_str = timestamp_raw
                     timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
                 else:
-                    raise ValueError(f"OkÃ¤nt timestamp-format: {type(timestamp_raw)}")
+                    raise ValueError(f"Okänt timestamp-format: {type(timestamp_raw)}")
                 
                 now = datetime.now(timezone.utc)
                 age_minutes = int((now - timestamp).total_seconds() / 60)
                 
                 # Validate data age (max 2 hours)
                 if age_minutes > 120:
-                    print(f"âš ï¸ Luftfuktighetsdata fÃ¶r gammal: {age_minutes} minuter")
+                    print(f"⚠️ Luftfuktighetsdata för gammal: {age_minutes} minuter")
+                    if auto_detected:
+                        # Stale auto-detected station: forget it so the next
+                        # cycle re-searches instead of failing permanently.
+                        self.nearest_humidity_station = None
                     return None
                 
             except (ValueError, TypeError) as e:
-                print(f"âš ï¸ Fel vid parsning av timestamp {timestamp_raw}: {e}")
+                print(f"⚠️ Fel vid parsning av timestamp {timestamp_raw}: {e}")
                 # Use the current time as fallback
                 timestamp_str = datetime.now(timezone.utc).isoformat()
                 age_minutes = 0
@@ -302,20 +312,20 @@ class SMHIClient:
             self.humidity_cache = result
             self.humidity_cache_time = time.time()
             
-            print(f"âœ… Luftfuktighet: {humidity_value}% (Ã¥lder: {age_minutes} min)")
+            print(f"✅ Luftfuktighet: {humidity_value}% (ålder: {age_minutes} min)")
             return result
             
         except requests.exceptions.Timeout:
-            print(f"â° Timeout vid hÃ¤mtning av luftfuktighet frÃ¥n station {station_id}")
+            print(f"⏰ Timeout vid hämtning av luftfuktighet från station {station_id}")
             return None
         except requests.exceptions.RequestException as e:
-            print(f"ðŸŒ NÃ¤tverksfel vid luftfuktighetshÃ¤mtning: {e}")
+            print(f"🌐 Nätverksfel vid luftfuktighetshämtning: {e}")
             return None
         except (ValueError, TypeError) as e:
-            print(f"ðŸ“‹ Fel vid parsning av luftfuktighetsdata: {e}")
+            print(f"📋 Fel vid parsning av luftfuktighetsdata: {e}")
             return None
         except Exception as e:
-            print(f"âŒ OvÃ¤ntat fel vid luftfuktighetshÃ¤mtning: {e}")
+            print(f"❌ Oväntat fel vid luftfuktighetshämtning: {e}")
             return None
     
     def get_current_weather_with_humidity(self) -> Optional[Dict]:
@@ -329,7 +339,7 @@ class SMHIClient:
         # Fetch standard weather data
         weather_data = self.get_current_weather()
         if not weather_data:
-            print("âŒ Ingen grundlÃ¤ggande vÃ¤derdata tillgÃ¤nglig")
+            print("❌ Ingen grundläggande väderdata tillgänglig")
             return None
         
         # Try to fetch humidity
@@ -339,9 +349,9 @@ class SMHIClient:
             weather_data['humidity_timestamp'] = humidity_data['timestamp']
             weather_data['humidity_station'] = humidity_data['station_name']
             weather_data['humidity_age_minutes'] = humidity_data['data_age_minutes']
-            print(f"âœ… VÃ¤derdata utÃ¶kad med luftfuktighet: {humidity_data['value']}%")
+            print(f"✅ Väderdata utökad med luftfuktighet: {humidity_data['value']}%")
         else:
-            print("âš ï¸ Luftfuktighet ej tillgÃ¤nglig - returnerar vÃ¤derdata utan humidity")
+            print("⚠️ Luftfuktighet ej tillgänglig - returnerar väderdata utan humidity")
             weather_data['humidity'] = None
             weather_data['humidity_timestamp'] = None
             weather_data['humidity_station'] = None
@@ -368,7 +378,7 @@ class SMHIClient:
         url = self.get_forecast_url()
         
         try:
-            print(f"ðŸ“¡ HÃ¤mtar data frÃ¥n SMHI: {url}")
+            print(f"📡 Hämtar data från SMHI: {url}")
             
             response = requests.get(url, timeout=self.REQUEST_TIMEOUT)
             response.raise_for_status()
@@ -377,10 +387,10 @@ class SMHIClient:
             
             # Check that we got the expected data structure
             if 'timeSeries' not in data:
-                print("âŒ Ogiltig data-struktur frÃ¥n SMHI API")
+                print("❌ Ogiltig data-struktur från SMHI API")
                 return None
             
-            print(f"âœ… SMHI data hÃ¤mtad - {len(data['timeSeries'])} tidpunkter")
+            print(f"✅ SMHI data hämtad - {len(data['timeSeries'])} tidpunkter")
             
             # Cache the data
             self.cached_data = data
@@ -389,19 +399,19 @@ class SMHIClient:
             return data
             
         except requests.exceptions.Timeout:
-            print(f"â° Timeout vid anrop till SMHI API ({self.REQUEST_TIMEOUT}s)")
+            print(f"⏰ Timeout vid anrop till SMHI API ({self.REQUEST_TIMEOUT}s)")
             return None
         except requests.exceptions.ConnectionError:
-            print("ðŸŒ NÃ¤tverksfel - kan inte nÃ¥ SMHI API")
+            print("🌐 Nätverksfel - kan inte nå SMHI API")
             return None
         except requests.exceptions.HTTPError as e:
-            print(f"ðŸš« HTTP-fel frÃ¥n SMHI API: {e}")
+            print(f"🚫 HTTP-fel från SMHI API: {e}")
             return None
         except json.JSONDecodeError:
-            print("ðŸ“‹ Fel vid parsning av JSON frÃ¥n SMHI API")
+            print("📋 Fel vid parsning av JSON från SMHI API")
             return None
         except Exception as e:
-            print(f"âŒ OvÃ¤ntat fel vid SMHI API-anrop: {e}")
+            print(f"❌ Oväntat fel vid SMHI API-anrop: {e}")
             return None
     
     # === WEIGHTED DAILY FORECAST: HELPER METHODS ===
@@ -494,7 +504,7 @@ class SMHIClient:
             self.last_fetch_time and 
             time.time() - self.last_fetch_time < self.cache_duration):
             
-            print("ðŸ’¾ AnvÃ¤nder cachad SMHI-data")
+            print("💾 Använder cachad SMHI-data")
             return self.cached_data
         
         # Fetch fresh data
@@ -543,7 +553,7 @@ class SMHIClient:
         try:
             symbol = int(weather_symbol)
         except (ValueError, TypeError):
-            print(f"âš ï¸ Invalid weather symbol: {weather_symbol}")
+            print(f"⚠️ Invalid weather symbol: {weather_symbol}")
             return {'type': 'clear'}
         
         # Determine animation type based on SMHI symbol
@@ -582,7 +592,7 @@ class SMHIClient:
                 # Wsymb2 21 = thunder (overcast, rain with thunder risk)
                 trigger_data['type'] = 'clear'
         
-        print(f"ðŸŒ¦ï¸ Animation trigger: Symbol {symbol} â†’ {trigger_data['type']} ({intensity})")
+        print(f"🌦️ Animation trigger: Symbol {symbol} → {trigger_data['type']} ({intensity})")
         return trigger_data
     
     def _calculate_animation_intensity(self, precipitation: float) -> str:
@@ -638,7 +648,7 @@ class SMHIClient:
                 continue
         
         if not best_entry:
-            print("âš ï¸ Ingen giltig tidpunkt hittades i SMHI-data")
+            print("⚠️ Ingen giltig tidpunkt hittades i SMHI-data")
             return None
         
         # Parse parameters
@@ -667,10 +677,10 @@ class SMHIClient:
                 weather.get('wind_direction')
             )
             
-            print(f"ðŸŽ¬ Animation trigger genererad: {weather['animation_trigger']['type']}")
+            print(f"🎬 Animation trigger genererad: {weather['animation_trigger']['type']}")
         else:
             weather['animation_trigger'] = {'type': 'clear'}
-            print("ðŸŽ¬ No weather symbol - clear animation trigger")
+            print("🎬 No weather symbol - clear animation trigger")
         
         return weather
     
@@ -685,14 +695,14 @@ class SMHIClient:
         data = self.get_data()
         
         if not data or 'timeSeries' not in data:
-            print("âŒ Ingen SMHI-data tillgÃ¤nglig fÃ¶r 12h-prognos")
+            print("❌ Ingen SMHI-data tillgänglig för 12h-prognos")
             return []
         
         now = datetime.now(timezone.utc)
         forecast_points = []
         target_intervals = [3, 6, 9, 12]  # Hours from now
         
-        print(f"ðŸ“Š Skapar 12h-prognos frÃ¥n {len(data['timeSeries'])} datapunkter")
+        print(f"📊 Skapar 12h-prognos från {len(data['timeSeries'])} datapunkter")
         
         for target_hour in target_intervals:
             target_time = now.timestamp() + (target_hour * 3600)  # Unix timestamp
@@ -720,7 +730,7 @@ class SMHIClient:
                         best_entry = entry
                         
                 except (ValueError, TypeError) as e:
-                    print(f"âš ï¸ Fel vid parsning av tid {valid_time_str}: {e}")
+                    print(f"⚠️ Fel vid parsning av tid {valid_time_str}: {e}")
                     continue
             
             if best_entry:
@@ -736,7 +746,7 @@ class SMHIClient:
                 
                 # Add formatted temperature
                 if 'temperature' in weather:
-                    weather['temp_formatted'] = f"{weather['temperature']:.1f}Â°C"
+                    weather['temp_formatted'] = f"{weather['temperature']:.1f}°C"
 
                 # WEATHER ANIMATIONS: Add animation trigger for forecasts
                 if weather.get('weather_symbol'):
@@ -747,11 +757,11 @@ class SMHIClient:
                     )
                 
                 forecast_points.append(weather)
-                print(f"  âœ… {target_hour}h: {weather.get('local_time')} - {weather.get('temp_formatted', 'N/A')}")
+                print(f"  ✅ {target_hour}h: {weather.get('local_time')} - {weather.get('temp_formatted', 'N/A')}")
             else:
-                print(f"  âŒ Ingen data hittad fÃ¶r +{target_hour}h")
+                print(f"  ❌ Ingen data hittad för +{target_hour}h")
         
-        print(f"ðŸ“ˆ 12h-prognos klar: {len(forecast_points)} prognoser med animation triggers")
+        print(f"📈 12h-prognos klar: {len(forecast_points)} prognoser med animation triggers")
         return forecast_points
     
     def get_daily_forecast(self, days: int = 5) -> List[Dict]:
@@ -938,7 +948,7 @@ class SMHIClient:
 # Test functions for development
 def test_smhi_client():
     """Test of the SMHI client with Stockholm coordinates and animation triggers."""
-    print("ðŸ§ª Testar SMHI-klient med WEATHER ANIMATIONS integration...")
+    print("🧪 Testar SMHI-klient med WEATHER ANIMATIONS integration...")
     
     # Stockholm coordinates
     client = SMHIClient(59.3293, 18.0686)
@@ -946,17 +956,17 @@ def test_smhi_client():
     # Test current weather
     current = client.get_current_weather()
     if current:
-        print("\nðŸ“Š Aktuellt vÃ¤der:")
+        print("\n📊 Aktuellt väder:")
         for key, value in current.items():
             if key == 'animation_trigger':
-                print(f"  ðŸŽ¬ {key}: {value}")
+                print(f"  🎬 {key}: {value}")
             else:
                 print(f"  {key}: {value}")
     
     # Test 12h forecast (with animation triggers)
     forecast_12h = client.get_12h_forecast()
     if forecast_12h:
-        print(f"\nðŸ“ˆ 12h-prognos ({len(forecast_12h)} prognoser med animations):")
+        print(f"\n📈 12h-prognos ({len(forecast_12h)} prognoser med animations):")
         for forecast in forecast_12h:
             temp = forecast.get('temp_formatted', 'N/A')
             time_str = forecast.get('local_time', 'N/A')
@@ -968,49 +978,49 @@ def test_smhi_client():
     # Test daily forecast
     daily = client.get_daily_forecast(3)
     if daily:
-        print(f"\nðŸ“… Dagsprognos ({len(daily)} dagar med animations):")
+        print(f"\n📅 Dagsprognos ({len(daily)} dagar med animations):")
         for day in daily:
             date = day.get('date', 'N/A')
             temp_min = day.get('temp_min', 'N/A')
             temp_max = day.get('temp_max', 'N/A')
             animation = day.get('animation_trigger', {}).get('type', 'none')
-            print(f"  {date}: {temp_min}Â°C - {temp_max}Â°C, animation: {animation}")
+            print(f"  {date}: {temp_min}°C - {temp_max}°C, animation: {animation}")
 
 
 def test_humidity_functionality():
     """PHASE 1: test of the new humidity functions."""
-    print("\nðŸ§ª === FAS 1: TESTER LUFTFUKTIGHET ===")
+    print("\n🧪 === FAS 1: TESTER LUFTFUKTIGHET ===")
     
     # Stockholm coordinates
     client = SMHIClient(59.3293, 18.0686)
     
-    print("\nðŸ” Test 1: Hitta nÃ¤rmaste luftfuktighetsstation")
+    print("\n🔍 Test 1: Hitta närmaste luftfuktighetsstation")
     station_id = client.find_nearest_humidity_station()
     if station_id:
-        print(f"âœ… NÃ¤rmaste station: {station_id}")
+        print(f"✅ Närmaste station: {station_id}")
     else:
-        print("âŒ Ingen station hittad")
+        print("❌ Ingen station hittad")
     
-    print("\nðŸ’§ Test 2: HÃ¤mta luftfuktighetsdata")
+    print("\n💧 Test 2: Hämta luftfuktighetsdata")
     humidity_data = client.get_station_humidity()
     if humidity_data:
-        print(f"âœ… Luftfuktighet: {humidity_data}")
+        print(f"✅ Luftfuktighet: {humidity_data}")
     else:
-        print("âŒ Ingen luftfuktighetsdata")
+        print("❌ Ingen luftfuktighetsdata")
     
-    print("\nðŸŒ¦ï¸ Test 3: VÃ¤der med luftfuktighet")
+    print("\n🌦️ Test 3: Väder med luftfuktighet")
     weather_with_humidity = client.get_current_weather_with_humidity()
     if weather_with_humidity:
-        print("âœ… VÃ¤der med luftfuktighet:")
+        print("✅ Väder med luftfuktighet:")
         for key, value in weather_with_humidity.items():
             if 'humidity' in key.lower():
-                print(f"  ðŸ’§ {key}: {value}")
+                print(f"  💧 {key}: {value}")
             elif key == 'temperature':
-                print(f"  ðŸŒ¡ï¸ {key}: {value}")
+                print(f"  🌡️ {key}: {value}")
             elif key == 'data_source':
-                print(f"  ðŸ“¡ {key}: {value}")
+                print(f"  📡 {key}: {value}")
     else:
-        print("âŒ Ingen vÃ¤derdata med luftfuktighet")
+        print("❌ Ingen väderdata med luftfuktighet")
 
 
 if __name__ == "__main__":

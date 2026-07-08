@@ -536,12 +536,16 @@ def update_weather_data():
                 import traceback
                 traceback.print_exc()
 
-        # PHASE 2: Conditional Netatmo update
-        if netatmo_client and weather_state['netatmo_available']:
+        # PHASE 2: Conditional Netatmo update.
+        # Availability is re-evaluated on every cycle: a transient failure
+        # (network timeout, API hiccup) only degrades the UI until the next
+        # successful fetch, instead of disabling Netatmo until restart.
+        if netatmo_client:
             try:
                 netatmo_data = netatmo_client.get_current_weather()
                 with state_lock:
                     weather_state['netatmo_data'] = netatmo_data
+                    weather_state['netatmo_available'] = netatmo_data is not None
 
                 # Log the pressure trend if available
                 if netatmo_data and 'pressure_trend' in netatmo_data:
@@ -1175,12 +1179,15 @@ def netatmo_updater():
     while True:
         time.sleep(netatmo_seconds)
 
-        # PHASE 2: Only run if Netatmo is available
-        if netatmo_client and weather_state['netatmo_available']:
+        # PHASE 2: Runs whenever the client exists (not gated on the
+        # availability flag) so a temporarily unavailable Netatmo can
+        # recover on the next successful fetch.
+        if netatmo_client:
             try:
                 netatmo_data = netatmo_client.get_current_weather()
                 with state_lock:
                     weather_state['netatmo_data'] = netatmo_data
+                    weather_state['netatmo_available'] = netatmo_data is not None
 
                 # Log the pressure-trend update
                 if netatmo_data and 'pressure_trend' in netatmo_data:

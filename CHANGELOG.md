@@ -3,6 +3,15 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.10.7] - 2026-07-08
+
+### Fixat
+- **Netatmo återhämtar sig nu efter tillfälliga fel**: tillgängligheten omprövas varje uppdateringscykel i stället för att låsas på "otillgänglig" vid första undantag (t.ex. nätverkstimeout). Tidigare krävdes omstart av containern för att få tillbaka Netatmo-data.
+- **0.0°C visas korrekt**: två truthy-tester i frontend behandlade exakt noll grader som "ingen data" — prognosraden visade `--.-°` och SMHI-only-lägets stora temperatur frös på gamla värdet. Nu jämförs mot `null`.
+- **Felaktig Fahrenheit-konvertering borttagen**: Netatmos API returnerar alltid °C; kontots enhetsinställning är bara en visningspreferens. Den gamla koden "konverterade" Celsiusvärden som om de vore Fahrenheit (20°C → −6,7°C) om kontot stod på imperial.
+- **Luftfuktighetsstationen kan bytas ut**: om den cachade närmaste stationen slutar leverera (ingen data eller äldre än 2h) glöms den och nästa cykel söker på nytt, inkl. fallback-stationerna. Tidigare blev luftfuktigheten permanent tom tills omstart.
+- **Mojibake i SMHI-klienten lagad**: 65+ rader dubbelkodade loggsträngar (`AnvÃ¤nder` → `Använder`, trasiga emojis) återställda, inkl. `temp_formatted`-värdet (`Â°C` → `°C`). Gammal skada från historik-ombyggnaden.
+
 ## [3.10.6] - 2026-07-08
 
 ### Borttaget

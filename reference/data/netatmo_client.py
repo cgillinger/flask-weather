@@ -946,13 +946,12 @@ class NetatmoClient:
                 data_age = time.time() - latest_timestamp
                 data_age_minutes = int(data_age / 60)
             
-            # Handle units from user preferences
-            user_prefs = body.get('user', {}).get('administrative', {})
-            unit_temp = user_prefs.get('unit', 0)  # 0=Celsius, 1=Fahrenheit
-
-            # Convert temperature if needed
-            if unit_temp == 1 and blended_data.get('temperature'):
-                blended_data['temperature'] = (blended_data['temperature'] - 32) * 5/9
+            # NOTE ON UNITS: the Netatmo API always returns temperatures in °C.
+            # user.administrative.unit (0=metric, 1=imperial) is only a display
+            # preference for Netatmo's own apps — the API payload is unaffected.
+            # An earlier version "converted" the value F→C when unit was 1,
+            # which corrupted a Celsius reading (20°C became -6.7°C). Do not
+            # reintroduce a conversion here; the dashboard displays °C as-is.
 
             # Final result
             final_data = {
