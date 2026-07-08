@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.10.8] - 2026-07-08
+
+### Fixat
+- **Utomhus-AQI raderas inte längre vid API-avbrott**: senaste giltiga värdet behålls (med åldersloggning) när båda luftkvalitetskällorna fallerar, och rensas först när det är äldre än 3 timmar — gammal luftkvalitet ska inte presenteras som aktuell för evigt. Tidigare skrevs `None` över värdet så fort klientens 1h-cache gått ut, trots att loggen påstod "behåller ev. cache".
+
 ## [3.10.7] - 2026-07-08
 
 ### Fixat

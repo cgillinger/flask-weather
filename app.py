@@ -584,19 +584,33 @@ def update_weather_data():
 
         # Outdoor air quality (SMHI station first, global CAMS as fallback).
         # The client caches for 1h internally, so calling it every update cycle is cheap.
+        # On failure the last good value is kept (AQI changes slowly) but dropped
+        # once older than AQ_OUTDOOR_MAX_AGE_S — stale air quality must not be
+        # presented as current indefinitely.
+        AQ_OUTDOOR_MAX_AGE_S = 3 * 3600
         aq_mode = weather_state['air_quality_mode']
         if aq_mode in ('outdoor', 'both') and smhi_client:
             try:
                 aq_outdoor = get_outdoor_air_quality(smhi_client.latitude, smhi_client.longitude)
-                with state_lock:
-                    weather_state['air_quality_outdoor'] = aq_outdoor
                 if aq_outdoor:
+                    aq_outdoor['fetched_at'] = time.time()
+                    with state_lock:
+                        weather_state['air_quality_outdoor'] = aq_outdoor
                     src = aq_outdoor.get('source')
                     where = aq_outdoor.get('station_name') or 'CAMS-modell'
                     print(f"✅ Luftkvalitet (utomhus): AQI {aq_outdoor.get('aqi')} "
                           f"({aq_outdoor.get('band')}) via {src} – {where}")
                 else:
-                    print("⚠️ Luftkvalitet (utomhus): ingen data (behåller ev. cache)")
+                    with state_lock:
+                        prev = weather_state['air_quality_outdoor']
+                        if prev and time.time() - prev.get('fetched_at', 0) > AQ_OUTDOOR_MAX_AGE_S:
+                            weather_state['air_quality_outdoor'] = None
+                            prev = None
+                    if prev:
+                        age_min = int((time.time() - prev['fetched_at']) / 60)
+                        print(f"⚠️ Luftkvalitet (utomhus): ingen ny data - behåller senaste värde ({age_min} min gammalt)")
+                    else:
+                        print("⚠️ Luftkvalitet (utomhus): ingen data (senaste värdet för gammalt eller saknas)")
             except Exception as e:
                 print(f"❌ Luftkvalitet (utomhus) misslyckades: {e}")
         else:
