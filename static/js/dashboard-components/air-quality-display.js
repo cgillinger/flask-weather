@@ -35,7 +35,7 @@ const AirQualityDisplay = {
         if (km < 1) dist = Math.round(km * 1000) + ' m';
         else if (km < 10) dist = km.toFixed(1).replace('.', ',') + ' km';
         else dist = Math.round(km) + ' km';
-        return '<div class="barometer-trend-line" style="opacity:.7;font-size:.82em;margin-top:.05rem">' +
+        return '<div class="dp-sub" style="opacity:.7;font-size:.82em;margin-top:.05rem">' +
                '<i class="fas fa-location-dot" style="font-size:.82em;margin-right:.3em;opacity:.75"></i>' +
                dist + '</div>';
     },
@@ -60,39 +60,40 @@ const AirQualityDisplay = {
         container.classList.remove('netatmo-hidden');
         container.style.display = '';
 
-        const label = t('AQ_LABEL');
         const preStyle = 'opacity:.55;font-size:.72em;letter-spacing:.04em;font-weight:600;text-transform:uppercase';
         let leafLevel = 'good';
-        let infoHtml = '';
+        let infoHtml = `<div class="dp-title">${t('AQ_LABEL')}</div>`;
 
         if (showIndoor && showOutdoor) {
             const inLevel = this._co2Level(co2);
             const outLevel = outdoor.level || 'good';
             leafLevel = this._worse(inLevel, outLevel);
-            infoHtml =
-                `<div class="barometer-trend-line" style="margin-bottom:.05rem">${label}</div>` +
-                `<div class="barometer-pressure-line"><span style="${preStyle}">${t('AQ_INDOOR_SHORT')}</span> ` +
-                `<span style="color:var(--text-primary)">${Math.round(co2)} ppm</span></div>` +
-                `<div class="barometer-pressure-line"><span style="${preStyle}">${t('AQ_OUTDOOR_SHORT')}</span> ` +
-                `<span style="color:var(--text-primary)">AQI ${outdoor.aqi}</span></div>`;
+            infoHtml +=
+                `<div class="dp-value"><span style="${preStyle}">${t('AQ_INDOOR_SHORT')}</span> ` +
+                `${Math.round(co2)} ppm</div>` +
+                `<div class="dp-value"><span style="${preStyle}">${t('AQ_OUTDOOR_SHORT')}</span> ` +
+                `AQI ${outdoor.aqi}</div>`;
         } else if (showIndoor) {
             leafLevel = this._co2Level(co2);
-            infoHtml =
-                `<div class="barometer-pressure-line" style="color:var(--text-primary)">${Math.round(co2)} ppm</div>` +
-                `<div class="barometer-trend-line">${label} (${t('AQ_INDOOR')})</div>`;
+            infoHtml +=
+                `<div class="dp-value">${Math.round(co2)} ppm</div>` +
+                `<div class="dp-sub">${t('AQ_INDOOR')}</div>`;
         } else {
             leafLevel = outdoor.level || 'good';
             const band = t('AQI_BAND_' + (outdoor.band || 'good'));
-            infoHtml =
-                `<div class="barometer-pressure-line" style="color:var(--text-primary)">AQI ${outdoor.aqi} · ${band}</div>` +
-                `<div class="barometer-trend-line">${label} (${t('AQ_OUTDOOR')})</div>` +
+            infoHtml +=
+                `<div class="dp-value">AQI ${outdoor.aqi} · ${band}</div>` +
+                `<div class="dp-sub">${t('AQ_OUTDOOR')}</div>` +
                 this._distanceLine(outdoor);
         }
 
         container.innerHTML = '';
-        container.appendChild(FontAwesomeRenderer.createLeafIcon(leafLevel));
+        const iconWrap = document.createElement('span');
+        iconWrap.className = 'dp-icon';
+        iconWrap.appendChild(FontAwesomeRenderer.createLeafIcon(leafLevel));
+        container.appendChild(iconWrap);
         const info = document.createElement('div');
-        info.className = 'barometer-info';
+        info.className = 'dp-info';
         info.id = 'air-quality';  // keep the id for backwards compatibility
         info.innerHTML = infoHtml;
         container.appendChild(info);

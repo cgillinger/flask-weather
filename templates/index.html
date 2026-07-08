@@ -121,16 +121,20 @@
                     
                     <!-- Humidity -->
                     <div class="data-point" id="smhi-humidity">
-                        50% Luftfuktighet
+                        <span class="dp-icon"><i class="wi wi-humidity humidity-icon"></i></span>
+                        <div class="dp-info">
+                            <div class="dp-title" data-i18n="TITLE_HUMIDITY">Luftfuktighet</div>
+                            <div class="dp-value">--%</div>
+                        </div>
                     </div>
 
                     <!-- Barometer -->
                     <div class="data-point barometer-detail" id="barometer-detail">
-                        <span class="barometer-icon-container" id="barometer-icon"></span>
-                        <div class="barometer-info">
-                            <div class="barometer-pressure-line" id="barometer-pressure-line">-- hPa</div>
-                            <div class="barometer-trend-line" id="barometer-trend-line">Trend: Samlar data...</div>
-                            <div class="barometer-desc-line" id="barometer-desc-line" style="display: none;"></div>
+                        <span class="dp-icon barometer-icon-container" id="barometer-icon"></span>
+                        <div class="dp-info">
+                            <div class="dp-title" data-i18n="TITLE_BAROMETER">Barometer</div>
+                            <div class="dp-value" id="barometer-pressure-line">-- hPa</div>
+                            <div class="dp-sub" id="barometer-trend-line">Trend: Samlar data...</div>
                         </div>
                     </div>
 
@@ -141,8 +145,12 @@
 
                     <!-- UV Index -->
                     <div class="data-point uv-index-container" id="uv-index-container" style="display: none;">
-                        <i class="fas fa-sun uv-icon" id="uv-icon"></i>
-                        <span id="uv-index-text">UV -- (Låg risk)</span>
+                        <span class="dp-icon"><i class="fas fa-sun uv-icon" id="uv-icon"></i></span>
+                        <div class="dp-info">
+                            <div class="dp-title" data-i18n="TITLE_UV">UV-strålning</div>
+                            <div class="dp-value" id="uv-value">UV --</div>
+                            <div class="dp-sub" id="uv-risk-text">--</div>
+                        </div>
                     </div>
 
                     <!-- Sound level (Netatmo) -->

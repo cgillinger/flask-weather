@@ -3,6 +3,20 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.11.0] - 2026-07-08
+
+### Ändrat
+- **Datapunktsraden omdesignad med enhetlig struktur**: alla fyra rutor (Luftfuktighet, Barometer, Luftkvalitet, UV) har nu samma anatomi — ikon i egen kolumn till vänster, vit rubrik i versaler (LUFTFUKTIGHET / BAROMETER / LUFTKVALITET / UV-STRÅLNING) som linjerar på samma höjd i alla rutor, och vänsterställda värden under rubriken. Nya i18n-nycklar (`TITLE_HUMIDITY`, `TITLE_BAROMETER`, `TITLE_UV`) i samtliga åtta språk; `FMT_HUMIDITY` visar nu bara värdet (ordet flyttade upp till rubriken). Barometerikonen förstorad till samma storlek som UV-solen och lövikonen. Luftfuktighetsikonens färg centraliserad i `colors.css` (`--humidity-icon`).
+
+### Fixat
+- **Barometerikonens trendfärg har aldrig fungerat**: CSS-reglerna riktar sig mot containern (`.barometer-icon-container.rising` osv.) men JS satte klasserna på den inre ikonen, så ikonen stod alltid grå. Klasserna sätts nu på containern — grön/röd/grå ikon + rund tonad badge efter trend, med kraftigare fyllning för snabbt-stegen.
+
+### Tillagt
+- **Dev-parameter `?uv_mock=<värde>`**: tvingar fram UV-rutan med mockdata (risknivå enligt SSM-skalan) så designen kan granskas utan dagsljus/CAMS-data. Används aldrig av kiosken.
+
+### Borttaget
+- Döda `barometer-desc-line`-elementet (dolt med `display:none`, refererades inte av någon kod).
+
 ## [3.10.8] - 2026-07-08
 
 ### Fixat

@@ -29,9 +29,7 @@ class FontAwesomeRenderer {
 
         // CENTRALIZED COLOR CODING: use ColorManager instead of hardcoded values
         icon.style.color = ColorManager.getAirQualityColor(airQualityLevel);
-        icon.style.fontSize = 'clamp(21px, 2.1rem, 28px)';
         icon.style.display = 'inline-block';
-        icon.style.marginRight = '7px';
 
         return icon;
     }

@@ -279,22 +279,22 @@ function initializeRobustIcons() {
 function updateHumidityDisplay(humidityText) {
     const humidityElement = document.getElementById('smhi-humidity');
     if (!humidityElement) return;
-    
+
     humidityElement.innerHTML = '';
     humidityElement.className = 'data-point'; // FIX: data-point instead of detail-item
-    
-    // STEP 4: Use WeatherIconRenderer instead of WeatherIconManager
-    const humidityIcon = WeatherIconRenderer.createIcon('wi-humidity', ['pressure-icon']);
-    humidityIcon.style.cssText = `
-        color: #4A9EFF;
-        font-size: clamp(16px, 1.6rem, 21px);
-        margin-right: 7px;
-        display: inline-block;
-    `;
-    
-    humidityElement.appendChild(humidityIcon);
-    humidityElement.insertAdjacentHTML('beforeend', `<span>${humidityText}</span>`);
-    
+
+    // Unified tile anatomy (see styles.css): icon column + title/value column
+    const iconWrap = document.createElement('span');
+    iconWrap.className = 'dp-icon';
+    iconWrap.appendChild(WeatherIconRenderer.createIcon('wi-humidity', ['humidity-icon']));
+
+    humidityElement.appendChild(iconWrap);
+    humidityElement.insertAdjacentHTML('beforeend',
+        `<div class="dp-info">` +
+        `<div class="dp-title">${t('TITLE_HUMIDITY')}</div>` +
+        `<div class="dp-value">${humidityText}</div>` +
+        `</div>`);
+
     console.log(`💧 HUMIDITY FIX: Luftfuktighetsikon skapad: wi-humidity`);
 }
 

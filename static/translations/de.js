@@ -25,7 +25,10 @@ I18n.register('de', {
     COMPASS: 'N,NNO,NO,ONO,O,OSO,SO,SSO,S,SSW,SW,WSW,W,WNW,NW,NNW',
     UNKNOWN: 'Unbekannt',
 
-    FMT_HUMIDITY: '{value}% Luftfeuchtigkeit',
+    TITLE_HUMIDITY: 'Luftfeuchtigkeit',
+    TITLE_BAROMETER: 'Barometer',
+    TITLE_UV: 'UV-Strahlung',
+    FMT_HUMIDITY: '{value}%',
     FMT_AIR_QUALITY: '{value} ppm Luftqualität',
     FMT_NOISE: '{value} dB Lärm',
 

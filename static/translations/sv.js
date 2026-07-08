@@ -25,7 +25,10 @@ I18n.register('sv', {
     UNKNOWN: 'Okänt',
 
     // === DATAPUNKTER (mid-zone) ===
-    FMT_HUMIDITY: '{value}% Luftfuktighet',
+    TITLE_HUMIDITY: 'Luftfuktighet',
+    TITLE_BAROMETER: 'Barometer',
+    TITLE_UV: 'UV-strålning',
+    FMT_HUMIDITY: '{value}%',
     FMT_AIR_QUALITY: '{value} ppm Luftkvalitet',
     FMT_NOISE: '{value} dB Ljud',
 
