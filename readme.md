@@ -94,6 +94,7 @@ python3 app.py
 
 - [Overview](#-overview)
 - [Features](#-features)
+- [Graceful fallback](#-graceful-fallback)
 - [Server installation](#-server-installation)
 - [Client setup](#-client-setup)
 - [Configuration](#-configuration)
@@ -160,6 +161,27 @@ Flask Weather Dashboard is an elegant weather dashboard that combines a national
 - **Sun times**: Sunrise/sunset via the ipgeolocation API or fallback calculation
 - **Air quality**: outdoor European AQI (SMHI station → CAMS fallback) and/or indoor CO₂ (Netatmo), configurable via `air_quality.mode` — see [Features](#-features)
 - **Auto refresh**: Configurable update intervals
+
+## 🛡️ Graceful fallback
+
+A wall-mounted dashboard is only trustworthy if it never quietly shows a made-up number. This app follows one rule: **every value on screen is real data from a source, or it isn't shown at all.** When a source is missing it degrades honestly rather than filling in zeros or placeholders.
+
+Here is exactly what happens when each source is unavailable:
+
+| Data | Primary source | Fallback | If nothing is available |
+|------|----------------|----------|-------------------------|
+| **Forecast** (temp, wind, symbols, precipitation) | Selected `weather_provider` (SMHI/YR/Open-Meteo) | — (mandatory) | The last successful forecast stays on screen; the status line reports the failure and the "updated" time stops advancing, so stale data is visible as stale — never blanked or zeroed |
+| **Actual temperature, CO₂, noise** | Netatmo station | — | Automatically switched off (forecast-only mode). These tiles are omitted, not shown as `0` |
+| **Pressure trend** | Netatmo's own ≥3 h measured history (five-step, high precision) | **Provider forecast tendency** — the real pressure change over the next 3 h from the forecast (works with any provider) | Only if even the forecast pressure is missing does it show *n/a / collecting* |
+| **Outdoor air quality** | Nearest SMHI reference station | Global Open-Meteo/CAMS model (no API key) | Tile hidden |
+| **UV index** | CAMS (requires API config) | — | Tile hidden — never a fake "0 / low" |
+| **Rain (Netatmo module)** | Netatmo rain gauge | — | Tile hidden — a silent gauge is not reported as "0 mm" |
+| **Humidity** | Netatmo | SMHI observation / provider forecast | Tile hidden |
+| **Sun times** | ipgeolocation API | Built-in astronomical calculation | — |
+
+### Why the pressure trend has a warm-up fallback
+
+Netatmo's trend is measured from the station's own pressure history, which is the most accurate source once it holds a continuous 3-hour window. Right after a restart or a longer outage that window is empty. Instead of guessing, the app fills the gap with the **forecast pressure tendency** (the provider's predicted pressure change over the coming 3 hours) — a genuine value, classified on the same thresholds as the measured trend, and available from the very first update. The app switches back to the measured Netatmo trend automatically as soon as enough history has accumulated. This is provider-independent: SMHI, YR and Open-Meteo all supply the forecast pressure used here.
 
 ## 🖥️ Server installation
 

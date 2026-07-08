@@ -641,62 +641,96 @@ def get_current_theme():
     return theme_config
 
 
-def create_smhi_pressure_trend_fallback(smhi_data):
+def create_smhi_pressure_trend_fallback(smhi_data, forecast_data=None):
     """
-    FAS 2: Skapa SMHI-baserad trycktrend-fallback från prognosdata.
+    Trycktrend-fallback när Netatmos egen mätserie är för kort för en riktig
+    3h-analys (bara strax efter omstart/lucka). Använder väderleverantörens
+    PROGNOSTISERADE tryck som en ÄKTA tendens (Δ tryck kommande 3h) istället för
+    att gissa utifrån vädersymbolen. Ger alltid ett verkligt värde – aldrig
+    "samlar data".
+
+    Provider-agnostisk: alla leverantörer (SMHI/YR/Open-Meteo) delar samma
+    gränssnitt och fyller 'pressure' i både current- och prognosdata, så samma
+    beräkning fungerar oavsett 'weather_provider' i config.
+
+    Tröskelvärdena matchar Netatmo-analysens svenska 3h-metodik så att fallbacken
+    och den riktiga trenden klassas på samma sätt.
 
     Args:
-        smhi_data (dict): SMHI väderdata
+        smhi_data (dict): Väderdata från leverantören (innehåller 'pressure')
+        forecast_data (list): 12h-prognos (3h-steg, varje post har 'pressure')
 
     Returns:
-        dict: Förenkla trycktrend-data i Netatmo-format
+        dict: Trycktrend i samma format som Netatmo-trenden (trend/trend5/...)
     """
+    def _no_trend(source):
+        # Sista utväg om inte ens prognostryck finns (t.ex. leverantören nere):
+        # var ärlig med n/a i stället för att gissa.
+        return {
+            'trend': 'n/a',
+            'trend5': 'unknown',
+            'direction': 'steady',
+            'change': 0,
+            'pressure_change': 0,
+            'analysis_quality': 'poor',
+            'source': source,
+            'description': 'Ingen tryckdata tillgänglig'
+        }
+
     if not smhi_data:
-        return {
-            'trend': 'n/a',
-            'direction': 'steady',
-            'change': 0,
-            'analysis_quality': 'poor',
-            'source': 'unavailable'
-        }
+        return _no_trend('unavailable')
 
-    # Hämta tryckvärden från SMHI-prognos (om tillgängligt)
     current_pressure = smhi_data.get('pressure')
-
     if current_pressure is None:
-        return {
-            'trend': 'n/a',
-            'direction': 'steady',
-            'change': 0,
-            'analysis_quality': 'poor',
-            'source': 'smhi_fallback'
-        }
+        return _no_trend('forecast')
 
-    # Enkel trend-analys baserat på SMHI-symbol
-    weather_symbol = smhi_data.get('weather_symbol', 1)
+    # Första prognospunkten (+3h). 12h-prognosen har 3h-steg hos alla leverantörer.
+    next_pressure = None
+    for entry in (forecast_data or []):
+        if isinstance(entry, dict) and entry.get('pressure') is not None:
+            next_pressure = entry['pressure']
+            break
 
-    # Approximation baserat på vädersymbol
-    # Regn/moln (7-27) = fallande tryck
-    # Klart (1-6) = stigande/stabilt tryck
-    if weather_symbol >= 7:
-        trend = 'falling'
-        direction = 'down'
-        change = -2  # Approximerad förändring
+    if next_pressure is None:
+        return _no_trend('forecast')
+
+    delta = next_pressure - current_pressure  # hPa över kommande 3h
+
+    # Femgradig klassning – samma trösklar som Netatmos 3h-metodik:
+    # |Δ| < 0,5 = stabilt | 0,5–2,0 = stiger/faller | > 2,0 = snabbt
+    step_threshold = 0.5
+    fast_threshold = 2.0
+    if delta < -fast_threshold:
+        trend5 = 'falling_fast'
+    elif delta < -step_threshold:
+        trend5 = 'falling'
+    elif delta < step_threshold:
+        trend5 = 'stable'
+    elif delta < fast_threshold:
+        trend5 = 'rising'
     else:
-        trend = 'stable'
-        direction = 'steady'
-        change = 0
+        trend5 = 'rising_fast'
+
+    if trend5 in ('rising', 'rising_fast'):
+        trend, direction = 'rising', 'up'
+    elif trend5 in ('falling', 'falling_fast'):
+        trend, direction = 'falling', 'down'
+    else:
+        trend, direction = 'stable', 'steady'
 
     return {
         'trend': trend,
+        'trend5': trend5,
         'direction': direction,
-        'change': change,
-        'analysis_quality': 'poor',
-        'source': 'smhi_fallback'
+        'change': round(delta, 1),
+        'pressure_change': round(delta, 1),
+        'analysis_quality': 'forecast',
+        'source': 'forecast',
+        'description': 'Prognostendens (kommande 3h)'
     }
 
 
-def format_api_response_with_pressure_trend(netatmo_data, smhi_data):
+def format_api_response_with_pressure_trend(netatmo_data, smhi_data, forecast_data=None):
     """
     FAS 2: Formatera Netatmo-data för API-respons med intelligent trycktrend-hantering.
 
@@ -728,10 +762,10 @@ def format_api_response_with_pressure_trend(netatmo_data, smhi_data):
         formatted_data['pressure_trend'] = formatted_trend
         print(f"📊 FAS 2: API - Netatmo trycktrend: {formatted_trend['trend']} ({formatted_trend['analysis_quality']})")
     else:
-        # FAS 2: Använd SMHI-fallback om Netatmo-trend är n/a
-        smhi_fallback = create_smhi_pressure_trend_fallback(smhi_data)
+        # Använd prognosbaserad tendens om Netatmo-trend är n/a (uppvärmningsfönster)
+        smhi_fallback = create_smhi_pressure_trend_fallback(smhi_data, forecast_data)
         formatted_data['pressure_trend'] = smhi_fallback
-        print(f"📊 FAS 2: API - SMHI trycktrend-fallback: {smhi_fallback['trend']}")
+        print(f"📊 FAS 2: API - Prognos-trycktrend (fallback): {smhi_fallback['trend']} (Δ3h {smhi_fallback.get('change')} hPa)")
 
     return formatted_data
 
@@ -766,7 +800,8 @@ def api_current_weather():
     if state['netatmo_data'] and state['netatmo_available']:
         formatted_netatmo = format_api_response_with_pressure_trend(
             state['netatmo_data'],
-            state['smhi_data']
+            state['smhi_data'],
+            state['forecast_data']
         )
 
     # FAS 2+3: Utökad config för frontend-intelligens
@@ -878,16 +913,27 @@ def api_pressure_trend():
             'system_mode': 'No data'
         })
 
-    # FAS 2: Intelligent trycktrend-respons
+    # Intelligent trycktrend-respons: äkta Netatmo-trend när den finns,
+    # annars prognosbaserad tendens (samma logik som /api/current).
+    netatmo_trend = None
     if state['netatmo_data'] and state['netatmo_available']:
-        pressure_trend = state['netatmo_data'].get('pressure_trend')
+        netatmo_trend = state['netatmo_data'].get('pressure_trend')
+
+    if netatmo_trend and netatmo_trend.get('trend') != 'n/a':
+        pressure_trend = netatmo_trend
         current_pressure = state['netatmo_data'].get('pressure')
         source = 'netatmo'
     else:
-        # FAS 2: SMHI-fallback
-        pressure_trend = create_smhi_pressure_trend_fallback(state['smhi_data'])
-        current_pressure = state['smhi_data'].get('pressure') if state['smhi_data'] else None
-        source = 'smhi_fallback'
+        # Uppvärmningsfönster/ingen Netatmo: prognostendens (kommande 3h)
+        pressure_trend = create_smhi_pressure_trend_fallback(
+            state['smhi_data'], state['forecast_data']
+        )
+        current_pressure = (
+            state['netatmo_data'].get('pressure')
+            if (state['netatmo_data'] and state['netatmo_available'])
+            else (state['smhi_data'].get('pressure') if state['smhi_data'] else None)
+        )
+        source = 'forecast'
 
     return jsonify({
         'pressure_trend': pressure_trend,

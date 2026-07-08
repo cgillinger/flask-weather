@@ -3,6 +3,15 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.10.2] - 2026-07-08
+
+### Ändrat
+- **Trycktrendens uppvärmnings-fallback** använder nu väderleverantörens **prognostryck-tendens** (verklig Δ tryck kommande 3h) i stället för en gissning utifrån vädersymbolen. Fallbacken triggar bara strax efter omstart/lucka innan Netatmos egen 3h-serie hunnit fyllas; den klassas på samma femgradiga trösklar som den uppmätta trenden och är **leverantörsoberoende** (SMHI/YR/Open-Meteo fyller alla prognostrycket). Saknas även prognostrycket visas ärligt *n/a* i stället för ett påhittat värde.
+- `/api/pressure_trend` faller nu tillbaka på samma prognostendens när Netatmo-trenden är `n/a` (kunde tidigare visa `n/a` trots tillgänglig prognos).
+
+### Dokumentation
+- Nytt README-avsnitt **"Graceful fallback"** (engelska + svenska) som beskriver hur varje värde på skärmen degraderar ärligt när en källa saknas – inga tysta noll- eller dummy-värden.
+
 ## [3.10.1] - 2026-07-08
 
 ### Tillagt
