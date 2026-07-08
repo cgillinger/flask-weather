@@ -485,6 +485,12 @@ body {
     border-radius: 50%;
 }
 
+/* Barometer: the arrow + hPa + trend line is a primary reading, not a
+   footnote like the other tiles' sub lines - keep it white */
+.barometer-detail .dp-sub {
+    color: var(--text-primary);
+}
+
 .barometer-icon-container.rising {
     background: rgba(45, 125, 50, 0.2);
     color: var(--barometer-rising);

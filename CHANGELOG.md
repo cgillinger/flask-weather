@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.11.1] - 2026-07-08
+
+### Ändrat
+- **Barometerns trendrad är vit**: pilen + "1006 hPa · stiger" fick sekundärfärgen (grå) av den gemensamma `dp-sub`-stilen, men raden är ett primärt mätvärde — nu `--text-primary` (vit) via en barometer-specifik regel. Övriga rutors underrader (UV-risktext, "Utomhus") förblir grå.
+
 ## [3.11.0] - 2026-07-08
 
 ### Ändrat
