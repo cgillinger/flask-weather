@@ -463,6 +463,17 @@ body {
     font-size: clamp(0.7rem, 0.85vw, 1rem);
     font-weight: 700;
     white-space: nowrap;
+    width: fit-content;
+}
+
+/* Same accent underline as under the location name (.position-underline),
+   following the title text width */
+.dp-title::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: var(--accent-secondary);
+    margin: 0.25rem 0 0.15rem;
 }
 
 .dp-value {

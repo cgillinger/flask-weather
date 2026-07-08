@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.11.2] - 2026-07-08
+
+### Ändrat
+- **Accentlinje under datapunktsrubrikerna**: samma blå 2px-linje som under ortnamnet (STOCKHOLM) ligger nu under LUFTFUKTIGHET / BAROMETER / LUFTKVALITET / UV-STRÅLNING, i rubriktextens bredd.
+
 ## [3.11.1] - 2026-07-08
 
 ### Ändrat
