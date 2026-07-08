@@ -411,11 +411,17 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr)) !important;
 }
 
+/* Unified tile anatomy: [icon column] + [text column].
+   The text column starts at the tile top so the uppercase titles line up
+   across all four tiles regardless of how many value lines each one has.
+   The icon column stretches over the full tile and centers its icon
+   vertically (the "UV icon spans two lines" look, applied everywhere). */
 .data-point {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+    align-items: stretch;
+    justify-content: flex-start;
+    text-align: left;
+    gap: clamp(0.5rem, 0.7vw, 0.8rem);
     padding: clamp(0.6rem, 0.9vw, 1.1rem);
     background: rgba(255, 255, 255, 0.03);
     border-radius: clamp(0.5rem, 0.7vw, 0.9rem);
@@ -434,19 +440,49 @@ body {
     font-size: clamp(1.4rem, 2vw, 2.5rem);
 }
 
-/* Barometer special layout */
-.barometer-detail {
-    justify-content: flex-start;
-}
-
-.barometer-icon-container {
+.dp-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: clamp(2.2rem, 2.8vw, 3.2rem);
-    height: clamp(2.2rem, 2.8vw, 3.2rem);
-    border-radius: 50%;
+    width: clamp(2.4rem, 3vw, 3.4rem);
     flex-shrink: 0;
+}
+
+.dp-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.dp-title {
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: clamp(0.7rem, 0.85vw, 1rem);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.dp-value {
+    font-weight: 700;
+    font-size: clamp(1rem, 1.3vw, 1.5rem);
+    white-space: nowrap;
+}
+
+.dp-sub {
+    font-size: clamp(0.75rem, 1vw, 1.2rem);
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Barometer: round trend-colored badge around the icon */
+.barometer-icon-container {
+    align-self: center;
+    height: clamp(2.4rem, 3vw, 3.4rem);
+    border-radius: 50%;
 }
 
 .barometer-icon-container.rising {
@@ -473,28 +509,6 @@ body {
 .barometer-icon-container.stable {
     background: rgba(102, 102, 102, 0.2);
     color: var(--barometer-stable);
-}
-
-.barometer-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-}
-
-.barometer-pressure-line {
-    font-weight: 700;
-    font-size: clamp(1rem, 1.3vw, 1.5rem);
-    white-space: nowrap;
-}
-
-.barometer-trend-line {
-    font-size: clamp(0.75rem, 1vw, 1.2rem);
-    color: var(--text-secondary);
-    white-space: nowrap;
-}
-
-.barometer-desc-line {
-    display: none;
 }
 
 /* UV färgschema */

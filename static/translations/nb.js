@@ -25,7 +25,10 @@ const NB_CATALOG = {
     COMPASS: 'N,NNØ,NØ,ØNØ,Ø,ØSØ,SØ,SSØ,S,SSV,SV,VSV,V,VNV,NV,NNV',
     UNKNOWN: 'Ukjent',
 
-    FMT_HUMIDITY: '{value}% Luftfuktighet',
+    TITLE_HUMIDITY: 'Luftfuktighet',
+    TITLE_BAROMETER: 'Barometer',
+    TITLE_UV: 'UV-stråling',
+    FMT_HUMIDITY: '{value}%',
     FMT_AIR_QUALITY: '{value} ppm Luftkvalitet',
     FMT_NOISE: '{value} dB Støy',
 

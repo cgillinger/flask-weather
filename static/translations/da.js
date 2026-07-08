@@ -24,7 +24,10 @@ I18n.register('da', {
     COMPASS: 'N,NNØ,NØ,ØNØ,Ø,ØSØ,SØ,SSØ,S,SSV,SV,VSV,V,VNV,NV,NNV',
     UNKNOWN: 'Ukendt',
 
-    FMT_HUMIDITY: '{value}% Luftfugtighed',
+    TITLE_HUMIDITY: 'Luftfugtighed',
+    TITLE_BAROMETER: 'Barometer',
+    TITLE_UV: 'UV-stråling',
+    FMT_HUMIDITY: '{value}%',
     FMT_AIR_QUALITY: '{value} ppm Luftkvalitet',
     FMT_NOISE: '{value} dB Støj',
 

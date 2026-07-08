@@ -25,7 +25,10 @@ I18n.register('fi', {
     COMPASS: 'N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW',
     UNKNOWN: 'Tuntematon',
 
-    FMT_HUMIDITY: '{value}% Ilmankosteus',
+    TITLE_HUMIDITY: 'Ilmankosteus',
+    TITLE_BAROMETER: 'Barometri',
+    TITLE_UV: 'UV-säteily',
+    FMT_HUMIDITY: '{value} %',
     FMT_AIR_QUALITY: '{value} ppm Ilmanlaatu',
     FMT_NOISE: '{value} dB Melu',
 

@@ -24,7 +24,10 @@ I18n.register('en', {
     COMPASS: 'N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW',
     UNKNOWN: 'Unknown',
 
-    FMT_HUMIDITY: '{value}% Humidity',
+    TITLE_HUMIDITY: 'Humidity',
+    TITLE_BAROMETER: 'Barometer',
+    TITLE_UV: 'UV radiation',
+    FMT_HUMIDITY: '{value}%',
     FMT_AIR_QUALITY: '{value} ppm Air quality',
     FMT_NOISE: '{value} dB Noise',
 

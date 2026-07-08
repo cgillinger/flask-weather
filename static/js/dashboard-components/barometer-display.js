@@ -126,22 +126,18 @@ class BarometerDisplay {
             // Clear existing content
             iconElement.innerHTML = '';
 
+            // Size comes from the shared .data-point i rule (same as the UV icon)
             barometerIcon = WeatherIconRenderer.createIcon('wi-barometer', []);
             barometerIcon.style.cssText = `
-                font-size: clamp(20px, 2rem, 26px);
                 display: inline-block;
                 line-height: 1;
                 text-shadow: 0 1px 2px rgba(0,0,0,0.1), 0 0 1px currentColor;
                 filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)) drop-shadow(0 0 1px currentColor);
                 transition: color 0.3s ease;
-                margin-top: 2px;
             `;
 
             iconElement.appendChild(barometerIcon);
         }
-
-        // Remove all trend classes
-        barometerIcon.classList.remove('rising', 'falling', 'stable', 'na', 'rising-fast', 'falling-fast');
 
         // Add color class based on trend (five-step; the fast steps get their own class)
         const classMap = {
@@ -154,7 +150,13 @@ class BarometerDisplay {
         };
 
         const cssClass = classMap[trend] || 'na';
-        barometerIcon.classList.add(cssClass);
+
+        // The trend classes go on the CONTAINER (.barometer-icon-container.rising etc.
+        // in styles.css colors both badge background and icon) - they previously landed
+        // on the inner icon only, where no CSS rule matched, so the icon stayed gray.
+        const allClasses = ['rising', 'falling', 'stable', 'na', 'rising-fast', 'falling-fast'];
+        iconElement.classList.remove(...allClasses);
+        iconElement.classList.add(cssClass);
 
         console.log(`🎨 Barometer-ikon: ${trend} → ${cssClass}`);
     }
