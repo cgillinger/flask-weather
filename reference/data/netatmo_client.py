@@ -963,6 +963,9 @@ class NetatmoClient:
                 'pressure': blended_data.get('pressure'),
                 'co2': blended_data.get('co2'),
                 'noise': blended_data.get('noise'),
+                'rain': blended_data.get('rain'),
+                'rain_sum_1': blended_data.get('rain_sum_1'),
+                'rain_sum_24': blended_data.get('rain_sum_24'),
                 'timestamp': latest_timestamp,
                 'data_age_minutes': data_age_minutes,
                 'data_sources': data_sources,  # Ny: visar varifrån varje värde kommer

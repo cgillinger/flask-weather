@@ -109,8 +109,13 @@ function updateCurrentWeather(data) {
         
         // STEG 7: Använd BarometerDisplay istället för BarometerManager
         BarometerDisplay.updateBarometerDetail(pressureTrend, pressureData.value);
-        
-        // FÖRSTÄRKT VINDDATA UNDER FAKTISK (FAS 3: Bara om sektionen visas)
+
+        // RAIN GAUGE: show Netatmo rain data (hides itself if no rain module exists)
+        if (typeof RainDisplay !== 'undefined') {
+            RainDisplay.update(netatmo);
+        }
+
+        // ENHANCED WIND DATA UNDER FAKTISK (PHASE 3: only if the section is shown)
         if (data.smhi && data.smhi.wind_speed !== null && data.smhi.wind_speed !== undefined) {
             updateWindUnderFaktisk(data.smhi);
         }
@@ -118,7 +123,12 @@ function updateCurrentWeather(data) {
         // FAS 3: SMHI-ONLY MODE - Fallback hantering med UI-anpassningar
         console.log('📊 FAS 3: SMHI-only mode med UI-degradering + HUMIDITY FIX');
 
-        // SWAPPED: Visa SMHI-temp i den primära (stora) positionen
+        // RAIN GAUGE: no Netatmo data - hide the rain panel
+        if (typeof RainDisplay !== 'undefined') {
+            RainDisplay.hide();
+        }
+
+        // SWAPPED: show SMHI temp in the primary (large) position
         if (data.smhi && data.smhi.temperature) {
             const primaryTempElement = document.getElementById('netatmo-temperature-small');
             if (primaryTempElement) {

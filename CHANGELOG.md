@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.10.4] - 2026-07-08
+
+### Fixat
+- **Netatmo-regndata nådde aldrig fram till API:t**: `rain`, `rain_sum_1` och `rain_sum_24` samlades in korrekt i smart-blendingen men utelämnades ur klientens slutdata, så `/api/current` fick alltid `None`. Fälten levereras nu, regnmätarpanelen i FAKTISK-sektionen visas (komponenten `RainDisplay` fanns färdig men anropades aldrig — nu inkopplad), och uppmätt regn kan trigga regneffekten även när prognossymbolen säger uppehåll. "Netatmo rain priority" fungerar därmed för första gången; regneffekten har hittills enbart styrts av prognossymbolen.
+
 ## [3.10.3] - 2026-07-08
 
 ### Fixat
