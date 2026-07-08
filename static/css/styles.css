@@ -50,7 +50,11 @@ body {
     width: 98vw;
     height: 98vh;
     display: grid;
-    grid-template-rows: 55fr 7fr 38fr;
+    /* Top row hugs its content and bottom row is a fixed share, so all
+       leftover height lands in the mid row; mid-zone centers its content
+       (align-items: center) → the data points sit visually equidistant
+       from the clock above and the forecast titles below on any screen. */
+    grid-template-rows: auto minmax(min-content, 1fr) 38%;
     gap: clamp(0.5rem, 0.7vw, 0.9rem);
     padding: clamp(0.5rem, 0.7vw, 0.9rem);
 }

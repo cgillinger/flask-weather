@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.11.4] - 2026-07-08
+
+### Ändrat
+- **Mid-zone vertikalt centrerad mellan zonerna**: dashboard-gridens rader var `55fr 7fr 38fr`, vilket lämnade överskottsluft i top-zonens nederkant (klockan har maxstorlek i rem/vw medan raden skalar med skärmhöjden) — datapunktsraden hamnade synbart närmare prognoserna (35 px mot 13 px på kioskens 1080p, 139 mot 14 på 1440p). Nu `auto minmax(min-content, 1fr) 38%`: top-raden kramar sitt innehåll, all överskottshöjd går till mid-raden som centrerar datapunkterna — lika avstånd uppåt och nedåt oavsett skärm.
+
 ## [3.11.3] - 2026-07-08
 
 ### Ändrat
