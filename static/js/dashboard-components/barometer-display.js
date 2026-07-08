@@ -1,18 +1,18 @@
 /**
- * Barometer Display - STEG 7 REFAKTORERING
- * Barometersystem extraherat från dashboard.js
- * Hanterar tryckvisning, trender och fallback-logik
+ * Barometer Display - STEP 7 REFACTORING
+ * Barometer system extracted from dashboard.js
+ * Handles pressure display, trends and fallback logic
  */
 
 // === BAROMETER SYSTEM ===
 
 /**
- * Nivåband enligt den digitaliserade Huger-precisionsbarometern.
- * Ordet bestäms av det ABSOLUTA trycket (som nålen på en fysisk urtavla).
- * Gränser i hPa (= mbar). Slå upp med: hPa < band.max.
- * Se pressure-descriptions.md i roten.
+ * Level bands following the digitized Huger precision barometer.
+ * The word is determined by the ABSOLUTE pressure (like the needle on a physical dial).
+ * Bounds in hPa (= mbar). Look up with: hPa < band.max.
+ * See pressure-descriptions.md in the repo root.
  */
-// SPRÅK: label är översättningsnycklar - slås upp med t() i describePressureLevel
+// LANGUAGE: label holds translation keys - resolved with t() in describePressureLevel
 const PRESSURE_BANDS = [
     { max: 980,      label: 'BARO_STORM' },
     { max: 1000,     label: 'BARO_RAIN' },
@@ -22,13 +22,14 @@ const PRESSURE_BANDS = [
 ];
 
 /**
- * Trend-metadata, femgradig skala enligt pressure-descriptions.md.
- * 'arrow'/'word' används i ordläget (rad 2 = nålen på skalan), 'text' i det numeriska
- * läget ("Trend: ..."), 'cls' styr ikonens färgklass. Snabbt-stegen får dubbelpil (⇈/⇊)
- * och en kraftigare färgklass — displayens markör för en snabb väderomställning.
- * Nyckel = backend-fältet 'trend5'; tregradiga 'trend' funkar som fallback (utan snabbt).
+ * Trend metadata, five-step scale per pressure-descriptions.md.
+ * 'arrow'/'word' are used in word mode (line 2 = the needle on the scale), 'text' in
+ * numeric mode ("Trend: ..."), 'cls' sets the icon color class. The fast steps get a
+ * double arrow (⇈/⇊) and a stronger color class — the display's marker for a rapid
+ * weather shift. Key = backend field 'trend5'; the three-step 'trend' works as a
+ * fallback (without fast steps).
  */
-// SPRÅK: word/text är översättningsnycklar - slås upp med t() vid rendering
+// LANGUAGE: word/text hold translation keys - resolved with t() at render time
 const TREND_META = {
     rising_fast:  { arrow: '⇈', word: 'TREND_RISING_FAST_WORD',  text: 'TREND_RISING_FAST',  cls: 'rising-fast' },
     rising:       { arrow: '↗', word: 'TREND_RISING_WORD',       text: 'TREND_RISING',       cls: 'rising' },
@@ -39,30 +40,30 @@ const TREND_META = {
 
 class BarometerDisplay {
     /**
-     * Översätt absolut tryck (hPa) till beskrivande ord.
-     * @param {number} hPa - Lufttryck i hPa
-     * @returns {string} Nivåord, t.ex. "Vackert"
+     * Translate absolute pressure (hPa) into a descriptive word.
+     * @param {number} hPa - Air pressure in hPa
+     * @returns {string} Level word, e.g. "Vackert"
      */
     static describePressureLevel(hPa) {
         return t(PRESSURE_BANDS.find(band => hPa < band.max).label);
     }
 
     /**
-     * Uppdatera barometer-detaljer med tryck och trend
-     * @param {object} pressureTrend - Trycktrend-objekt från Netatmo eller fallback
-     * @param {number} currentPressure - Aktuellt lufttryck i hPa
+     * Update barometer details with pressure and trend
+     * @param {object} pressureTrend - Pressure trend object from Netatmo or fallback
+     * @param {number} currentPressure - Current air pressure in hPa
      */
     static updateBarometerDetail(pressureTrend, currentPressure) {
         const barometerIcon = document.getElementById('barometer-icon');
         const barometerPressureLine = document.getElementById('barometer-pressure-line');
         const barometerTrendLine = document.getElementById('barometer-trend-line');
-        
+
         if (!barometerIcon || !barometerPressureLine || !barometerTrendLine) {
             console.warn('⚠️ Barometer detail-element saknas i DOM');
             return;
         }
-        
-        // FAS 2: Använd intelligent datahantering för tryck
+
+        // PHASE 2: Use intelligent data handling for pressure
         const pressureData = formatDataWithSource(currentPressure, 'pressure');
         const hasPressure = pressureData.shouldShow;
         const roundedPressure = hasPressure ? Math.round(pressureData.value) : null;
@@ -70,30 +71,30 @@ class BarometerDisplay {
             console.log(pressureData.debug);
         }
 
-        // Hantera trycktrend med fallback
+        // Handle pressure trend with fallback
         let finalPressureTrend = pressureTrend;
 
         if (!pressureTrend || pressureTrend.trend === 'n/a') {
-            // FAS 2: Använd SMHI-baserad fallback om Netatmo saknas
+            // PHASE 2: Use SMHI-based fallback when Netatmo is missing
             const smhiData = { pressure: currentPressure };
             finalPressureTrend = createSmhiPressureTrendFallback(smhiData);
             console.log('📊 FAS 2: Använder SMHI trycktrend-fallback');
         }
 
-        // Femgradig trend (trend5); fall tillbaka på tregradiga 'trend' (t.ex. SMHI-fallback
-        // som saknar riktig Δ → aldrig snabbt-steg).
+        // Five-step trend (trend5); fall back to the three-step 'trend' (e.g. the SMHI
+        // fallback, which lacks a real Δ → never a fast step).
         const trendKey = finalPressureTrend.trend5 || finalPressureTrend.trend;
         const trend = TREND_META[trendKey];
 
-        // Uppdatera barometer-ikon (färgen bär trenden i båda lägena)
+        // Update barometer icon (the color carries the trend in both modes)
         this.updateBarometerIcon(barometerIcon, trendKey);
 
         const mode = (typeof dashboardState !== 'undefined' && dashboardState.pressureDisplay) || 'numeric';
 
         if (mode === 'words') {
-            // ORDLÄGE - emulerar den fysiska barometern:
-            //   rad 1 = nivåordet (den inre beskrivande ringen, från absolut tryck)
-            //   rad 2 = nålen på sifferskalan: pil + siffra + trendord
+            // WORD MODE - emulates the physical barometer:
+            //   line 1 = the level word (the inner descriptive ring, from absolute pressure)
+            //   line 2 = the needle on the numeric scale: arrow + number + trend word
             if (hasPressure) {
                 barometerPressureLine.textContent = this.describePressureLevel(roundedPressure);
                 const arrow = trend ? `${trend.arrow} ` : '';
@@ -104,38 +105,27 @@ class BarometerDisplay {
                 barometerTrendLine.textContent = trend ? `${trend.arrow} ${t(trend.word)}` : t('TREND_COLLECTING');
             }
         } else {
-            // NUMERISKT LÄGE (klassiskt): siffra + texttrend
+            // NUMERIC MODE (classic): number + textual trend
             barometerPressureLine.textContent = hasPressure ? `${roundedPressure} hPa` : '-- hPa';
             barometerTrendLine.textContent = `${t('TREND_PREFIX')}${trend ? t(trend.text) : t('UNKNOWN')}`;
         }
 
         console.log(`📊 FAS 2: Barometer uppdaterad (${mode}): ${finalPressureTrend.trend} (källa: ${finalPressureTrend.source || 'netatmo'})`);
     }
-    
+
     /**
-     * Sätt fallback-visning för barometer
-     * @param {HTMLElement} iconElement - Ikon-element
-     * @param {HTMLElement} trendElement - Trend-element
-     */
-    static setBarometerDetailFallback(iconElement, trendElement) {
-        this.updateBarometerIcon(iconElement, 'n/a');
-        trendElement.textContent = `${t('TREND_PREFIX')}${t('TREND_COLLECTING')}`;
-    }
-    
-    /**
-     * Uppdatera barometer-ikon baserat på trend
-     * @param {HTMLElement} iconElement - Ikon-container element
-     * @param {string} trend - Trycktrend: 'rising', 'falling', 'stable', 'n/a'
+     * Update barometer icon based on trend
+     * @param {HTMLElement} iconElement - Icon container element
+     * @param {string} trend - Pressure trend: 'rising', 'falling', 'stable', 'n/a'
      */
     static updateBarometerIcon(iconElement, trend) {
-        // Kontrollera om ikonen redan är skapad
+        // Check whether the icon is already created
         let barometerIcon = iconElement.querySelector('.wi-barometer');
-        
+
         if (!barometerIcon) {
-            // Rensa befintligt innehåll
+            // Clear existing content
             iconElement.innerHTML = '';
-            
-            // STEG 4: Använd WeatherIconRenderer istället för WeatherIconManager
+
             barometerIcon = WeatherIconRenderer.createIcon('wi-barometer', []);
             barometerIcon.style.cssText = `
                 font-size: clamp(20px, 2rem, 26px);
@@ -146,14 +136,14 @@ class BarometerDisplay {
                 transition: color 0.3s ease;
                 margin-top: 2px;
             `;
-            
+
             iconElement.appendChild(barometerIcon);
         }
-        
-        // Ta bort alla trend-klasser
+
+        // Remove all trend classes
         barometerIcon.classList.remove('rising', 'falling', 'stable', 'na', 'rising-fast', 'falling-fast');
 
-        // Lägg till färgklass baserat på trend (femgradig; snabbt-stegen får egen klass)
+        // Add color class based on trend (five-step; the fast steps get their own class)
         const classMap = {
             'rising_fast': 'rising-fast',
             'rising': 'rising',
@@ -165,12 +155,9 @@ class BarometerDisplay {
 
         const cssClass = classMap[trend] || 'na';
         barometerIcon.classList.add(cssClass);
-        
+
         console.log(`🎨 Barometer-ikon: ${trend} → ${cssClass}`);
     }
 }
-
-// Exportera för backward compatibility (behåll gamla namn)
-const BarometerManager = BarometerDisplay;
 
 console.log('✅ STEG 7: Barometer Display laddat - 3 metoder extraherade!');

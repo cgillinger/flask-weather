@@ -2,41 +2,41 @@
  * @file color-manager.js
  * @version 1.3.0
  * @lastModified 2025-01-11
- * @description Centraliserad färghantering som läser CSS-variabler från colors.css
- * @dependencies colors.css (måste laddas innan detta script)
+ * @description Centralized color management that reads CSS variables from colors.css
+ * @dependencies colors.css (must be loaded before this script)
  * @author Flask Weather Dashboard Team
- * 
- * SYFTE: Alla färgbeslut tas här - JavaScript-kod ska aldrig hårdkoda färger.
- * Detta möjliggör enkla tema-byten och centraliserad färghantering.
- * 
- * v1.3.0 ÄNDRINGAR:
- * - Ny getForecastTemperatureColor() för prognoser med förenklad 3-nivå skala
- * - Fokus på läsbarhet: VIT standard, ISBLÅ för kyla (<-5°C), LJUSRÖD för värme (>25°C)
- * - getTemperatureColor() behålls för Netatmo faktisk temp (5-nivå skala)
+ *
+ * PURPOSE: All color decisions are made here - JavaScript code should never hardcode colors.
+ * This enables easy theme switching and centralized color management.
+ *
+ * v1.3.0 CHANGES:
+ * - New getForecastTemperatureColor() for forecasts with simplified 3-level scale
+ * - Focus on readability: WHITE standard, ICE BLUE for cold (<-5°C), LIGHT RED for warmth (>25°C)
+ * - getTemperatureColor() retained for Netatmo actual temp (5-level scale)
  */
 
 /**
- * ColorManager - Centraliserad färghantering för hela appen
- * 
- * Läser CSS-variabler från colors.css och tillhandahåller färger baserat på:
- * - Temperatur (5-nivå termisk skala för faktisk temp, 3-nivå för prognoser)
- * - Vindstyrka (SMHI Beaufort-skala)
- * - UV-risk (WHO/WMO-standard)
- * - Vädersymboler (färgglada ikoner - konsekvent UV-gul för sol)
- * - Luftkvalitet (3-nivå indikator)
+ * ColorManager - Centralized color management for the entire app
+ *
+ * Reads CSS variables from colors.css and provides colors based on:
+ * - Temperature (5-level thermal scale for actual temp, 3-level for forecasts)
+ * - Wind strength (SMHI Beaufort scale)
+ * - UV risk (WHO/WMO standard)
+ * - Weather symbols (colorful icons - consistent UV yellow for sun)
+ * - Air quality (3-level indicator)
  */
 class ColorManager {
     
     /**
-     * Läs en CSS-variabel från :root
-     * @param {string} varName - Variabelnamn utan '--' prefix (t.ex. 'temp-freezing')
-     * @returns {string} Färgkod (t.ex. '#3b82f6') eller tom sträng om variabeln inte finns
+     * Read a CSS variable from :root
+     * @param {string} varName - Variable name without '--' prefix (e.g. 'temp-freezing')
+     * @returns {string} Color code (e.g. '#3b82f6') or empty string if variable doesn't exist
      */
     static getCSSVariable(varName) {
-        // Lägg till '--' prefix om det saknas
+        // Add '--' prefix if missing
         const cssVar = varName.startsWith('--') ? varName : `--${varName}`;
-        
-        // Läs från document root och trimma whitespace
+
+        // Read from document root and trim whitespace
         const value = getComputedStyle(document.documentElement)
             .getPropertyValue(cssVar)
             .trim();
@@ -50,82 +50,82 @@ class ColorManager {
     }
     
     /**
-     * Få färg baserat på temperatur (termisk skala - 5 nivåer)
-     * ANVÄNDS FÖR: Netatmo faktisk temperatur (liten blå siffra)
-     * 
-     * @param {number} temp - Temperatur i Celsius
-     * @returns {string} Hex-färgkod
+     * Get color based on temperature (thermal scale - 5 levels)
+     * USED FOR: Netatmo actual temperature (small blue number)
+     *
+     * @param {number} temp - Temperature in Celsius
+     * @returns {string} Hex color code
      */
     static getTemperatureColor(temp) {
         if (typeof temp !== 'number' || isNaN(temp)) {
             console.warn('⚠️ ColorManager: Ogiltig temperatur:', temp);
-            return this.getCSSVariable('text-primary'); // Fallback till vit
+            return this.getCSSVariable('text-primary'); // Fallback to white
         }
-        
-        // Termisk färgskala: isblå → cyan → grön → gul → röd
+
+        // Thermal color scale: ice blue → cyan → green → yellow → red
         if (temp < 0) {
-            return this.getCSSVariable('temp-freezing');  // < 0°C - Isblå
+            return this.getCSSVariable('temp-freezing');  // < 0°C - Ice blue
         } else if (temp < 10) {
             return this.getCSSVariable('temp-cold');      // 0-10°C - Cyan
         } else if (temp < 20) {
-            return this.getCSSVariable('temp-cool');      // 10-20°C - Grön
+            return this.getCSSVariable('temp-cool');      // 10-20°C - Green
         } else if (temp < 25) {
-            return this.getCSSVariable('temp-mild');      // 20-25°C - Gul/Amber
+            return this.getCSSVariable('temp-mild');      // 20-25°C - Yellow/Amber
         } else {
-            return this.getCSSVariable('temp-warm');      // >25°C - Röd
+            return this.getCSSVariable('temp-warm');      // >25°C - Red
         }
     }
     
     /**
-     * Få färg för PROGNOS-temperaturer (förenklad 3-nivå skala)
-     * ANVÄNDS FÖR: 12-timmarsprognos och 5-dagarsprognos
-     * FOKUS: Läsbarhet - VIT standard, extremvärden i färg
-     * 
-     * @param {number} temp - Temperatur i Celsius
-     * @returns {string} Hex-färgkod
-     * 
-     * FÄRGSKALA (v1.3.0 - förenklad för läsbarhet):
-     * - < -5°C:  ISBLÅ #b3e0ff (ljusblå som drar åt vitt)
-     * - -5 till 25°C: VIT #ffffff (neutral, läsbar standard)
-     * - > 25°C:  LJUSRÖD #ff9999 (varm, läsbar)
+     * Get color for FORECAST temperatures (simplified 3-level scale)
+     * USED FOR: 12-hour forecast and 5-day forecast
+     * FOCUS: Readability - WHITE standard, extreme values in color
+     *
+     * @param {number} temp - Temperature in Celsius
+     * @returns {string} Hex color code
+     *
+     * COLOR SCALE (v1.3.0 - simplified for readability):
+     * - < -5°C:  ICE BLUE #b3e0ff (light blue approaching white)
+     * - -5 to 25°C: WHITE #ffffff (neutral, readable standard)
+     * - > 25°C:  LIGHT RED #ff9999 (warm, readable)
      */
     static getForecastTemperatureColor(temp) {
         if (typeof temp !== 'number' || isNaN(temp)) {
             console.warn('⚠️ ColorManager: Ogiltig prognos-temperatur:', temp);
-            return '#ffffff'; // Fallback till vit
+            return '#ffffff'; // Fallback to white
         }
-        
-        // Förenklad färgskala för prognoser (läsbarhetsfokus)
+
+        // Simplified color scale for forecasts (readability focus)
         if (temp < -5) {
-            return '#b3e0ff';  // < -5°C - ISBLÅ (ljusblå → vit)
+            return '#b3e0ff';  // < -5°C - ICE BLUE (light blue → white)
         } else if (temp > 25) {
-            return '#ff9999';  // > 25°C - LJUSRÖD (läsbar)
+            return '#ff9999';  // > 25°C - LIGHT RED (readable)
         } else {
-            return '#ffffff';  // -5 till 25°C - VIT (standard)
+            return '#ffffff';  // -5 to 25°C - WHITE (standard)
         }
     }
     
     /**
-     * Få färg baserat på vindstyrka (SMHI Beaufort-skala v1.2.0)
-     * Följer exakt SMHI:s Beaufort-tabellgränser för konsistens mellan text och färg
-     * 
-     * @param {number} beaufortOrWindSpeed - Beaufort-nummer (0-12) eller m/s (konverteras automatiskt)
-     * @param {boolean} isBeaufort - True om input är Beaufort-nummer, false om m/s (default: false)
-     * @returns {string} Hex-färgkod
-     * 
-     * SMHI-STANDARD FÄRGGRÄNSER (v1.2.0):
-     * - Grön:   B0-3  (0-5.4 m/s)    "Lugnt" → "Måttlig vind"
-     * - Gul:    B4-6  (5.5-13.8 m/s) "Måttlig vind" → "Frisk vind" [UV-gul #FDD835]
-     * - Orange: B7-9  (13.9-24.4 m/s) "Hård vind"
-     * - Röd:    B10-12 (24.5+ m/s)    "Storm" → "Orkan"
+     * Get color based on wind strength (SMHI Beaufort scale v1.2.0)
+     * Follows exactly SMHI's Beaufort table boundaries for consistency between text and color
+     *
+     * @param {number} beaufortOrWindSpeed - Beaufort number (0-12) or m/s (converts automatically)
+     * @param {boolean} isBeaufort - True if input is Beaufort number, false if m/s (default: false)
+     * @returns {string} Hex color code
+     *
+     * SMHI-STANDARD COLOR BOUNDARIES (v1.2.0):
+     * - Green:   B0-3  (0-5.4 m/s)    "Calm" → "Moderate wind"
+     * - Yellow:  B4-6  (5.5-13.8 m/s) "Moderate wind" → "Fresh wind" [UV yellow #FDD835]
+     * - Orange: B7-9  (13.9-24.4 m/s) "Strong wind"
+     * - Red:    B10-12 (24.5+ m/s)    "Storm" → "Hurricane"
      */
     static getWindColor(beaufortOrWindSpeed, isBeaufort = false) {
         let beaufort;
-        
+
         if (isBeaufort) {
             beaufort = beaufortOrWindSpeed;
         } else {
-            // Konvertera m/s till Beaufort enligt SMHI-standard (exakta gränser)
+            // Convert m/s to Beaufort according to SMHI standard (exact boundaries)
             const ws = beaufortOrWindSpeed;
             
             if (ws <= 0.2) beaufort = 0;        // 0-0.2 m/s
@@ -142,33 +142,33 @@ class ColorManager {
             else if (ws <= 32.6) beaufort = 11; // 28.5-32.6 m/s
             else beaufort = 12;                  // 32.7+ m/s
         }
-        
-        // SMHI Beaufort-färgskala (v1.2.0 - exakta SMHI-gränser, UV-gul för måttlig)
+
+        // SMHI Beaufort color scale (v1.2.0 - exact SMHI boundaries, UV yellow for moderate)
         if (beaufort <= 3) {
-            return this.getCSSVariable('wind-calm');      // B0-3: Lugnt→Måttlig (0-5.4 m/s)
+            return this.getCSSVariable('wind-calm');      // B0-3: Calm→Moderate (0-5.4 m/s)
         } else if (beaufort <= 6) {
-            return this.getCSSVariable('wind-moderate');  // B4-6: Måttlig→Frisk (5.5-13.8 m/s) [UV-gul]
+            return this.getCSSVariable('wind-moderate');  // B4-6: Moderate→Fresh (5.5-13.8 m/s) [UV yellow]
         } else if (beaufort <= 9) {
-            return this.getCSSVariable('wind-strong');    // B7-9: Hård vind (13.9-24.4 m/s)
+            return this.getCSSVariable('wind-strong');    // B7-9: Strong wind (13.9-24.4 m/s)
         } else {
-            return this.getCSSVariable('wind-storm');     // B10-12: Storm→Orkan (24.5+ m/s)
+            return this.getCSSVariable('wind-storm');     // B10-12: Storm→Hurricane (24.5+ m/s)
         }
     }
     
     /**
-     * Få färg baserat på UV-risk (WHO/WMO-standard)
-     * @param {string} risk - UV-risknivå: 'low', 'moderate', 'high', 'very_high', 'extreme'
-     * @returns {string} Hex-färgkod
+     * Get color based on UV risk (WHO/WMO standard)
+     * @param {string} risk - UV risk level: 'low', 'moderate', 'high', 'very_high', 'extreme'
+     * @returns {string} Hex color code
      */
     static getUVColor(risk) {
         const riskLower = (risk || '').toLowerCase().replace('-', '_');
-        
+
         const uvColorMap = {
-            'low': 'uv-low',           // Grön
-            'moderate': 'uv-moderate', // Gul (#FDD835)
+            'low': 'uv-low',           // Green
+            'moderate': 'uv-moderate', // Yellow (#FDD835)
             'high': 'uv-high',         // Orange
-            'very_high': 'uv-very-high', // Röd
-            'extreme': 'uv-extreme'    // Lila
+            'very_high': 'uv-very-high', // Red
+            'extreme': 'uv-extreme'    // Purple
         };
         
         const cssVar = uvColorMap[riskLower];
@@ -181,50 +181,50 @@ class ColorManager {
     }
     
     /**
-     * Få färg baserat på SMHI vädersymbol (för färgglada ikoner)
-     * v1.2.0: Sol och halvklart använder UV-gul (#FDD835) för konsistens
-     * 
-     * @param {number} symbol - SMHI vädersymbol (1-27)
-     * @returns {string} Hex-färgkod
+     * Get color based on SMHI weather symbol (for colorful icons)
+     * v1.2.0: Sun and partly-clear use UV yellow (#FDD835) for consistency
+     *
+     * @param {number} symbol - SMHI weather symbol (1-27)
+     * @returns {string} Hex color code
      */
     static getWeatherIconColor(symbol) {
         const numSymbol = parseInt(symbol);
-        
+
         if (isNaN(numSymbol) || numSymbol < 1 || numSymbol > 27) {
             console.warn('⚠️ ColorManager: Ogiltig vädersymbol:', symbol);
             return this.getCSSVariable('text-primary');
         }
-        
-        // SMHI-symbol mapping till färgkategorier (v1.2.0 - UV-gul för sol)
+
+        // SMHI symbol mapping to color categories (v1.2.0 - UV yellow for sun)
         if (numSymbol === 1) {
-            return this.getCSSVariable('weather-sun');           // Klart sol (v1.2.0: #FDD835 UV-gul)
+            return this.getCSSVariable('weather-sun');           // Clear sun (v1.2.0: #FDD835 UV yellow)
         } else if ([2, 3, 4].includes(numSymbol)) {
-            return this.getCSSVariable('weather-partly-cloudy'); // Halvklart (v1.2.0: #FDD835 UV-gul)
+            return this.getCSSVariable('weather-partly-cloudy'); // Partly-clear (v1.2.0: #FDD835 UV yellow)
         } else if ([5, 6, 7].includes(numSymbol)) {
-            return this.getCSSVariable('weather-cloudy');        // Molnigt
+            return this.getCSSVariable('weather-cloudy');        // Cloudy
         } else if ([8, 9, 10, 18, 19, 20].includes(numSymbol)) {
-            return this.getCSSVariable('weather-rain');          // Regn
+            return this.getCSSVariable('weather-rain');          // Rain
         } else if ([11, 21].includes(numSymbol)) {
-            return this.getCSSVariable('weather-thunder');       // Åska
+            return this.getCSSVariable('weather-thunder');       // Thunder
         } else if ([15, 16, 17, 25, 26, 27].includes(numSymbol)) {
-            return this.getCSSVariable('weather-snow');          // Snö
+            return this.getCSSVariable('weather-snow');          // Snow
         } else if ([12, 13, 14, 22, 23, 24].includes(numSymbol)) {
-            return this.getCSSVariable('weather-sleet');         // Snöblandat
+            return this.getCSSVariable('weather-sleet');         // Sleet
         }
-        
-        // Fallback till neutral färg
+
+        // Fallback to neutral color
         return this.getCSSVariable('text-primary');
     }
     
     /**
-     * Få färg baserat på luftkvalitetsnivå (CO2 ppm)
-     * @param {string|number} level - Nivå som sträng ('good', 'moderate', 'poor') eller CO2 ppm-värde
-     * @returns {string} Hex-färgkod
+     * Get color based on air quality level (CO2 ppm)
+     * @param {string|number} level - Level as string ('good', 'moderate', 'poor') or CO2 ppm value
+     * @returns {string} Hex color code
      */
     static getAirQualityColor(level) {
         let qualityLevel;
-        
-        // Om numeriskt värde (CO2 ppm), konvertera till nivå
+
+        // If numeric value (CO2 ppm), convert to level
         if (typeof level === 'number') {
             if (level <= 800) {
                 qualityLevel = 'good';
@@ -236,11 +236,11 @@ class ColorManager {
         } else {
             qualityLevel = (level || '').toLowerCase();
         }
-        
+
         const airColorMap = {
-            'good': 'air-good',       // Grön (< 800 ppm)
-            'moderate': 'air-moderate', // Gul (800-1500 ppm) [UV-gul #FDD835]
-            'poor': 'air-poor'        // Röd (> 1500 ppm)
+            'good': 'air-good',       // Green (< 800 ppm)
+            'moderate': 'air-moderate', // Yellow (800-1500 ppm) [UV yellow #FDD835]
+            'poor': 'air-poor'        // Red (> 1500 ppm)
         };
         
         const cssVar = airColorMap[qualityLevel];
@@ -253,9 +253,9 @@ class ColorManager {
     }
     
     /**
-     * Få CSS-klass för temperatur-färgkodning (används i HTML)
-     * @param {number} temp - Temperatur i Celsius
-     * @returns {string} CSS-klassnamn (t.ex. 'temp-freezing')
+     * Get CSS class for temperature color coding (used in HTML)
+     * @param {number} temp - Temperature in Celsius
+     * @returns {string} CSS class name (e.g. 'temp-freezing')
      */
     static getTemperatureClass(temp) {
         if (temp < 0) return 'temp-freezing';
@@ -266,21 +266,21 @@ class ColorManager {
     }
     
     /**
-     * Få CSS-klass för vindstyrka-färgkodning (används i HTML)
-     * SMHI-standard v1.2.0 med exakta Beaufort-gränser
-     * 
-     * @param {number} beaufortOrWindSpeed - Beaufort-nummer eller m/s
-     * @param {boolean} isBeaufort - True om input är Beaufort-nummer
-     * @returns {string} CSS-klassnamn (t.ex. 'wind-calm')
+     * Get CSS class for wind strength color coding (used in HTML)
+     * SMHI standard v1.2.0 with exact Beaufort boundaries
+     *
+     * @param {number} beaufortOrWindSpeed - Beaufort number or m/s
+     * @param {boolean} isBeaufort - True if input is Beaufort number
+     * @returns {string} CSS class name (e.g. 'wind-calm')
      */
     static getWindClass(beaufortOrWindSpeed, isBeaufort = false) {
         let beaufort;
-        
+
         if (isBeaufort) {
             beaufort = beaufortOrWindSpeed;
         } else {
             const ws = beaufortOrWindSpeed;
-            // Förenklad mapping för CSS-klasser (använd exakta gränser)
+            // Simplified mapping for CSS classes (use exact boundaries)
             if (ws <= 5.4) beaufort = 3;
             else if (ws <= 13.8) beaufort = 6;
             else if (ws <= 24.4) beaufort = 9;
@@ -294,12 +294,12 @@ class ColorManager {
     }
 }
 
-// Exportera för testning (om ES6 modules används)
+// Export for testing (if ES6 modules used)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ColorManager;
 }
 
-// Global tillgänglighet för browser
+// Global availability for browser
 if (typeof window !== 'undefined') {
     window.ColorManager = ColorManager;
 }

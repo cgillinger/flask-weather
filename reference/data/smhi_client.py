@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-SMHI API-klient fÃ¶r vÃ¤derdata
-HÃ¤mtar prognoser och aktuell vÃ¤derdata frÃ¥n SMHI:s Ã¶ppna API.
-+ WEATHER ANIMATIONS INTEGRATION: Animation triggers fÃ¶r frontend
-+ FAS 1: SMHI LUFTFUKTIGHET: Meteorologiska observations-API integration
+SMHI API client for weather data
+Fetches forecasts and current weather from SMHI's open API.
++ WEATHER ANIMATIONS INTEGRATION: animation triggers for the frontend
++ PHASE 1: SMHI HUMIDITY: meteorological observations API integration
 
-API-dokumentation: https://opendata.smhi.se/apidocs/metfcst/index.html
+API documentation: https://opendata.smhi.se/apidocs/metfcst/index.html
 Observations API: https://opendata.smhi.se/apidocs/metobs/index.html
 """
 
@@ -18,114 +18,114 @@ import math
 
 
 class SMHIClient:
-    """Klient fÃ¶r att hÃ¤mta vÃ¤derdata frÃ¥n SMHI:s API med weather animations support och luftfuktighet."""
-    
-    # SMHI API konstanter - VÃ„DERPROGNOS
+    """Client fetching weather data from SMHI's API, with weather-animation support and humidity."""
+
+    # SMHI API constants - WEATHER FORECAST
     BASE_URL = "https://opendata-download-metfcst.smhi.se/api"
     CATEGORY = "snow1g"  # Meteorological forecasts
     VERSION = "1"
 
-    # Etikett i API-svar (subklasser/andra leverantörer sätter sin egen)
+    # Label in API responses (subclasses/other providers set their own)
     DATA_SOURCE = "SMHI"
-    
-    # SMHI API konstanter - METEOROLOGISKA OBSERVATIONER (FAS 1)
+
+    # SMHI API constants - METEOROLOGICAL OBSERVATIONS (PHASE 1)
     METOBS_BASE_URL = "https://opendata-download-metobs.smhi.se/api"
     METOBS_VERSION = "1.0"
-    HUMIDITY_PARAMETER = "6"  # Relativ luftfuktighet (%)
-    
-    # VÃ¤derparametrar vi Ã¤r intresserade av
+    HUMIDITY_PARAMETER = "6"  # Relative humidity (%)
+
+    # Weather parameters we are interested in
     PARAMETERS = {
-        'air_temperature': 'temperature',                    # Temperatur
-        'symbol_code': 'weather_symbol',                     # Vädersymbol (1-27)
-        'wind_speed': 'wind_speed',                          # Vindstyrka (m/s)
-        'wind_from_direction': 'wind_direction',             # Vindriktning (grader)
-        'precipitation_amount_mean': 'precipitation',        # Medelskattad nederbörd (mm)
-        'precipitation_amount_max': 'precipitation_max',     # Nederbörd max (mm/h)
-        'air_pressure_at_mean_sea_level': 'pressure'         # Lufttryck (hPa)
+        'air_temperature': 'temperature',                    # Temperature
+        'symbol_code': 'weather_symbol',                     # Weather symbol (1-27)
+        'wind_speed': 'wind_speed',                          # Wind speed (m/s)
+        'wind_from_direction': 'wind_direction',             # Wind direction (degrees)
+        'precipitation_amount_mean': 'precipitation',        # Mean estimated precipitation (mm)
+        'precipitation_amount_max': 'precipitation_max',     # Max precipitation (mm/h)
+        'air_pressure_at_mean_sea_level': 'pressure'         # Air pressure (hPa)
     }
-    
-    # Timeout fÃ¶r API-anrop
+
+    # Timeout for API calls
     REQUEST_TIMEOUT = 10
-    
-    # FAS 1: Fallback-stationer fÃ¶r luftfuktighet (vÃ¤lkÃ¤nda aktiva stationer)
-    HUMIDITY_FALLBACK_STATIONS = [98210, 71420, 52350]  # Stockholm, GÃ¶teborg, MalmÃ¶
-    
-    # WEATHER ANIMATIONS: SMHI Symbol Mapping (1-27)
+
+    # PHASE 1: Fallback stations for humidity (well-known active stations)
+    HUMIDITY_FALLBACK_STATIONS = [98210, 71420, 52350]  # Stockholm, Gothenburg, Malmo
+
+    # WEATHER ANIMATIONS: SMHI symbol mapping (1-27)
     ANIMATION_MAPPING = {
-        # Regn och regnskurar
+        # Rain and rain showers
         'rain': [8, 9, 10, 18, 19, 20],
-        # SnÃ¶ och snÃ¶byar  
+        # Snow showers and snowfall
         'snow': [15, 16, 17, 25, 26, 27],
-        # SnÃ¶blandat regn
+        # Sleet (showers and continuous)
         'sleet': [12, 13, 14, 22, 23, 24],
-        # Ã…ska (kan kombineras med regn)
+        # Thunder (may be combined with rain)
         'thunder': [11, 21],
-        # Klart vÃ¤der (ingen animation)
+        # Clear/cloudy/fog (no animation)
         'clear': [1, 2, 3, 4, 5, 6, 7]
     }
     
     def __init__(self, latitude: float, longitude: float):
         """
-        Initialisera SMHI-klient.
-        
+        Initialize the SMHI client.
+
         Args:
-            latitude: Latitud (decimal grader)
-            longitude: Longitud (decimal grader)
+            latitude: Latitude (decimal degrees)
+            longitude: Longitude (decimal degrees)
         """
         self.latitude = latitude
         self.longitude = longitude
         self.last_fetch_time = None
         self.cached_data = None
-        self.cache_duration = 300  # Cache i 5 minuter
-        
-        # FAS 1: Luftfuktighet cache och station tracking
+        self.cache_duration = 300  # Cache for 5 minutes
+
+        # PHASE 1: Humidity cache and station tracking
         self.humidity_cache = None
         self.humidity_cache_time = None
-        self.humidity_cache_duration = 600  # 10 minuters cache (observationer uppdateras mindre ofta)
+        self.humidity_cache_duration = 600  # 10-minute cache (observations update less often)
         self.nearest_humidity_station = None
         
         print(f"ðŸŒ SMHI-klient initierad fÃ¶r position: {latitude}, {longitude}")
     
-    # === FAS 1: LUFTFUKTIGHET METODER ===
-    
+    # === PHASE 1: HUMIDITY METHODS ===
+
     def _calculate_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         """
-        BerÃ¤kna Haversine-avstÃ¥nd mellan tvÃ¥ koordinater.
-        
+        Calculate the Haversine distance between two coordinates.
+
         Args:
-            lat1, lon1: FÃ¶rsta koordinaten
-            lat2, lon2: Andra koordinaten
-            
+            lat1, lon1: First coordinate
+            lat2, lon2: Second coordinate
+
         Returns:
-            AvstÃ¥nd i kilometer
+            Distance in kilometers
         """
-        # Konvertera till radianer
+        # Convert to radians
         lat1_r = math.radians(lat1)
         lon1_r = math.radians(lon1)
         lat2_r = math.radians(lat2)
         lon2_r = math.radians(lon2)
         
-        # Haversine-formel
+        # Haversine formula
         dlat = lat2_r - lat1_r
         dlon = lon2_r - lon1_r
-        
-        a = (math.sin(dlat/2)**2 + 
+
+        a = (math.sin(dlat/2)**2 +
              math.cos(lat1_r) * math.cos(lat2_r) * math.sin(dlon/2)**2)
         c = 2 * math.asin(math.sqrt(a))
-        
-        # Jordens radie i km
+
+        # Earth's radius in km
         r = 6371
         
         return c * r
     
     def find_nearest_humidity_station(self) -> Optional[int]:
         """
-        Hitta nÃ¤rmaste station med luftfuktighetsdata baserat pÃ¥ config-koordinater.
-        
+        Find the nearest station with humidity data based on the configured coordinates.
+
         Returns:
-            station_id (int) fÃ¶r nÃ¤rmaste station eller None vid fel
+            station_id (int) of the nearest station, or None on error
         """
-        # AnvÃ¤nd cachad station om vi redan hittat en
+        # Use the cached station if we have already found one
         if self.nearest_humidity_station:
             print(f"ðŸ’¾ AnvÃ¤nder cachad nÃ¤rmaste station: {self.nearest_humidity_station}")
             return self.nearest_humidity_station
@@ -147,16 +147,16 @@ class SMHIClient:
             stations = data['station']
             print(f"ðŸ“ Hittade {len(stations)} luftfuktighetsstationer")
             
-            # Hitta nÃ¤rmaste aktiva station
+            # Find the nearest active station
             nearest_station = None
             min_distance = float('inf')
             
             for station in stations:
-                # Kontrollera att stationen Ã¤r aktiv (har from/to datum)
+                # Check that the station is active (has from/to dates)
                 if not station.get('active', True):
                     continue
                 
-                # Kontrollera att vi har koordinater
+                # Check that we have coordinates
                 if 'latitude' not in station or 'longitude' not in station:
                     continue
                 
@@ -165,7 +165,7 @@ class SMHIClient:
                     station_lon = float(station['longitude'])
                     station_id = int(station['id'])
                     
-                    # BerÃ¤kna avstÃ¥nd
+                    # Calculate distance
                     distance = self._calculate_distance(
                         self.latitude, self.longitude,
                         station_lat, station_lon
@@ -199,41 +199,41 @@ class SMHIClient:
     
     def _get_fallback_station(self) -> int:
         """
-        Returnera fallback-station baserat pÃ¥ position.
-        
+        Return a fallback station based on position.
+
         Returns:
-            Station ID fÃ¶r nÃ¤rmaste fallback-station
+            Station ID of the nearest fallback station
         """
-        # VÃ¤lj fallback baserat pÃ¥ ungefÃ¤rlig position i Sverige
-        if self.latitude >= 58.5:  # Norra/mellersta Sverige
+        # Pick fallback based on approximate position in Sweden
+        if self.latitude >= 58.5:  # Northern/central Sweden
             fallback = self.HUMIDITY_FALLBACK_STATIONS[0]  # Stockholm
-        elif self.latitude >= 56.5:  # VÃ¤stra Sverige
-            fallback = self.HUMIDITY_FALLBACK_STATIONS[1]  # GÃ¶teborg
-        else:  # SÃ¶dra Sverige
-            fallback = self.HUMIDITY_FALLBACK_STATIONS[2]  # MalmÃ¶
+        elif self.latitude >= 56.5:  # Western Sweden
+            fallback = self.HUMIDITY_FALLBACK_STATIONS[1]  # Gothenburg
+        else:  # Southern Sweden
+            fallback = self.HUMIDITY_FALLBACK_STATIONS[2]  # Malmo
         
         print(f"ðŸ”„ AnvÃ¤nder fallback-station: {fallback}")
         return fallback
     
     def get_station_humidity(self, station_id: Optional[int] = None) -> Optional[Dict]:
         """
-        HÃ¤mta luftfuktighet frÃ¥n SMHI meteorologiska observations-API.
-        
+        Fetch humidity from SMHI's meteorological observations API.
+
         Args:
-            station_id: Specifik station (None = auto-detect nÃ¤rmaste)
-            
+            station_id: Specific station (None = auto-detect nearest)
+
         Returns:
-            Dict med {'value': float, 'timestamp': str, 'station_name': str, 'data_age_minutes': int}
-            eller None vid fel
+            Dict with {'value': float, 'timestamp': str, 'station_name': str, 'data_age_minutes': int}
+            or None on error
         """
-        # Kontrollera cache fÃ¶rst
+        # Check cache first
         if (self.humidity_cache and 
             self.humidity_cache_time and 
             time.time() - self.humidity_cache_time < self.humidity_cache_duration):
             print("ðŸ’¾ AnvÃ¤nder cachad luftfuktighetsdata")
             return self.humidity_cache
         
-        # BestÃ¤m station
+        # Determine station
         if station_id is None:
             station_id = self.find_nearest_humidity_station()
             if station_id is None:
@@ -256,20 +256,20 @@ class SMHIClient:
                 print(f"âŒ Ingen luftfuktighetsdata fÃ¶r station {station_id}")
                 return None
             
-            # Ta senaste vÃ¤rdet
+            # Take the latest value
             latest_value = data['value'][-1]
             
             humidity_value = float(latest_value['value'])
             timestamp_raw = latest_value['date']
             
-            # Konvertera timestamp och berÃ¤kna Ã¥lder - hantera bÃ¥de unix timestamp och ISO-format
+            # Convert timestamp and compute age - handle both unix timestamp and ISO format
             try:
                 if isinstance(timestamp_raw, int):
                     # Unix timestamp (observations API)
                     timestamp = datetime.fromtimestamp(timestamp_raw / 1000, tz=timezone.utc)
                     timestamp_str = timestamp.isoformat()
                 elif isinstance(timestamp_raw, str):
-                    # ISO format (annat API)
+                    # ISO format (other API)
                     timestamp_str = timestamp_raw
                     timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
                 else:
@@ -278,18 +278,18 @@ class SMHIClient:
                 now = datetime.now(timezone.utc)
                 age_minutes = int((now - timestamp).total_seconds() / 60)
                 
-                # Validera data-Ã¥lder (max 2 timmar)
+                # Validate data age (max 2 hours)
                 if age_minutes > 120:
                     print(f"âš ï¸ Luftfuktighetsdata fÃ¶r gammal: {age_minutes} minuter")
                     return None
                 
             except (ValueError, TypeError) as e:
                 print(f"âš ï¸ Fel vid parsning av timestamp {timestamp_raw}: {e}")
-                # AnvÃ¤nd aktuell tid som fallback
+                # Use the current time as fallback
                 timestamp_str = datetime.now(timezone.utc).isoformat()
                 age_minutes = 0
             
-            # Bygg resultat
+            # Build result
             result = {
                 'value': humidity_value,
                 'timestamp': timestamp_str,
@@ -298,7 +298,7 @@ class SMHIClient:
                 'data_age_minutes': age_minutes
             }
             
-            # Cache resultat
+            # Cache the result
             self.humidity_cache = result
             self.humidity_cache_time = time.time()
             
@@ -320,19 +320,19 @@ class SMHIClient:
     
     def get_current_weather_with_humidity(self) -> Optional[Dict]:
         """
-        UtÃ¶kad version av get_current_weather() som inkluderar luftfuktighet.
-        
+        Extended version of get_current_weather() that includes humidity.
+
         Returns:
-            Befintlig vÃ¤derdata + 'humidity', 'humidity_timestamp', 'humidity_station'
-            eller None vid fel
+            Existing weather data + 'humidity', 'humidity_timestamp', 'humidity_station'
+            or None on error
         """
-        # HÃ¤mta standard vÃ¤derdata
+        # Fetch standard weather data
         weather_data = self.get_current_weather()
         if not weather_data:
             print("âŒ Ingen grundlÃ¤ggande vÃ¤derdata tillgÃ¤nglig")
             return None
         
-        # FÃ¶rsÃ¶k hÃ¤mta luftfuktighet
+        # Try to fetch humidity
         humidity_data = self.get_station_humidity()
         if humidity_data:
             weather_data['humidity'] = humidity_data['value']
@@ -349,10 +349,10 @@ class SMHIClient:
         
         return weather_data
     
-    # === BEFINTLIGA METODER (INGA Ã„NDRINGAR) ===
-    
+    # === PRE-EXISTING METHODS (UNCHANGED) ===
+
     def get_forecast_url(self) -> str:
-        """Bygg URL fÃ¶r SMHI API-anrop."""
+        """Build the URL for the SMHI API call."""
         return (
             f"{self.BASE_URL}/category/{self.CATEGORY}/version/{self.VERSION}/"
             f"geotype/point/lon/{self.longitude}/lat/{self.latitude}/data.json"
@@ -360,10 +360,10 @@ class SMHIClient:
     
     def fetch_raw_data(self) -> Optional[Dict]:
         """
-        HÃ¤mta rÃ¥data frÃ¥n SMHI API.
-        
+        Fetch raw data from the SMHI API.
+
         Returns:
-            Dict med rÃ¥data frÃ¥n SMHI eller None vid fel
+            Dict with raw SMHI data, or None on error
         """
         url = self.get_forecast_url()
         
@@ -375,14 +375,14 @@ class SMHIClient:
             
             data = response.json()
             
-            # Kontrollera att vi har korrekt data-struktur
+            # Check that we got the expected data structure
             if 'timeSeries' not in data:
                 print("âŒ Ogiltig data-struktur frÃ¥n SMHI API")
                 return None
             
             print(f"âœ… SMHI data hÃ¤mtad - {len(data['timeSeries'])} tidpunkter")
             
-            # Cache data
+            # Cache the data
             self.cached_data = data
             self.last_fetch_time = time.time()
             
@@ -404,86 +404,91 @@ class SMHIClient:
             print(f"âŒ OvÃ¤ntat fel vid SMHI API-anrop: {e}")
             return None
     
-    # === VIKTAD DAGSPROGNOS: HJÄLPMETODER ===
-    
+    # === WEIGHTED DAILY FORECAST: HELPER METHODS ===
+
     def _get_time_of_day_weight(self, hour: int) -> float:
         """
-        Returnera tidsvikt baserat på när människor är utomhus.
-        
+        Return a time weight based on when people are outdoors.
+
         Args:
-            hour: Timme på dygnet (0-23)
-            
+            hour: Hour of day (0-23)
+
         Returns:
-            Viktfaktor för tidpunkten
+            Weight factor for the hour
         """
-        if 0 <= hour < 6: return 0.2   # Natt - de flesta sover
-        if 6 <= hour < 9: return 3.0   # Morgonpendling
-        if 9 <= hour < 12: return 2.0  # Aktiv förmiddag
-        if 12 <= hour < 15: return 2.5 # Lunch/aktiv dag
-        if 15 <= hour < 18: return 3.0 # Hemresa/fritid
-        if 18 <= hour < 21: return 1.5 # Kvällsaktivitet
-        return 0.5                      # Sen kväll
-    
+        if 0 <= hour < 6: return 0.2   # Night - most people asleep
+        if 6 <= hour < 9: return 3.0   # Morning commute
+        if 9 <= hour < 12: return 2.0  # Active morning
+        if 12 <= hour < 15: return 2.5 # Lunch/active day
+        if 15 <= hour < 18: return 3.0 # Commute home/leisure
+        if 18 <= hour < 21: return 1.5 # Evening activity
+        return 0.5                      # Late evening
+
     def _get_weather_priority(self, symbol: int) -> float:
         """
-        Returnera väderprioriteten för en symbol baserat på granulär modell.
-        Högre värde = mer allvarligt/märkbart väder.
-        
+        Return the weather priority for a symbol based on a granular model.
+        Higher value = more severe/noticeable weather.
+
         Args:
-            symbol: SMHI vädersymbol (1-27)
-            
+            symbol: SMHI weather symbol (1-27)
+
         Returns:
-            Prioritetsvärde för symbolen
+            Priority value for the symbol
         """
         if symbol is None:
             return 2.0
-        
-        # Granulär prioritetsmodell för svenskt klimat
+
+        # Granular priority model for Swedish climate.
+        # Comments state the official Wsymb2 meaning of each symbol
+        # (see SMHI_SYMBOL_MAPPING.md). NOTE: the priority VALUES look
+        # mis-scaled for several symbols (they were written against wrong
+        # symbol meanings) and are pending review - do not trust them as
+        # a severity ranking yet.
         PRIORITY = {
-            1: 1.0,   # klart
-            2: 1.2,   # nästan klart
-            3: 1.5,   # lätt molnighet
-            4: 1.7,   # halvklart
-            5: 2.0,   # mulet
-            6: 3.0,   # dimma
-            7: 3.0,   # dimma
-            8: 3.5,   # lätt regnskur
-            9: 4.0,   # regnskur
-            10: 5.0,  # kraftig regnskur
-            11: 5.0,  # åska
-            12: 3.5,  # lätt regn
-            13: 4.0,  # regn
-            14: 5.0,  # kraftigt regn
-            15: 4.0,  # lätt snöblandat
-            16: 4.5,  # snöblandat
-            17: 5.0,  # kraftigt snöblandat
-            18: 4.0,  # lätt snöfall
-            19: 4.5,  # snöfall
-            20: 5.0,  # tungt snöfall
-            21: 4.2,  # lätt snöby
-            22: 4.7,  # snöby
-            23: 5.0,  # kraftig snöby
-            24: 5.0,  # lätt åskskur
-            25: 5.0,  # åskskur
-            26: 5.0,  # kraftig åskskur
-            27: 2.0   # oklar symbol
+            1: 1.0,   # clear sky
+            2: 1.2,   # nearly clear sky
+            3: 1.5,   # variable cloudiness
+            4: 1.7,   # halfclear sky
+            5: 2.0,   # cloudy sky
+            6: 3.0,   # overcast
+            7: 3.0,   # fog
+            8: 3.5,   # light rain showers
+            9: 4.0,   # moderate rain showers
+            10: 5.0,  # heavy rain showers
+            11: 5.0,  # thunderstorm
+            12: 3.5,  # light sleet showers
+            13: 4.0,  # moderate sleet showers
+            14: 5.0,  # heavy sleet showers
+            15: 4.0,  # light snow showers
+            16: 4.5,  # moderate snow showers
+            17: 5.0,  # heavy snow showers
+            18: 4.0,  # light rain
+            19: 4.5,  # moderate rain
+            20: 5.0,  # heavy rain
+            21: 4.2,  # thunder
+            22: 4.7,  # light sleet
+            23: 5.0,  # moderate sleet
+            24: 5.0,  # heavy sleet
+            25: 5.0,  # light snowfall
+            26: 5.0,  # moderate snowfall
+            27: 2.0   # heavy snowfall
         }
-        
+
         return PRIORITY.get(symbol, 2.0)
-    
-    # === HUVUDMETODER ===
+
+    # === MAIN METHODS ===
     
     def get_data(self, force_refresh: bool = False) -> Optional[Dict]:
         """
-        Hämta SMHI-data med cache-stöd.
-        
+        Fetch SMHI data with cache support.
+
         Args:
-            force_refresh: Tvinga uppdatering även om cache är giltig
-            
+            force_refresh: Force a refresh even if the cache is valid
+
         Returns:
-            Dict med SMHI-data eller None
+            Dict with SMHI data, or None
         """
-        # Kontrollera cache
+        # Check cache
         if (not force_refresh and 
             self.cached_data and 
             self.last_fetch_time and 
@@ -492,18 +497,18 @@ class SMHIClient:
             print("ðŸ’¾ AnvÃ¤nder cachad SMHI-data")
             return self.cached_data
         
-        # HÃ¤mta ny data
+        # Fetch fresh data
         return self.fetch_raw_data()
     
     def parse_parameters(self, time_entry: Dict) -> Dict:
         """
-        Tolka parametrar frÃ¥n en tidpunkt i SMHI-data.
-        
+        Parse parameters from one time point in the SMHI data.
+
         Args:
-            time_entry: En tidpunkt frÃ¥n timeSeries-array
-            
+            time_entry: A time point from the timeSeries array
+
         Returns:
-            Dict med tolkade parametrar
+            Dict with parsed parameters
         """
         result = {}
 
@@ -514,7 +519,7 @@ class SMHIClient:
 
         for api_name, friendly_name in self.PARAMETERS.items():
             value = data.get(api_name)
-            # SNOW1gv1: alla parametrar anvÃ¤nder 9999 som missing value
+            # SNOW1gv1: all parameters use 9999 as the missing value
             if value is not None and value != 9999:
                 result[friendly_name] = value
 
@@ -522,15 +527,15 @@ class SMHIClient:
     
     def _get_animation_trigger(self, weather_symbol: int, precipitation: float, wind_direction: float = None) -> Dict:
         """
-        WEATHER ANIMATIONS: Mappa SMHI weather symbol till animation trigger data
-        
+        WEATHER ANIMATIONS: Map an SMHI weather symbol to animation trigger data
+
         Args:
             weather_symbol: SMHI weather symbol (1-27)
-            precipitation: NederbÃ¶rd i mm/h
-            wind_direction: Vindriktning i grader (0-360)
-            
+            precipitation: Precipitation in mm/h
+            wind_direction: Wind direction in degrees (0-360)
+
         Returns:
-            Dict med animation trigger information
+            Dict with animation trigger information
         """
         if not weather_symbol:
             return {'type': 'clear'}
@@ -541,7 +546,7 @@ class SMHIClient:
             print(f"âš ï¸ Invalid weather symbol: {weather_symbol}")
             return {'type': 'clear'}
         
-        # BestÃ¤m animation type baserat pÃ¥ SMHI symbol
+        # Determine animation type based on SMHI symbol
         animation_type = None
         for anim_type, symbols in self.ANIMATION_MAPPING.items():
             if symbol in symbols:
@@ -551,10 +556,10 @@ class SMHIClient:
         if not animation_type or animation_type == 'clear':
             return {'type': 'clear'}
         
-        # BerÃ¤kna intensity baserat pÃ¥ nederbÃ¶rd
+        # Calculate intensity based on precipitation
         intensity = self._calculate_animation_intensity(precipitation)
-        
-        # Skapa animation trigger data
+
+        # Build animation trigger data
         trigger_data = {
             'type': animation_type,
             'intensity': intensity,
@@ -562,31 +567,33 @@ class SMHIClient:
             'precipitation': precipitation or 0
         }
         
-        # LÃ¤gg till vinddata om tillgÃ¤ngligt
+        # Add wind data if available
         if wind_direction is not None:
             trigger_data['wind_direction'] = wind_direction
-        
-        # Special handling fÃ¶r Ã¥ska
+
+        # Special handling for thunder
         if animation_type == 'thunder':
-            # Ã…ska kan kombineras med regn
-            if symbol in [11]:  # Ã…ska med regn
-                trigger_data['type'] = 'rain'  # AnvÃ¤nd regn-animation
+            # Thunder can be combined with rain
+            if symbol in [11]:  # Wsymb2 11 = thunderstorm (showers with thunder)
+                trigger_data['type'] = 'rain'  # Use the rain animation
                 trigger_data['thunder'] = True
             else:
-                trigger_data['type'] = 'clear'  # Bara Ã¥ska utan nederbÃ¶rd
+                # Code assumes thunder without precipitation here; note that
+                # Wsymb2 21 = thunder (overcast, rain with thunder risk)
+                trigger_data['type'] = 'clear'
         
         print(f"ðŸŒ¦ï¸ Animation trigger: Symbol {symbol} â†’ {trigger_data['type']} ({intensity})")
         return trigger_data
     
     def _calculate_animation_intensity(self, precipitation: float) -> str:
         """
-        BerÃ¤kna animation intensity baserat pÃ¥ nederbÃ¶rd
-        
+        Calculate animation intensity based on precipitation
+
         Args:
-            precipitation: NederbÃ¶rd i mm/h
-            
+            precipitation: Precipitation in mm/h
+
         Returns:
-            Intensity level som strÃ¤ng
+            Intensity level as a string
         """
         if not precipitation or precipitation < 0.1:
             return 'light'
@@ -599,10 +606,10 @@ class SMHIClient:
     
     def get_current_weather(self) -> Optional[Dict]:
         """
-        HÃ¤mta aktuell vÃ¤derdata (nÃ¤rmaste tidpunkt) med animation trigger support.
-        
+        Fetch current weather data (nearest time point) with animation trigger support.
+
         Returns:
-            Dict med aktuell vÃ¤derdata inkl. animation_trigger eller None
+            Dict with current weather data incl. animation_trigger, or None
         """
         data = self.get_data()
         
@@ -613,7 +620,7 @@ class SMHIClient:
         best_entry = None
         min_time_diff = float('inf')
         
-        # Hitta nÃ¤rmaste tidpunkt
+        # Find the nearest time point
         for entry in data['timeSeries']:
             valid_time_str = entry.get('time')
             if not valid_time_str:
@@ -634,17 +641,17 @@ class SMHIClient:
             print("âš ï¸ Ingen giltig tidpunkt hittades i SMHI-data")
             return None
         
-        # Tolka parametrar
+        # Parse parameters
         weather = self.parse_parameters(best_entry)
-        
-        # LÃ¤gg till metadata
+
+        # Add metadata
         weather['valid_time'] = best_entry.get('time')
         weather['time_diff_minutes'] = int(min_time_diff / 60)
         weather['data_source'] = self.DATA_SOURCE
         weather['coordinates'] = {'lat': self.latitude, 'lon': self.longitude}
         
-        # LÃ¤gg till grid-koordinater frÃ¥n response
-        # SNOW1gv1: geometry.coordinates Ã¤r [lon, lat] (platt lista, inte nested)
+        # Add grid coordinates from the response
+        # SNOW1gv1: geometry.coordinates is [lon, lat] (flat list, not nested)
         try:
             if 'geometry' in data and 'coordinates' in data['geometry']:
                 coords = data['geometry']['coordinates']  # [lon, lat]
@@ -652,7 +659,7 @@ class SMHIClient:
         except (IndexError, KeyError, TypeError):
             pass
         
-        # WEATHER ANIMATIONS: LÃ¤gg till animation trigger
+        # WEATHER ANIMATIONS: Add animation trigger
         if weather.get('weather_symbol'):
             weather['animation_trigger'] = self._get_animation_trigger(
                 weather['weather_symbol'],
@@ -669,11 +676,11 @@ class SMHIClient:
     
     def get_12h_forecast(self) -> List[Dict]:
         """
-        HÃ¤mta 12-timmarsprognos optimerad fÃ¶r GUI-visning.
-        Returnerar prognoser var 3:e timme fÃ¶r de kommande 12 timmarna.
-        
+        Fetch a 12-hour forecast optimized for GUI display.
+        Returns forecasts every 3 hours for the coming 12 hours.
+
         Returns:
-            Lista med 4 prognospunkter (0h, 3h, 6h, 9h, 12h frÃ¥n nu)
+            List of 4 forecast points (+3h, +6h, +9h, +12h from now)
         """
         data = self.get_data()
         
@@ -683,7 +690,7 @@ class SMHIClient:
         
         now = datetime.now(timezone.utc)
         forecast_points = []
-        target_intervals = [3, 6, 9, 12]  # Timmar frÃ¥n nu
+        target_intervals = [3, 6, 9, 12]  # Hours from now
         
         print(f"ðŸ“Š Skapar 12h-prognos frÃ¥n {len(data['timeSeries'])} datapunkter")
         
@@ -692,7 +699,7 @@ class SMHIClient:
             best_entry = None
             min_time_diff = float('inf')
             
-            # Hitta nÃ¤rmaste datapunkt fÃ¶r target_time
+            # Find the nearest data point for target_time
             for entry in data['timeSeries']:
                 valid_time_str = entry.get('time')
                 if not valid_time_str:
@@ -702,7 +709,7 @@ class SMHIClient:
                     valid_time = datetime.fromisoformat(valid_time_str.replace('Z', '+00:00'))
                     entry_timestamp = valid_time.timestamp()
                     
-                    # Endast framtida tidpunkter
+                    # Future time points only
                     if entry_timestamp <= now.timestamp():
                         continue
                     
@@ -717,21 +724,21 @@ class SMHIClient:
                     continue
             
             if best_entry:
-                # Tolka vÃ¤derdata fÃ¶r denna tidpunkt
+                # Parse weather data for this time point
                 weather = self.parse_parameters(best_entry)
-                
-                # LÃ¤gg till tidsinfo
+
+                # Add time info
                 valid_time = datetime.fromisoformat(best_entry['time'].replace('Z', '+00:00'))
                 weather['valid_time'] = best_entry['time']
                 weather['local_time'] = valid_time.strftime('%H:%M')
                 weather['hours_from_now'] = target_hour
                 weather['date_time'] = valid_time.isoformat()
                 
-                # LÃ¤gg till formaterad temperatur
+                # Add formatted temperature
                 if 'temperature' in weather:
                     weather['temp_formatted'] = f"{weather['temperature']:.1f}Â°C"
-                
-                # WEATHER ANIMATIONS: LÃ¤gg till animation trigger fÃ¶r prognoser
+
+                # WEATHER ANIMATIONS: Add animation trigger for forecasts
                 if weather.get('weather_symbol'):
                     weather['animation_trigger'] = self._get_animation_trigger(
                         weather['weather_symbol'],
@@ -747,83 +754,29 @@ class SMHIClient:
         print(f"ðŸ“ˆ 12h-prognos klar: {len(forecast_points)} prognoser med animation triggers")
         return forecast_points
     
-    def get_hourly_forecast(self, hours: int = 12) -> List[Dict]:
-        """
-        HÃ¤mta timprognos fÃ¶r kommande timmar (legacy-metod fÃ¶r bakÃ¥tkompatibilitet).
-        
-        Args:
-            hours: Antal timmar framÃ¥t
-            
-        Returns:
-            Lista med vÃ¤derdata per timme
-        """
-        data = self.get_data()
-        
-        if not data or 'timeSeries' not in data:
-            return []
-        
-        now = datetime.now(timezone.utc)
-        forecast = []
-        
-        for entry in data['timeSeries']:
-            valid_time_str = entry.get('time')
-            if not valid_time_str:
-                continue
-            
-            try:
-                valid_time = datetime.fromisoformat(valid_time_str.replace('Z', '+00:00'))
-                
-                # Endast framtida tidpunkter
-                if valid_time <= now:
-                    continue
-                
-                # BegrÃ¤nsa till antal timmar
-                hours_diff = (valid_time - now).total_seconds() / 3600
-                if hours_diff > hours:
-                    break
-                
-                weather = self.parse_parameters(entry)
-                weather['valid_time'] = valid_time_str
-                weather['hours_from_now'] = int(hours_diff)
-                
-                # LÃ¤gg till animation trigger
-                if weather.get('weather_symbol'):
-                    weather['animation_trigger'] = self._get_animation_trigger(
-                        weather['weather_symbol'],
-                        weather.get('precipitation', 0),
-                        weather.get('wind_direction')
-                    )
-                
-                forecast.append(weather)
-                
-            except (ValueError, TypeError):
-                continue
-        
-        return forecast
-    
     def get_daily_forecast(self, days: int = 5) -> List[Dict]:
         """
-        Hämta dagsprognos för kommande dagar med viktad symbolberäkning.
-        
-        Algoritm:
-        - Börjar med IMORGON (exkluderar idag)
-        - Visar exakt 'days' antal dagar
-        - Varje dag får EN symbol baserad på viktad algoritm:
-          * Tidsvikt: när människor är utomhus
-          * Väderprioritering: hur allvarligt vädret är
-        
+        Fetch a daily forecast for the coming days with weighted symbol calculation.
+
+        Algorithm:
+        - Starts with TOMORROW (excludes today)
+        - Shows exactly 'days' number of days
+        - Each day gets ONE symbol based on a weighted algorithm:
+          * Time weight: when people are typically outdoors
+          * Weather priority: how severe the weather is
+
         Args:
-            days: Antal dagar framåt (default 5)
-            
+            days: Number of days ahead (default 5)
+
         Returns:
-            Lista med väderdata per dag med viktad weather_symbol
+            List of weather data per day with weighted weather_symbol
         """
         data = self.get_data()
         
         if not data or 'timeSeries' not in data:
             return []
         
-        # Gruppera data per dag
+        # Group data by day
         daily_data = {}
         now = datetime.now(timezone.utc)
         
@@ -835,27 +788,27 @@ class SMHIClient:
             try:
                 valid_time = datetime.fromisoformat(valid_time_str.replace('Z', '+00:00'))
                 
-                # KRITISKT: Exkludera dagens datum, börja med imorgon
+                # CRITICAL: exclude today's date, start with tomorrow
                 if valid_time <= now:
                     continue
                 
-                # Beräkna dagar från idag
+                # Calculate days from today
                 days_from_today = (valid_time.date() - now.date()).days
                 
-                # Filtrera: endast dagar 1 till 'days' (imorgon = dag 1)
+                # Filter: only days 1 through 'days' (tomorrow = day 1)
                 if days_from_today < 1 or days_from_today > days:
                     continue
                 
                 date_key = valid_time.date()
                 
-                # Utökad datastruktur för viktad beräkning
+                # Extended data structure for the weighted calculation
                 if date_key not in daily_data:
                     daily_data[date_key] = {
                         'date': date_key,
                         'temperatures': [],
                         'weather_symbols': [],
                         'weather_symbols_with_time': [],
-                        'hourly_entries': [],  # NY: För viktad algoritm
+                        'hourly_entries': [],  # NEW: for the weighted algorithm
                         'wind_speeds': [],
                         'precipitations': [],
                         'animation_triggers': []
@@ -863,10 +816,10 @@ class SMHIClient:
                 
                 weather = self.parse_parameters(entry)
                 
-                # Konvertera till lokal tid för timvikt
+                # Convert to local time for the time-of-day weight
                 local_time = valid_time.astimezone()
                 
-                # Samla data för dagen
+                # Collect data for the day
                 if 'temperature' in weather:
                     daily_data[date_key]['temperatures'].append(weather['temperature'])
                 
@@ -882,7 +835,7 @@ class SMHIClient:
                     )
                     daily_data[date_key]['animation_triggers'].append(trigger)
                     
-                    # NY: Spara timinfo för viktad algoritm
+                    # Store hour info for the weighted algorithm
                     entry_info = {
                         'hour': local_time.hour,
                         'weather_symbol': weather['weather_symbol'],
@@ -898,7 +851,7 @@ class SMHIClient:
             except (ValueError, TypeError):
                 continue
         
-        # Beräkna dagliga sammandrag med viktad symbol
+        # Calculate daily summaries with weighted symbol
         daily_forecast = []
         
         for date_key in sorted(daily_data.keys()):
@@ -910,14 +863,14 @@ class SMHIClient:
                 'day_of_month': date_key.day
             }
             
-            # Temperatur min/max
+            # Temperature min/max
             temps = day_data['temperatures']
             if temps:
                 summary['temp_min'] = min(temps)
                 summary['temp_max'] = max(temps)
                 summary['temp_avg'] = sum(temps) / len(temps)
             
-            # === VIKTAD SYMBOLBERÄKNING ===
+            # === WEIGHTED SYMBOL CALCULATION ===
             hourly_entries = day_data.get('hourly_entries', [])
             
             if hourly_entries:
@@ -928,48 +881,48 @@ class SMHIClient:
                     hour = entry['hour']
                     precip = entry['precipitation']
                     
-                    # Beräkna viktad score
+                    # Calculate weighted score
                     time_w = self._get_time_of_day_weight(hour)
                     prio = self._get_weather_priority(symbol)
                     
                     score = time_w * prio
                     
-                    # Förstärk vid kraftig nederbörd
+                    # Amplify for heavy precipitation
                     if precip >= 5.0:
                         score *= 1.5
                     
-                    # Summera scores per symbol
+                    # Sum scores per symbol
                     symbol_scores[symbol] = symbol_scores.get(symbol, 0) + score
                 
-                # Välj symbolen med högst viktad score
+                # Choose the symbol with the highest weighted score
                 summary['weather_symbol'] = max(symbol_scores, key=symbol_scores.get)
             
             else:
-                # Fallback: Vanligaste symbolen (om hourly_entries saknas)
+                # Fallback: most common symbol (if hourly_entries is missing)
                 symbols = day_data['weather_symbols']
                 if symbols:
                     summary['weather_symbol'] = max(set(symbols), key=symbols.count)
             
-            # Genomsnittlig vindstyrka
+            # Average wind speed
             winds = day_data['wind_speeds']
             if winds:
                 summary['wind_speed_avg'] = sum(winds) / len(winds)
                 summary['wind_speed_max'] = max(winds)
             
-            # Total nederbörd
+            # Total precipitation
             precips = day_data['precipitations']
             if precips:
                 summary['precipitation_total'] = sum(precips)
                 summary['precipitation_max'] = max(precips)
             
-            # Dominant animation trigger för dagen
+            # Dominant animation trigger for the day
             triggers = day_data['animation_triggers']
             if triggers:
-                # Hitta vanligaste animation type
+                # Find the most common animation type
                 trigger_types = [t['type'] for t in triggers if t['type'] != 'clear']
                 if trigger_types:
                     dominant_type = max(set(trigger_types), key=trigger_types.count)
-                    # Använd första instansen av dominant type för full trigger data
+                    # Use the first instance of the dominant type for full trigger data
                     for trigger in triggers:
                         if trigger['type'] == dominant_type:
                             summary['animation_trigger'] = trigger
@@ -982,15 +935,15 @@ class SMHIClient:
         return daily_forecast
 
 
-# Test-funktioner fÃ¶r utveckling
+# Test functions for development
 def test_smhi_client():
-    """Test av SMHI-klient med Stockholm-koordinater och animation triggers."""
+    """Test of the SMHI client with Stockholm coordinates and animation triggers."""
     print("ðŸ§ª Testar SMHI-klient med WEATHER ANIMATIONS integration...")
     
-    # Stockholm koordinater
+    # Stockholm coordinates
     client = SMHIClient(59.3293, 18.0686)
     
-    # Test aktuellt vÃ¤der
+    # Test current weather
     current = client.get_current_weather()
     if current:
         print("\nðŸ“Š Aktuellt vÃ¤der:")
@@ -1000,7 +953,7 @@ def test_smhi_client():
             else:
                 print(f"  {key}: {value}")
     
-    # Test 12h-prognos (med animation triggers)
+    # Test 12h forecast (with animation triggers)
     forecast_12h = client.get_12h_forecast()
     if forecast_12h:
         print(f"\nðŸ“ˆ 12h-prognos ({len(forecast_12h)} prognoser med animations):")
@@ -1012,7 +965,7 @@ def test_smhi_client():
             animation = forecast.get('animation_trigger', {}).get('type', 'none')
             print(f"  +{hours}h ({time_str}): {temp}, symbol: {symbol}, animation: {animation}")
     
-    # Test dagsprognos
+    # Test daily forecast
     daily = client.get_daily_forecast(3)
     if daily:
         print(f"\nðŸ“… Dagsprognos ({len(daily)} dagar med animations):")
@@ -1025,10 +978,10 @@ def test_smhi_client():
 
 
 def test_humidity_functionality():
-    """FAS 1: Test av nya luftfuktighets-funktioner."""
+    """PHASE 1: test of the new humidity functions."""
     print("\nðŸ§ª === FAS 1: TESTER LUFTFUKTIGHET ===")
     
-    # Stockholm koordinater
+    # Stockholm coordinates
     client = SMHIClient(59.3293, 18.0686)
     
     print("\nðŸ” Test 1: Hitta nÃ¤rmaste luftfuktighetsstation")

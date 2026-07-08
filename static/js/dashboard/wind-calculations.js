@@ -1,13 +1,13 @@
 /**
- * Wind Calculations - STEG 2 REFAKTORERING
- * Vindsystem och skalkonvertering extraherat från dashboard.js
- * Hanterar Beaufort, sjö- och landvindskalor samt layout-formatering
+ * Wind Calculations - STEP 2 REFACTORING
+ * Wind system and scale conversion extracted from dashboard.js
+ * Handles Beaufort, sea and land wind scales and layout formatting
  */
 
 // === WIND SCALE CONVERSION SYSTEM ===
 
-// SPRÅK: value/name är översättningsnycklar (static/translations/) och
-// översätts med t() i convertWindSpeed - enda accessorn till tabellerna
+// LANGUAGE: value/name are translation keys (static/translations/) and
+// translated with t() in convertWindSpeed - sole accessor to the tables
 const WIND_SCALES = {
     beaufort: [
         { max: 1, value: 0, name: 'WIND_BEAUFORT_CALM', icon: 'wi-wind-beaufort-0' },
@@ -57,9 +57,9 @@ const WIND_SCALES = {
 };
 
 /**
- * Konvertera vindhastighet mellan olika enheter och skalor
- * @param {number} speedKmh - Vindhastighet i km/h
- * @param {string} targetUnit - Målsenhet: 'beaufort', 'ms', 'kmh', 'sjo', 'land'
+ * Convert wind speed between different units and scales
+ * @param {number} speedKmh - Wind speed in km/h
+ * @param {string} targetUnit - Target unit: 'beaufort', 'ms', 'kmh', 'sjo', 'land'
  * @returns {object} { value, unit, icon, name? }
  */
 function convertWindSpeed(speedKmh, targetUnit) {
@@ -85,15 +85,15 @@ function convertWindSpeed(speedKmh, targetUnit) {
         case 'kmh':
             return { value: `${Math.round(speedKmh)} km/h`, unit: 'km/h', icon: 'wi-strong-wind' };
         default:
-            // 'land'/'sjo': value är en översättningsnyckel
+            // 'land'/'sjo': value is a translation key
             return { value: t(data.value), unit: targetUnit, icon: 'wi-strong-wind' };
     }
 }
 
 /**
- * SMART VINDTEXT-FORMATERING FÖR KONSISTENT LAYOUT
- * Dela upp vindtext i två rader för konsistent layout i prognoser
- * @param {string} windText - Vindtext att dela upp
+ * SMART WIND TEXT FORMATTING FOR CONSISTENT LAYOUT
+ * Split wind text into two rows for consistent layout in forecasts
+ * @param {string} windText - Wind text to split
  * @returns {object} { line1: string, line2: string }
  */
 function formatWindTextForTwoLines(windText) {
@@ -101,19 +101,19 @@ function formatWindTextForTwoLines(windText) {
         return { line1: t('WIND_LAND_CALM'), line2: '' };
     }
     
-    // Dela upp sammansatta vindtermer
+    // Split compound wind terms
     const windParts = windText.trim().split(' ');
-    
+
     if (windParts.length === 1) {
-        // Enkla termer: "Storm", "Orkan", "Lugnt"
+        // Simple terms: "Storm", "Hurricane", "Calm"
         return { line1: windParts[0], line2: '' };
     } else if (windParts.length === 2) {
-        // Sammansatta termer: "Måttlig vind", "Svag vind", "Frisk vind"
+        // Compound terms: "Moderate wind", "Weak wind", "Fresh wind"
         return { line1: windParts[0], line2: windParts[1] };
     } else {
-        // Fallback för ovanliga fall
+        // Fallback for unusual cases
         return { line1: windParts[0], line2: windParts.slice(1).join(' ') };
     }
 }
 
-console.log('✅ STEG 2: Wind Calculations laddat - 3 funktioner extraherade!');
+console.log('✅ STEP 2: Wind Calculations loaded - 3 functions extracted!');

@@ -1,15 +1,15 @@
 /**
- * DOM Helpers - STEG 3 REFAKTORERING
- * DOM-manipulation och hjälpfunktioner
- * Extraherat från dashboard.js för modulär struktur
+ * DOM Helpers - STEP 3 REFACTORING
+ * DOM manipulation and helper functions
+ * Extracted from dashboard.js for modular structure
  */
 
-// === GRUNDLÄGGANDE DOM-UPPDATERING ===
+// === BASIC DOM UPDATE ===
 
 /**
- * Uppdatera textinnehåll för element med ID
+ * Update text content for element with ID
  * @param {string} id - Element ID
- * @param {string} content - Textinnehåll att sätta
+ * @param {string} content - Text content to set
  */
 function updateElement(id, content) {
     const element = document.getElementById(id);
@@ -19,9 +19,9 @@ function updateElement(id, content) {
 }
 
 /**
- * Uppdatera HTML-innehåll för element med ID
+ * Update HTML content for element with ID
  * @param {string} id - Element ID
- * @param {string} htmlContent - HTML-innehåll att sätta
+ * @param {string} htmlContent - HTML content to set
  */
 function updateElementHTML(id, htmlContent) {
     const element = document.getElementById(id);
@@ -33,8 +33,8 @@ function updateElementHTML(id, htmlContent) {
 // === OPTIMERAD SOL-TIDSUPPDATERING ===
 
 /**
- * Optimerad uppdatering av sol-tider med smart span-hantering
- * @param {string} elementId - Element ID för sol-tid
+ * Optimized update of sun times with smart span handling
+ * @param {string} elementId - Element ID for sun time
  * @param {string} timeOnly - Tid att visa (t.ex. "06:30")
  */
 function updateSunTimeOptimized(elementId, timeOnly) {
@@ -65,12 +65,12 @@ function updateSunTimeOptimized(elementId, timeOnly) {
 // === TID/DAG-LOGIK ===
 
 /**
- * Kontrollera om det är dagtid (06:00 - 20:00)
- * @returns {boolean} True om det är dagtid
+ * Check if it is daytime (06:00 - 20:00)
+ * @returns {boolean} True if it is daytime
  */
 function isDaytime() {
     const hour = new Date().getHours();
     return hour >= 6 && hour <= 20;
 }
 
-console.log('✅ STEG 3: DOM Helpers laddat - 4 funktioner extraherade!');
+console.log('✅ STEP 3: DOM Helpers loaded - 4 functions extracted!');

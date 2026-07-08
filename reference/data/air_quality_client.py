@@ -1,17 +1,18 @@
 """
-Utomhus-luftkvalitet (European Air Quality Index).
+Outdoor air quality (European Air Quality Index).
 
-Primär källa: SMHI Datavärdskap luftkvalitet (Sveriges nationella referensnät,
-på uppdrag av Naturvårdsverket) via OGC SOS 2.0 med JSON-svar - närmaste
-mätstation till angivna koordinater.
+Primary source: SMHI's air quality data host (Sweden's national reference
+network, operated on behalf of the Swedish EPA) via OGC SOS 2.0 with JSON
+responses - the measurement station nearest to the given coordinates.
 
-Global fallback: Open-Meteo Air Quality API (CAMS) - används utanför Sverige
-eller när ingen svensk station finns tillräckligt nära. Ingen API-nyckel krävs
-för någon av källorna.
+Global fallback: Open-Meteo Air Quality API (CAMS) - used outside Sweden or
+when no Swedish station is close enough. No API key is required for either
+source.
 
-Båda källorna normaliseras till samma numeriska European AQI (0-100+) med band
-(good/fair/moderate/poor/very_poor/extremely_poor) och en tregradig färgnivå
-(good/moderate/poor) som frontendens befintliga luftkvalitetsfärger använder.
+Both sources are normalized to the same numeric European AQI (0-100+) with
+bands (good/fair/moderate/poor/very_poor/extremely_poor) and a three-step
+color level (good/moderate/poor) used by the frontend's existing air
+quality colors.
 """
 
 import json
@@ -25,28 +26,28 @@ SMHI_SOS = "https://datavardluft.smhi.se/52North/service"
 OPEN_METEO_AQ = "https://air-quality-api.open-meteo.com/v1/air-quality"
 USER_AGENT = "flask-weather-dashboard/1.0 (+https://github.com/cgillinger/flask-weather)"
 
-# EIONET-pollutant-koder (dd.eionet.europa.eu/vocabulary/aq/pollutant/<kod>)
+# EIONET pollutant codes (dd.eionet.europa.eu/vocabulary/aq/pollutant/<code>)
 POLLUTANTS = {"pm25": "6001", "pm10": "5", "no2": "8", "o3": "7"}
 
-# EEA European Air Quality Index - övre koncentrationsgräns (ug/m3) per band.
-# Banden: Good, Fair, Moderate, Poor, Very poor, Extremely poor.
+# EEA European Air Quality Index - upper concentration bound (ug/m3) per band.
+# Bands: Good, Fair, Moderate, Poor, Very poor, Extremely poor.
 EEA_BANDS = {
     "pm25": [10, 20, 25, 50, 75, 800],
     "pm10": [20, 40, 50, 100, 150, 1200],
     "no2": [40, 90, 120, 230, 340, 1000],
     "o3": [50, 100, 130, 240, 380, 800],
 }
-# Varje band mappas till ett 20-poängsintervall på en gemensam 0-120-skala.
+# Each band maps to a 20-point interval on a shared 0-120 scale.
 _INDEX_STOPS = [0, 20, 40, 60, 80, 100, 120]
 _BAND_NAMES = ["good", "fair", "moderate", "poor", "very_poor", "extremely_poor"]
 
 # Cache: {(lat_r, lon_r): (timestamp, result)}
 _CACHE = {}
-_CACHE_TTL = 3600  # 1 h - AQ uppdateras timvis
+_CACHE_TTL = 3600  # 1 h - AQ data is updated hourly
 
 
 def _sub_index(pollutant, conc):
-    """Linjärt interpolerat European-AQI-delindex (0-120) för en koncentration."""
+    """Linearly interpolated European AQI sub-index (0-120) for a concentration."""
     bounds = EEA_BANDS[pollutant]
     low = 0.0
     for i, high in enumerate(bounds):
@@ -67,7 +68,7 @@ def _band_from_index(value):
 
 
 def _level3(band):
-    """EEA:s sex band -> frontendens tregradiga färgnivå."""
+    """EEA's six bands -> the frontend's three-step color level."""
     if band in ("good", "fair"):
         return "good"
     if band == "moderate":
@@ -76,7 +77,7 @@ def _level3(band):
 
 
 def _aqi_from_concentrations(concs):
-    """concs: {pollutant: ug/m3}. Returnerar (aqi, band, level3, driver)."""
+    """concs: {pollutant: ug/m3}. Returns dict with aqi, band, level and driver."""
     subs = {p: _sub_index(p, v) for p, v in concs.items() if v is not None}
     if not subs:
         return None
@@ -102,7 +103,7 @@ def _http_json(url, timeout=25):
 
 
 def _smhi_fetch_pollutant(code, bbox, start, end, timeout=25):
-    """Hämtar en förorenings observationer inom bbox som JSON-observationslista."""
+    """Fetches one pollutant's observations within bbox as a JSON observation list."""
     params = {
         "service": "SOS",
         "version": "2.0.0",
@@ -120,7 +121,7 @@ def _smhi_fetch_pollutant(code, bbox, start, end, timeout=25):
 
 
 def _smhi_nearest(lat, lon, max_km):
-    """Bygger närmaste-station-AQI från SMHI. Returnerar dict eller None."""
+    """Builds a nearest-station AQI from SMHI. Returns a dict or None."""
     now = datetime.now(timezone.utc)
     start = (now - timedelta(hours=24)).strftime("%Y-%m-%dT%H:00:00Z")
     end = now.strftime("%Y-%m-%dT%H:00:00Z")
@@ -128,12 +129,12 @@ def _smhi_nearest(lat, lon, max_km):
     lonpad = 0.45 / max(math.cos(math.radians(lat)), 0.2)
     bbox = (lat - latpad, lon - lonpad, lat + latpad, lon + lonpad)  # minLat,minLon,maxLat,maxLon
 
-    # station-namn -> {lat, lon, dist, time:{pollutant:iso}, conc:{pollutant:val}}
+    # station name -> {lat, lon, time:{pollutant:iso}, conc:{pollutant:val}}
     stations = {}
     for key, code in POLLUTANTS.items():
         try:
             obs = _smhi_fetch_pollutant(code, bbox, start, end)
-        except Exception as exc:  # en förorening kan fela utan att sänka helheten
+        except Exception as exc:  # one pollutant may fail without sinking the whole result
             print(f"⚠️ SMHI AQ {key}: {exc}")
             continue
         for o in obs:
@@ -155,7 +156,7 @@ def _smhi_nearest(lat, lon, max_km):
     if not stations:
         return None
 
-    # välj närmaste station (helst med partiklar) inom max_km
+    # pick the nearest station (preferably with particulates) within max_km
     ranked = []
     for name, st in stations.items():
         dist = _haversine_km(lat, lon, st["lat"], st["lon"])
@@ -216,8 +217,8 @@ def _open_meteo(lat, lon, timeout=20):
 
 def get_outdoor_air_quality(lat, lon, max_km=25, use_cache=True):
     """
-    Returnerar utomhus-AQI för koordinaterna, SMHI-station i första hand,
-    Open-Meteo/CAMS som global fallback. Returnerar None om båda misslyckas.
+    Returns the outdoor AQI for the coordinates, preferring an SMHI station,
+    with Open-Meteo/CAMS as the global fallback. Returns None if both fail.
     """
     ckey = (round(lat, 2), round(lon, 2))
     if use_cache and ckey in _CACHE:

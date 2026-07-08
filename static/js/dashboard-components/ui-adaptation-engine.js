@@ -1,13 +1,13 @@
 /**
- * UI Adaptation Engine - STEG 9 REFAKTORERING
- * FAS 3: Graciös UI-degradering extraherat från dashboard.js
- * Hanterar Netatmo-oberoende visning och layout-anpassningar
+ * UI Adaptation Engine - STEP 9 REFACTORING
+ * PHASE 3: Graceful UI degradation extracted from dashboard.js
+ * Handles Netatmo-independent display and layout adaptations
  */
 
 // === FAS 3: UI DEGRADERING SYSTEM ===
 
 /**
- * Hantera visning/döljning av UI-element baserat på Netatmo-tillgänglighet
+ * Handle showing/hiding of UI elements based on Netatmo availability
  */
 function applyUIAdaptations() {
     const netatmoAvailable = isNetatmoAvailable();
@@ -26,30 +26,30 @@ function applyUIAdaptations() {
     // Hantera labels/etiketter
     adaptLabels(netatmoAvailable);
 
-    // Applicera CSS-klasser för layout-anpassningar
+    // Apply CSS classes for layout adaptations
     applyCSSAdaptations(netatmoAvailable);
 
     console.log(`✅ FAS 3: UI-anpassningar tillämpade`);
 }
 
 /**
- * HUMIDITY FIX: Anpassa luftfuktighet-sektionen beroende på data-tillgänglighet
+ * HUMIDITY FIX: Adapt humidity section based on data availability
  */
 function adaptHumiditySection(netatmoAvailable) {
     const humidityElement = document.getElementById('smhi-humidity');
 
-    // Kontrollera om vi har luftfuktighetsdata från någon källa
+    // Check if we have humidity data from any source
     const hasHumidityData = (netatmoAvailable && dashboardState.dataAvailability.netatmoHumidity) ||
                            dashboardState.dataAvailability.smhiHumidity;
 
     if (!hasHumidityData) {
-        // HUMIDITY FIX: Dölj luftfuktighet helt när ingen data finns
+        // HUMIDITY FIX: Hide humidity completely when no data exists
         if (humidityElement) {
             humidityElement.classList.add('netatmo-hidden');
             console.log('🙈 HUMIDITY FIX: Luftfuktighet-element dolt - ingen data tillgänglig');
         }
     } else {
-        // Visa luftfuktighet när data finns
+        // Show humidity when data exists
         if (humidityElement) {
             humidityElement.classList.remove('netatmo-hidden');
             console.log('👁️ HUMIDITY FIX: Luftfuktighet-element visat - data tillgänglig');
@@ -58,27 +58,27 @@ function adaptHumiditySection(netatmoAvailable) {
 }
 
 /**
- * Anpassa temperatur-sektionen beroende på Netatmo-tillgänglighet
- * SWAPPED: Faktisk (Netatmo) visas som primär/stor, Prognos (SMHI) som sekundär/liten.
- * Vid SMHI-only/Netatmo ej tillgänglig: Prognos-kolumnen döljs, SMHI visas i den primära positionen.
+ * Adapt temperature section based on Netatmo availability
+ * SWAPPED: Actual (Netatmo) shown as primary/large, Forecast (SMHI) as secondary/small.
+ * With SMHI-only/Netatmo unavailable: Forecast column is hidden, SMHI shown in primary position.
  */
 function adaptTemperatureSection(netatmoAvailable) {
     const prognosSection = document.querySelector('.prognos-column');
     const tempUnit = document.querySelector('.temp-unit');
 
     if (!netatmoAvailable) {
-        // Dölj PROGNOS-kolumnen (den sekundära/lilla)
+        // Hide FORECAST column (the secondary/small one)
         if (prognosSection) {
             prognosSection.classList.add('netatmo-hidden');
             console.log('🙈 FAS 3: PROGNOS-kolumn dold (SMHI-only mode)');
         }
 
-        // Justera container för centrerad layout med enbart en temperatur
+        // Adjust container for centered layout with only one temperature
         if (tempUnit) {
             tempUnit.classList.add('single-temperature-mode');
         }
     } else {
-        // Visa PROGNOS-kolumnen när Netatmo är tillgängligt (båda visas)
+        // Show FORECAST column when Netatmo is available (both shown)
         if (prognosSection) {
             prognosSection.classList.remove('netatmo-hidden');
         }
@@ -90,32 +90,32 @@ function adaptTemperatureSection(netatmoAvailable) {
 }
 
 /**
- * Anpassa luftkvalitet-sektionen.
- * Synligheten ägs numera helt av AirQualityDisplay.update() (som körs efter denna
- * och känner till air_quality.mode + utomhusdata). Denna funktion är därför en
- * medveten no-op - lämnad kvar så anropet i applyUIAdaptations() inte behöver ändras.
+ * Adapt air quality section.
+ * Visibility is now entirely owned by AirQualityDisplay.update() (which runs after this
+ * and knows about air_quality.mode + outdoor data). This function is therefore a
+ * deliberate no-op - left in place so the call in applyUIAdaptations() doesn't need to change.
  */
 function adaptAirQualitySection(netatmoAvailable) {
     // Avsiktligt tom - se AirQualityDisplay (air-quality-display.js).
 }
 
 /**
- * Anpassa etiketter beroende på datakällor
- * SWAPPED: Vid SMHI-only visas SMHI-temp i den primära (stora) positionen
- * med etiketten "TEMPERATUR" (under netatmo-label i faktisk-kolumnen).
+ * Adapt labels based on data sources
+ * SWAPPED: With SMHI-only SMHI-temp shown in primary (large) position
+ * with the label "TEMPERATURE" (under netatmo-label in actual column).
  */
 function adaptLabels(netatmoAvailable) {
     const netatmoLabel = document.querySelector('.netatmo-label');
     const smhiLabel = document.querySelector('.smhi-label');
 
     if (!netatmoAvailable) {
-        // SMHI-only: Visa "TEMPERATUR" som etikett under den stora temperaturen
+        // SMHI-only: Show "TEMPERATURE" as label under the large temperature
         if (netatmoLabel) {
             netatmoLabel.textContent = t('LABEL_TEMPERATURE');
             console.log('🏷️ FAS 3: Primär etikett ändrad till "TEMPERATUR"');
         }
     } else {
-        // Båda källor: Återställ etiketter
+        // Both sources: Restore labels
         if (netatmoLabel) {
             netatmoLabel.textContent = t('LABEL_ACTUAL');
         }
@@ -126,14 +126,14 @@ function adaptLabels(netatmoAvailable) {
 }
 
 /**
- * Applicera CSS-klasser för layout-anpassningar
+ * Apply CSS classes for layout adaptations
  */
 function applyCSSAdaptations(netatmoAvailable) {
     const weatherDetailsGrid = document.querySelector('.data-points-grid');
     const smhiMainCard = document.querySelector('.smhi-main-card');
 
     if (!netatmoAvailable) {
-        // FAS 3: Lägg till SMHI-only klasser
+        // PHASE 3: Add SMHI-only classes
         if (weatherDetailsGrid) {
             weatherDetailsGrid.classList.add('smhi-only-mode');
         }
@@ -142,9 +142,9 @@ function applyCSSAdaptations(netatmoAvailable) {
             smhiMainCard.classList.add('smhi-only-mode');
         }
 
-        console.log('🎨 FAS 3: SMHI-only CSS-klasser tillämpade');
+        console.log('🎨 PHASE 3: SMHI-only CSS classes applied');
     } else {
-        // FAS 3: Ta bort SMHI-only klasser
+        // PHASE 3: Remove SMHI-only classes
         if (weatherDetailsGrid) {
             weatherDetailsGrid.classList.remove('smhi-only-mode');
         }
@@ -156,13 +156,13 @@ function applyCSSAdaptations(netatmoAvailable) {
 }
 
 /**
- * Dynamiskt dölja/visa element baserat på data-tillgänglighet
+ * Dynamically hide/show elements based on data availability
  */
 function adaptElementVisibility() {
-    // HUMIDITY FIX: Kontrollera luftfuktighet separat
+    // HUMIDITY FIX: Check humidity separately
     adaptHumiditySection(isNetatmoAvailable());
 
-    // Dölj andra element som inte har data
+    // Hide other elements that have no data
     const elementsToCheck = [
         {
             selector: '.air-quality-container',

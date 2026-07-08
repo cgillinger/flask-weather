@@ -2,30 +2,30 @@
  * @file weather-icon-renderer.js
  * @version 1.2.0
  * @lastModified 2025-01-11
- * @description Komplett ikonhantering för Weather Icons med centraliserad färgkodning
+ * @description Complete icon handling for Weather Icons with centralized color coding
  * @dependencies ColorManager (color-manager.js)
  * @author Flask Weather Dashboard Team
- * 
- * STEG 4 REFAKTORERING: Extraherat från dashboard.js
- * STEG 5: FontAwesome-funktionalitet flyttad till fontawesome-renderer.js
- * v1.2.0: Kraftigare snö-ikon (wi-snowflake-cold) för måttliga/kraftiga snöbyar och snöfall
- * v1.1.0: Integrerad med ColorManager för väderikon-färgkodning
+ *
+ * STEP 4 REFACTORING: Extracted from dashboard.js
+ * STEP 5: FontAwesome functionality moved to fontawesome-renderer.js
+ * v1.2.0: Stronger snow icon (wi-snowflake-cold) for moderate/heavy snow showers and snowfall
+ * v1.1.0: Integrated with ColorManager for weather icon color coding
  */
 
-// === WEATHER ICONS SYSTEM - CENTRALISERAD FÄRGKODNING ===
+// === WEATHER ICONS SYSTEM - CENTRALIZED COLOR CODING ===
 
 /**
- * Weather Icon Renderer för vädervisning med ColorManager-integration
+ * Weather Icon Renderer for weather display with ColorManager integration
  */
 class WeatherIconRenderer {
     /**
-     * Skapa väderikon för en SMHI-symbol med aktivt ikonpaket (ui.icon_pack).
-     * Detta är den metod vyerna ska använda för vädersymbol-ikoner;
-     * createIcon()/getIconName() nedan är fontspecifika byggstenar.
-     * @param {number} symbol - SMHI vädersymbol (1-27)
-     * @param {boolean} isDay - Dag- eller nattvariant
-     * @param {Array} extraClasses - Extra CSS-klasser
-     * @returns {HTMLElement} Ikon-element (font-<i> eller svg-<img>)
+     * Create weather icon for an SMHI symbol with active icon package (ui.icon_pack).
+     * This is the method views should use for weather symbol icons;
+     * createIcon()/getIconName() below are font-specific building blocks.
+     * @param {number} symbol - SMHI weather symbol (1-27)
+     * @param {boolean} isDay - Day or night variant
+     * @param {Array} extraClasses - Extra CSS classes
+     * @returns {HTMLElement} Icon element (font-<i> or svg-<img>)
      */
     static createWeatherIcon(symbol, isDay = true, extraClasses = []) {
         return IconRegistry.createWeatherIcon(symbol, isDay, extraClasses);
@@ -51,10 +51,10 @@ class WeatherIconRenderer {
     }
     
     /**
-     * Få Weather Icons klassnamn baserat på SMHI vädersymbol
-     * @param {number} symbol - SMHI vädersymbol (1-27)
-     * @param {boolean} isDay - Om det är dag eller natt
-     * @returns {string} Weather Icons klassnamn (t.ex. 'wi-day-sunny')
+     * Get Weather Icons class name based on SMHI weather symbol
+     * @param {number} symbol - SMHI weather symbol (1-27)
+     * @param {boolean} isDay - Whether it is day or night
+     * @returns {string} Weather Icons class name (e.g. 'wi-day-sunny')
      */
     static getIconName(symbol, isDay = true) {
         const numSymbol = parseInt(symbol);
@@ -97,28 +97,28 @@ class WeatherIconRenderer {
     }
     
     /**
-     * NYTT v1.1.0: Få färg för väderikon via ColorManager
-     * Används för att direkt sätta färg på ikoner via JavaScript
-     * @param {number} symbol - SMHI vädersymbol (1-27)
-     * @returns {string} Hex-färgkod från ColorManager
+     * NEW v1.1.0: Get color for weather icon via ColorManager
+     * Used to directly set color on icons via JavaScript
+     * @param {number} symbol - SMHI weather symbol (1-27)
+     * @returns {string} Hex color code from ColorManager
      */
     static getWeatherIconColor(symbol) {
         return ColorManager.getWeatherIconColor(symbol);
     }
     
     /**
-     * BEHÅLLS FÖR BACKWARD COMPATIBILITY: Få CSS-klass för färgkodning
-     * DEPRECATED: Används fortfarande i forecast-view.js (uppdateras i FAS 3D)
-     * Efter FAS 3D: Använd getWeatherIconColor() istället
-     * 
-     * @param {number} symbol - SMHI vädersymbol (1-27)
-     * @returns {string} CSS-klassnamn för färg
+     * KEPT FOR BACKWARD COMPATIBILITY: Get CSS class for color coding
+     * DEPRECATED: Still used in forecast-view.js (updated in PHASE 3D)
+     * After PHASE 3D: Use getWeatherIconColor() instead
+     *
+     * @param {number} symbol - SMHI weather symbol (1-27)
+     * @returns {string} CSS class name for color
      */
     static getColorClass(symbol) {
         const numSymbol = parseInt(symbol);
         if (isNaN(numSymbol)) return '';
         
-        // NOTERA: Dessa CSS-klasser definieras i colors.css
+        // NOTE: These CSS classes are defined in colors.css
         if (numSymbol === 1) return 'weather-sun-color';
         if ([2, 3, 4].includes(numSymbol)) return 'weather-partly-cloudy-color';
         if ([5, 6, 7].includes(numSymbol)) return 'weather-cloudy-color';
@@ -127,11 +127,11 @@ class WeatherIconRenderer {
         if ([12, 13, 14, 22, 23, 24].includes(numSymbol)) return 'weather-sleet-color';
         if ([11, 21].includes(numSymbol)) return 'weather-thunder-color';
         
-        return ''; // Ingen färgkodning
+        return ''; // No color coding
     }
 }
 
-// Exportera för backward compatibility (behåll gamla namn)
+// Export for backward compatibility (keep old names)
 const WeatherIconManager = WeatherIconRenderer;
 
 console.log('✅ Weather Icon Renderer v1.2.0 laddat - Kraftigare snö-ikon för måttliga/kraftiga snöbyar/snöfall!');

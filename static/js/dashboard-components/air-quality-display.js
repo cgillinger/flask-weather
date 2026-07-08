@@ -1,12 +1,12 @@
 /**
- * AirQualityDisplay - luftkvalitetsrutan.
+ * AirQualityDisplay - the air quality tile.
  *
- * Visar inomhus-CO2 (Netatmo) och/eller utomhus-AQI (SMHI-station → CAMS-fallback)
- * beroende på air_quality.mode ('indoor' | 'outdoor' | 'both'). Rutan sitter på
- * samma rad som barometern och UV och återanvänder deras tvåraders-stil.
+ * Shows indoor CO2 (Netatmo) and/or outdoor AQI (SMHI station → CAMS fallback)
+ * depending on air_quality.mode ('indoor' | 'outdoor' | 'both'). The tile sits
+ * on the same row as the barometer and UV and reuses their two-line style.
  *
- * Färger är index-drivna (good/moderate/poor via ColorManager) och därmed
- * språkneutrala. Endast etiketter och bandord går via i18n (t()).
+ * Colors are index-driven (good/moderate/poor via ColorManager) and therefore
+ * language-neutral. Only labels and band words go through i18n (t()).
  *
  * @dependencies ColorManager, FontAwesomeRenderer, I18n (global t)
  */
@@ -26,8 +26,8 @@ const AirQualityDisplay = {
         try { return ColorManager.getAirQualityColor(level); } catch (e) { return 'inherit'; }
     },
 
-    // Liten dämpad avståndsrad (nål + km) - bara för riktiga SMHI-stationer.
-    // CAMS-modellen har ingen station och därmed inget meningsfullt avstånd → tom sträng.
+    // Small dimmed distance line (pin + km) - only for real SMHI stations.
+    // The CAMS model has no station and thus no meaningful distance → empty string.
     _distanceLine(outdoor) {
         if (!outdoor || outdoor.source !== 'smhi' || outdoor.distance_km == null) return '';
         const km = outdoor.distance_km;
@@ -52,7 +52,7 @@ const AirQualityDisplay = {
         const showIndoor = (mode === 'indoor' || mode === 'both') && co2 != null;
         const showOutdoor = (mode === 'outdoor' || mode === 'both') && outdoor && outdoor.aqi != null;
 
-        // Inget att visa (t.ex. prognosläge med mode 'indoor', eller utomhus-hämtning misslyckades helt)
+        // Nothing to show (e.g. forecast-only mode with mode 'indoor', or the outdoor fetch failed entirely)
         if (!showIndoor && !showOutdoor) {
             container.classList.add('netatmo-hidden');
             return;
@@ -93,7 +93,7 @@ const AirQualityDisplay = {
         container.appendChild(FontAwesomeRenderer.createLeafIcon(leafLevel));
         const info = document.createElement('div');
         info.className = 'barometer-info';
-        info.id = 'air-quality';  // behåll id:t för bakåtkompatibilitet
+        info.id = 'air-quality';  // keep the id for backwards compatibility
         info.innerHTML = infoHtml;
         container.appendChild(info);
     }

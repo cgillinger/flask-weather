@@ -1,38 +1,38 @@
 #!/bin/sh
 # =============================================================================
-# FLASK WEATHER DASHBOARD - SYNOLOGY STARTSCRIPT EXEMPEL
+# FLASK WEATHER DASHBOARD - SYNOLOGY STARTUP SCRIPT EXAMPLE
 # =============================================================================
-# 📁 Fil: start_weather_example.sh
-# 🎯 Syfte: Starta väder-dashboarden automatiskt på Synology NAS
-# 📝 Setup: Kopiera till start_weather.sh och anpassa för ditt system
+# 📁 File: start_weather_example.sh
+# 🎯 Purpose: Start the weather dashboard automatically on Synology NAS
+# 📝 Setup: Copy to start_weather.sh and customize for your system
 #
-# INSTRUKTIONER:
-# 1. Kopiera denna fil: cp start_weather_example.sh start_weather.sh  
-# 2. Redigera variablerna nedan för ditt system
-# 3. Gör körbar: chmod +x start_weather.sh
-# 4. Testa: ./start_weather.sh
-# 5. Lägg till i DSM Task Scheduler
+# INSTRUCTIONS:
+# 1. Copy this file: cp start_weather_example.sh start_weather.sh
+# 2. Edit the variables below for your system
+# 3. Make executable: chmod +x start_weather.sh
+# 4. Test: ./start_weather.sh
+# 5. Add to DSM Task Scheduler
 # =============================================================================
 
-# === ANPASSA DESSA VARIABLER FÖR DITT SYSTEM ===
+# === CUSTOMIZE THESE VARIABLES FOR YOUR SYSTEM ===
 
-# Ditt användarnamn på Synology (ändra från "ditt-användarnamn")
+# Your username on Synology (change from "ditt-användarnamn")
 USERNAME="ditt-användarnamn"
 
-# Projektets katalog (vanligtvis korrekt som den är)
+# Project directory (usually correct as is)
 PROJECT_DIR="/var/services/homes/${USERNAME}/flask-weather"
 
-# Python-sökväg (vanligtvis korrekt som den är)
+# Python path (usually correct as is)
 PYTHON_PATH="/bin/python3"
 
-# Port för dashboard (8036 är standard, ändra om du vill)
+# Port for dashboard (8036 is default, change if desired)
 PORT="8036"
 
 # Loggfil (sparas i projektkatalogen)
 LOG_FILE="${PROJECT_DIR}/weather.log"
 PID_FILE="${PROJECT_DIR}/weather.pid"
 
-# === ÄNDRA INGET UNDER DENNA LINJE ===
+# === DO NOT CHANGE ANYTHING BELOW THIS LINE ===
 
 echo "🟢 Startar Flask Weather Dashboard..."
 echo "👤 Användare: ${USERNAME}"
@@ -48,7 +48,7 @@ if [ ! -d "${PROJECT_DIR}" ]; then
     exit 1
 fi
 
-# Gå till projektkatalogen
+# Go to project directory
 cd "${PROJECT_DIR}" || {
     echo "❌ FEL: Kan inte navigera till ${PROJECT_DIR}"
     exit 1
@@ -68,7 +68,7 @@ echo "Katalog: $(pwd)" >> "${LOG_FILE}"
 echo "Python: $(${PYTHON_PATH} --version 2>&1)" >> "${LOG_FILE}"
 echo "Användare: $(whoami)" >> "${LOG_FILE}"
 
-# Kontrollera om dashboard redan körs
+# Check if dashboard is already running
 if [ -f "${PID_FILE}" ]; then
     OLD_PID=$(cat "${PID_FILE}")
     if kill -0 "${OLD_PID}" 2>/dev/null; then
@@ -85,10 +85,10 @@ echo "🚀 Startar Flask-server..."
 nohup "${PYTHON_PATH}" app.py >> "${LOG_FILE}" 2>&1 &
 FLASK_PID=$!
 
-# Spara PID för framtida stopp
+# Save PID for future stopping
 echo "${FLASK_PID}" > "${PID_FILE}"
 
-# Vänta lite och kontrollera att processen startade
+# Wait a moment and check that the process started
 sleep 3
 if kill -0 "${FLASK_PID}" 2>/dev/null; then
     echo "✅ Dashboard startad framgångsrikt!"
@@ -103,7 +103,7 @@ else
     exit 1
 fi
 
-# Logga framgångsrik start
+# Log successful start
 echo "✅ Dashboard startad framgångsrikt (PID: ${FLASK_PID})" >> "${LOG_FILE}"
 echo "=========================================" >> "${LOG_FILE}"
 

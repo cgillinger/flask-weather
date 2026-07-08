@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 Flask Weather Dashboard - Modern Web Implementation
-FAS 2: VILLKORSSTYRD NETATMO-FUNKTIONALITET för oberoende drift
-+ TRYCKTREND: API-stöd för trycktrend-funktionalitet
-+ CONFIG.PY: Migrerad från JSON till Python config med riktiga kommentarer
-+ INTELLIGENT DATAHANTERING: Automatisk fallback till SMHI-only läge
-+ FAS 2: SMHI LUFTFUKTIGHET: Integration av luftfuktighetsdata från SMHI observations-API
-+ WEATHEREFFECTS: FAS 2 - API-stöd för WeatherEffects-konfiguration och SMHI-integration
-+ FAS 3: UV-INDEX - Integration av CAMS UV-data via ADS API
+PHASE 2: CONDITIONAL NETATMO FUNCTIONALITY for independent operation
++ PRESSURE TREND: API support for pressure-trend functionality
++ CONFIG.PY: Migrated from JSON to Python config with real comments
++ INTELLIGENT DATA HANDLING: Automatic fallback to SMHI-only mode
++ PHASE 2: SMHI HUMIDITY: Integration of humidity data from the SMHI observations API
++ WEATHEREFFECTS: PHASE 2 - API support for WeatherEffects configuration and SMHI integration
++ PHASE 3: UV INDEX - Integration of CAMS UV data via the ADS API
 """
 
 __version__ = '3.2.4'
@@ -22,17 +22,17 @@ import threading
 import time
 from typing import Dict, List, Optional
 
-# Lägg till rätt data-katalog i Python path för import av API-klienter
+# Add the data directory to the Python path so the API clients can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), 'reference', 'data'))
 
 try:
     from smhi_client import SMHIClient
-    from yr_client import YRClient  # PROJEKT WEATHERPROVIDER: YR/met.no
-    from open_meteo_client import OpenMeteoClient  # PROJEKT WEATHERPROVIDER: Open-Meteo (global)
+    from yr_client import YRClient  # PROJECT WEATHERPROVIDER: YR/met.no
+    from open_meteo_client import OpenMeteoClient  # PROJECT WEATHERPROVIDER: Open-Meteo (global)
     from netatmo_client import NetatmoClient
     from utils import SunCalculator, get_weather_icon_unicode_char, get_weather_description_short
-    from cams_uv_client import CAMSUVClient  # FAS 3: UV-integration
-    from air_quality_client import get_outdoor_air_quality  # Utomhus-luftkvalitet (SMHI-station + CAMS-fallback)
+    from cams_uv_client import CAMSUVClient  # PHASE 3: UV integration
+    from air_quality_client import get_outdoor_air_quality  # Outdoor air quality (SMHI station + CAMS fallback)
 except ImportError as e:
     print(f"❌ Import fel: {e}")
     print("🔧 Kontrollera att reference/data/ finns och innehåller smhi_client.py m.fl.")
@@ -43,7 +43,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
 
 def _read_asset_version():
-    """Läs versionsnummer för cache-busting av statiska filer."""
+    """Read the version number used for cache-busting static files."""
     try:
         with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r', encoding='utf-8') as f:
             return f.read().strip()
@@ -56,16 +56,16 @@ ASSET_VERSION = _read_asset_version()
 def inject_asset_version():
     return {'asset_version': ASSET_VERSION}
 
-# Skyddar weather_state: tre uppdateringstrådar skriver samtidigt som
-# Flask-routes läser från flera request-trådar
+# Protects weather_state: three update threads write while Flask routes
+# read from multiple request threads
 state_lock = threading.RLock()
 
 def state_snapshot():
-    """Konsistent ögonblicksbild av weather_state för läsning i routes."""
+    """Consistent snapshot of weather_state for reading in routes."""
     with state_lock:
         return dict(weather_state)
 
-# Global state för weather data
+# Global state for weather data
 weather_state = {
     'smhi_data': None,
     'netatmo_data': None,
@@ -76,38 +76,38 @@ weather_state = {
     'config': None,
     'status': 'Startar...',
 
-    # FAS 2: Netatmo-state tracking
-    'use_netatmo': True,        # Läses från config
-    'netatmo_available': False, # Spårar om Netatmo faktiskt fungerar
+    # PHASE 2: Netatmo state tracking
+    'use_netatmo': True,        # Read from config
+    'netatmo_available': False, # Tracks whether Netatmo actually works
 
-    # FAS 2: WeatherEffects state tracking
-    'weather_effects_enabled': False,  # Läses från config
-    'weather_effects_config': None,     # Cachad WeatherEffects-konfiguration
+    # PHASE 2: WeatherEffects state tracking
+    'weather_effects_enabled': False,  # Read from config
+    'weather_effects_config': None,     # Cached WeatherEffects configuration
 
-    # FAS 3: UV-index state tracking
-    'uv_enabled': False,        # Läses från config
-    'uv_data': None,           # Cachad UV-data från CAMS
+    # PHASE 3: UV index state tracking
+    'uv_enabled': False,        # Read from config
+    'uv_data': None,           # Cached UV data from CAMS
 
-    # Luftkvalitet: läge + cachad utomhusdata (SMHI-station -> CAMS-fallback)
+    # Air quality: mode + cached outdoor data (SMHI station -> CAMS fallback)
     'air_quality_mode': 'both',      # 'indoor' | 'outdoor' | 'both'
-    'air_quality_outdoor': None      # Cachad utomhus-AQI
+    'air_quality_outdoor': None      # Cached outdoor AQI
 }
 
-# API clients (initialiseras villkorsstyrt i init_api_clients)
+# API clients (initialized conditionally in init_api_clients)
 smhi_client = None
 netatmo_client = None
 sun_calculator = None
-uv_client = None  # FAS 3: UV-client
+uv_client = None  # PHASE 3: UV client
 
 def load_config():
-    """Ladda konfiguration från config.py med riktiga Python-kommentarer."""
+    """Load configuration from config.py, which has real Python comments."""
     try:
-        # Lägg till reference-katalogen i Python path
+        # Add the reference directory to the Python path
         reference_path = os.path.join(os.path.dirname(__file__), 'reference')
         if reference_path not in sys.path:
             sys.path.insert(0, reference_path)
 
-        # Importera CONFIG från config.py
+        # Import CONFIG from config.py
         from config import CONFIG
 
         print(f"✅ Konfiguration laddad från config.py")
@@ -115,12 +115,12 @@ def load_config():
         print(f"🌬️ Vindenheter: {CONFIG['ui']['wind_unit']}")
         print(f"🎨 Tema: {CONFIG['ui']['theme']}")
 
-        # FAS 2: Läs use_netatmo från config
+        # PHASE 2: Read use_netatmo from config
         use_netatmo = CONFIG.get('use_netatmo', True)
         weather_state['use_netatmo'] = use_netatmo
         print(f"🧠 FAS 2: Netatmo-läge: {'AKTIVT' if use_netatmo else 'INAKTIVT (SMHI-only)'}")
 
-        # FAS 2: WeatherEffects config-läsning
+        # PHASE 2: Read WeatherEffects config
         weather_effects_config = CONFIG.get('weather_effects', {})
         weather_effects_enabled = weather_effects_config.get('enabled', False)
         weather_state['weather_effects_enabled'] = weather_effects_enabled
@@ -133,7 +133,7 @@ def load_config():
             intensity = weather_effects_config.get('intensity', 'auto')
             print(f"   🌧️ Regn: {rain_count} droppar, ❄️ Snö: {snow_count} flingor, 🎚️ Intensitet: {intensity}")
 
-        # FAS 3: UV config-läsning
+        # PHASE 3: Read UV config
         uv_config = CONFIG.get('cams_uv', {})
         uv_enabled = uv_config.get('enabled', False)
         weather_state['uv_enabled'] = uv_enabled
@@ -144,7 +144,7 @@ def load_config():
             update_time = uv_config.get('update_time', '01:00')
             print(f"   💾 Cache: {cache_dir}/uv_cache.json | ⏰ Uppdatering: {update_time}")
 
-        # Luftkvalitet: läge (indoor/outdoor/both). Default 'both'.
+        # Air quality: mode (indoor/outdoor/both). Default 'both'.
         aq_config = CONFIG.get('air_quality', {})
         aq_mode = str(aq_config.get('mode', 'both')).lower()
         if aq_mode not in ('indoor', 'outdoor', 'both'):
@@ -158,7 +158,7 @@ def load_config():
         print(f"❌ Kunde inte importera config.py: {e}")
         print("🔧 Kontrollera att reference/config.py finns och har giltigt CONFIG dict")
 
-        # Fallback till JSON om config.py inte finns
+        # Fall back to JSON if config.py does not exist
         print("🔄 Försöker fallback till config.json...")
         return load_config_json_fallback()
 
@@ -167,7 +167,7 @@ def load_config():
         return None
 
 def load_config_json_fallback():
-    """Fallback för att läsa config.json om config.py inte fungerar."""
+    """Fallback that reads config.json if config.py does not work."""
     config_path = os.path.join(os.path.dirname(__file__), 'reference', 'config.json')
 
     try:
@@ -177,15 +177,15 @@ def load_config_json_fallback():
         print(f"⚠️ Fallback: Konfiguration laddad från {config_path}")
         print("💡 TIP: Skapa reference/config.py för bättre kommentarer!")
 
-        # FAS 2: Fallback till False för weather_effects om det saknas i JSON
+        # PHASE 2: Fall back to False for weather_effects if missing in the JSON
         weather_state['use_netatmo'] = config.get('use_netatmo', True)
         weather_state['weather_effects_enabled'] = config.get('weather_effects', {}).get('enabled', False)
         weather_state['weather_effects_config'] = config.get('weather_effects', {})
 
-        # FAS 3: Fallback för UV
+        # PHASE 3: Fallback for UV
         weather_state['uv_enabled'] = config.get('cams_uv', {}).get('enabled', False)
 
-        # Luftkvalitet-läge (fallback)
+        # Air quality mode (fallback)
         _aq_mode = str(config.get('air_quality', {}).get('mode', 'both')).lower()
         weather_state['air_quality_mode'] = _aq_mode if _aq_mode in ('indoor', 'outdoor', 'both') else 'both'
 
@@ -205,15 +205,15 @@ def load_config_json_fallback():
 
 def validate_weather_effects_config(config_data):
     """
-    FAS 2: Validera WeatherEffects-konfiguration med robust error handling.
+    PHASE 2: Validate the WeatherEffects configuration with robust error handling.
 
     Args:
-        config_data (dict): WeatherEffects-konfiguration från config.py
+        config_data (dict): WeatherEffects configuration from config.py
 
     Returns:
-        dict: Validerad konfiguration med fallback-värden
+        dict: Validated configuration with fallback values
     """
-    # Default-konfiguration (MagicMirror-kompatibel)
+    # Default configuration (MagicMirror-compatible)
     default_config = {
         'enabled': False,
         'intensity': 'auto',
@@ -247,27 +247,27 @@ def validate_weather_effects_config(config_data):
         print("⚠️ Ogiltig WeatherEffects-config, använder default")
         return default_config
 
-    # Deep merge med default config
+    # Deep merge with the default config
     validated_config = default_config.copy()
 
-    # Validera top-level properties
+    # Validate top-level properties
     for key, default_value in default_config.items():
         if key in config_data:
             if isinstance(default_value, dict):
-                # Deep merge för nested objects
+                # Deep merge for nested objects
                 validated_config[key] = {**default_value, **config_data.get(key, {})}
             else:
                 validated_config[key] = config_data[key]
 
-    # Validera specifika värden
+    # Validate specific values
     try:
-        # Intensitet
+        # Intensity
         valid_intensities = ['auto', 'light', 'medium', 'heavy']
         if validated_config['intensity'] not in valid_intensities:
             print(f"⚠️ Ogiltig intensitet '{validated_config['intensity']}', använder 'auto'")
             validated_config['intensity'] = 'auto'
 
-        # Rain config validering
+        # Rain config validation
         rain_config = validated_config['rain_config']
         rain_config['droplet_count'] = max(10, min(100, int(rain_config.get('droplet_count', 50))))
         rain_config['droplet_speed'] = max(0.5, min(5.0, float(rain_config.get('droplet_speed', 2.0))))
@@ -276,18 +276,18 @@ def validate_weather_effects_config(config_data):
         if rain_config.get('wind_direction') not in valid_wind_directions:
             rain_config['wind_direction'] = 'none'
 
-        # Snow config validering
+        # Snow config validation
         snow_config = validated_config['snow_config']
         snow_config['flake_count'] = max(10, min(50, int(snow_config.get('flake_count', 25))))
         snow_config['min_size'] = max(0.5, min(2.0, float(snow_config.get('min_size', 0.8))))
         snow_config['max_size'] = max(1.0, min(3.0, float(snow_config.get('max_size', 1.5))))
         snow_config['speed'] = max(0.5, min(2.0, float(snow_config.get('speed', 1.0))))
 
-        # Säkerställ att max_size >= min_size
+        # Ensure that max_size >= min_size
         if snow_config['max_size'] < snow_config['min_size']:
             snow_config['max_size'] = snow_config['min_size'] + 0.5
 
-        # Characters validering
+        # Characters validation
         if not isinstance(snow_config.get('characters'), list) or len(snow_config['characters']) == 0:
             snow_config['characters'] = ['*', '+']
 
@@ -304,13 +304,13 @@ def validate_weather_effects_config(config_data):
 
 def get_smhi_weather_effect_type(weather_symbol):
     """
-    FAS 2: Konvertera SMHI weather symbol till WeatherEffects-typ.
+    PHASE 2: Convert an SMHI weather symbol to a WeatherEffects type.
 
     Args:
-        weather_symbol (int): SMHI vädersymbol (1-27)
+        weather_symbol (int): SMHI weather symbol (1-27)
 
     Returns:
-        str: WeatherEffects-typ ('rain', 'snow', 'sleet', 'thunder', 'clear')
+        str: WeatherEffects type ('rain', 'snow', 'sleet', 'thunder', 'clear')
     """
     if not isinstance(weather_symbol, (int, float)) or weather_symbol < 1 or weather_symbol > 27:
         return 'clear'
@@ -318,41 +318,47 @@ def get_smhi_weather_effect_type(weather_symbol):
     symbol = int(weather_symbol)
 
     # SMHI symbol mapping
-    if symbol in [8, 9, 10, 18, 19, 20]:          # Regnskurar och regn
+    if symbol in [8, 9, 10, 18, 19, 20]:          # Rain showers and rain
         return 'rain'
-    elif symbol in [15, 16, 17, 25, 26, 27]:      # Snöbyar och snöfall
+    elif symbol in [15, 16, 17, 25, 26, 27]:      # Snow showers and snowfall
         return 'snow'
-    elif symbol in [12, 13, 14, 22, 23, 24]:      # Snöblandat regn
+    elif symbol in [12, 13, 14, 22, 23, 24]:      # Sleet (mixed rain/snow)
         return 'sleet'
-    elif symbol in [11, 21]:                      # Åska
+    elif symbol in [11, 21]:                      # Thunder
         return 'thunder'
-    else:                                         # Klart väder (1-7)
+    else:                                         # Clear weather (1-7)
         return 'clear'
 
 
 def get_intelligent_weather_effect_type(weather_symbol, netatmo_data=None, smhi_temperature=None):
     """
-    SMART WEATHEREFFECTS: Intelligent beslut baserat på Netatmo-mätning + SMHI-prognos.
+    SMART WEATHEREFFECTS: Intelligent decision based on Netatmo measurement + SMHI forecast.
 
-    Logik:
-    - REGN: Bara om Netatmo faktiskt mäter nederbörd (ground truth)
-    - SNÖ: Lita på SMHI + temperaturkontroll (Netatmo kan inte mäta snö)
-    - SMHI-only: Använd SMHI-prognos som fallback
+    Logic:
+    - RAIN: Only if Netatmo actually measures precipitation (ground truth)
+    - SNOW: Trust SMHI + temperature check (Netatmo cannot measure snow)
+    - SMHI-only: Use the SMHI forecast as fallback
 
     Args:
-        weather_symbol (int): SMHI vädersymbol (1-27)
-        netatmo_data (dict): Netatmo-data med regnmätning
-        smhi_temperature (float): Aktuell temperatur för snökontroll
+        weather_symbol (int): SMHI weather symbol (1-27)
+        netatmo_data (dict): Netatmo data including rain measurement
+        smhi_temperature (float): Current temperature for the snow check
 
     Returns:
-        str: WeatherEffects-typ ('rain', 'snow', 'sleet', 'thunder', 'clear')
+        str: WeatherEffects type ('rain', 'snow', 'sleet', 'thunder', 'clear')
+
+    NOTE: The result is only exposed via /api/weather-effects-config
+    (smhi_integration.effect_type) and /api/weather-effects-debug. The dashboard
+    frontend currently ignores it and makes its own effect decision in
+    updateWeatherEffects() (static/js/dashboard-views/current-weather-view.js).
+    Do not remove this function without also updating those endpoints.
     """
-    # Hämta SMHI-baserad effekttyp
+    # Get the SMHI-based effect type
     smhi_effect = get_smhi_weather_effect_type(weather_symbol)
 
-    # === SNÖ-LOGIK: Lita på SMHI (Netatmo kan inte mäta snö) ===
+    # === SNOW LOGIC: Trust SMHI (Netatmo cannot measure snow) ===
     if smhi_effect in ['snow', 'sleet']:
-        # Kontrollera temperatur för att verifiera snö
+        # Check the temperature to verify snow
         if smhi_temperature is not None and smhi_temperature < 2.0:
             print(f"❄️ Snö-effekt aktiverad: SMHI säger snö, temp {smhi_temperature}°C (Netatmo kan inte mäta)")
             return smhi_effect
@@ -361,56 +367,56 @@ def get_intelligent_weather_effect_type(weather_symbol, netatmo_data=None, smhi_
             print(f"⚠️ SMHI säger snö men temp {temp_str} - för varmt, använder 'clear'")
             return 'clear'
 
-    # === ÅSKA-LOGIK: Lita på SMHI (Netatmo har inte åskdetektor) ===
+    # === THUNDER LOGIC: Trust SMHI (Netatmo has no thunder detector) ===
     if smhi_effect == 'thunder':
         print(f"⚡ Åsk-effekt aktiverad: SMHI säger åska")
         return 'thunder'
 
-    # === REGN-LOGIK: Netatmo är ground truth ===
+    # === RAIN LOGIC: Netatmo is ground truth ===
     if smhi_effect == 'rain':
-        # Kontrollera om vi har Netatmo-data
+        # Check whether we have Netatmo data
         if netatmo_data is None:
-            # SMHI-only läge: Lita på SMHI-prognos
+            # SMHI-only mode: trust the SMHI forecast
             print(f"🌧️ Regn-effekt aktiverad: SMHI-only läge (ingen Netatmo)")
             return 'rain'
 
-        # Netatmo tillgänglig: Kontrollera faktisk nederbörd
+        # Netatmo available: check actual precipitation
         rain_measured = netatmo_data.get('rain', 0) or 0
         rain_1h = netatmo_data.get('rain_sum_1', 0) or 0
 
         if rain_measured > 0 or rain_1h > 0:
-            # FAKTISKT REGN mätt av Netatmo
+            # ACTUAL RAIN measured by Netatmo
             print(f"🌧️ Regn-effekt aktiverad: Netatmo mäter {rain_measured} mm (1h: {rain_1h} mm)")
             return 'rain'
         else:
-            # INGET REGN enligt Netatmo trots SMHI-prognos
+            # NO RAIN according to Netatmo despite the SMHI forecast
             print(f"⛅ Regn-effekt INAKTIVERAD: SMHI säger regn men Netatmo mäter 0 mm (ground truth)")
             return 'clear'
 
-    # === KLART VÄDER ===
+    # === CLEAR WEATHER ===
     print(f"☀️ Ingen vädereffekt: SMHI symbol {weather_symbol} → '{smhi_effect}'")
     return 'clear'
 
 
 def init_api_clients(config):
-    """FAS 2+3: Villkorsstyrd initialisering av API-klienter."""
+    """PHASE 2+3: Conditional initialization of API clients."""
     global smhi_client, netatmo_client, sun_calculator, uv_client
 
     use_netatmo = weather_state['use_netatmo']
-    use_uv = weather_state['uv_enabled']  # FAS 3
+    use_uv = weather_state['uv_enabled']  # PHASE 3
 
     try:
-        # Väderleverantör (alltid obligatorisk). PROJEKT WEATHERPROVIDER:
-        # väljs med 'weather_provider' i config ('smhi' | 'yr'), SMHI är
-        # default. Alla leverantörer delar SMHIClients publika gränssnitt
-        # och normaliserar sina symboler till SMHI-skalan 1-27, så resten
-        # av systemet (API-kontrakt, ikoner, WeatherEffects) är opåverkat.
-        # Koordinaterna läses ur smhi-blocket oavsett leverantör.
+        # Weather provider (always required). PROJECT WEATHERPROVIDER:
+        # selected via 'weather_provider' in config ('smhi' | 'yr'); SMHI is
+        # the default. All providers share SMHIClient's public interface
+        # and normalize their symbols to the SMHI 1-27 scale, so the rest
+        # of the system (API contract, icons, WeatherEffects) is unaffected.
+        # Coordinates are read from the smhi block regardless of provider.
         WEATHER_PROVIDERS = {
             'smhi': SMHIClient,
             'yr': YRClient,
             'open-meteo': OpenMeteoClient,
-            'openmeteo': OpenMeteoClient,  # alias utan bindestreck
+            'openmeteo': OpenMeteoClient,  # alias without the hyphen
         }
         provider_name = str(config.get('weather_provider', 'smhi')).lower()
         provider_class = WEATHER_PROVIDERS.get(provider_name)
@@ -422,7 +428,7 @@ def init_api_clients(config):
         smhi_client = provider_class(smhi_lat, smhi_lon)
         print(f"✅ Väderleverantör {provider_class.DATA_SOURCE} initierad för {smhi_lat}, {smhi_lon}")
 
-        # FAS 2: Villkorsstyrd Netatmo Client
+        # PHASE 2: Conditional Netatmo client
         if use_netatmo:
             try:
                 netatmo_config = config['netatmo']
@@ -439,18 +445,18 @@ def init_api_clients(config):
                 print("🔄 FAS 2: Fortsätter i SMHI-only läge")
                 netatmo_client = None
                 weather_state['netatmo_available'] = False
-                # Behåll use_netatmo=True men markera som otillgänglig
+                # Keep use_netatmo=True but mark as unavailable
         else:
             netatmo_client = None
             weather_state['netatmo_available'] = False
             print("📊 FAS 2: Netatmo INAKTIVERAT i config - kör SMHI-only läge")
 
-        # Sun Calculator (alltid obligatorisk)
+        # Sun calculator (always required)
         api_key = config.get('ipgeolocation', {}).get('api_key', '').strip() or None
         sun_calculator = SunCalculator(api_key)
         print(f"✅ Sol-kalkylator initierad ({'API' if api_key else 'Fallback'})")
 
-        # FAS 3: Villkorsstyrd UV Client
+        # PHASE 3: Conditional UV client
         if use_uv:
             try:
                 uv_config = config.get('cams_uv', {})
@@ -465,14 +471,14 @@ def init_api_clients(config):
             uv_client = None
             print("📊 FAS 3: UV-index INAKTIVERAT i config (cams_uv.enabled=False)")
 
-        # FAS 2: WeatherEffects sammanfattning
+        # PHASE 2: WeatherEffects summary
         if weather_state['weather_effects_enabled']:
             effect_config = weather_state['weather_effects_config']
             rain_count = effect_config.get('rain_config', {}).get('droplet_count', 50)
             snow_count = effect_config.get('snow_config', {}).get('flake_count', 25)
             print(f"🌦️ WeatherEffects aktiverat - Regn: {rain_count}, Snö: {snow_count}")
 
-        # FAS 2+3: Sammanfattning av initialiserat läge
+        # PHASE 2+3: Summary of the initialized mode
         mode_summary = "SMHI + Netatmo" if weather_state['netatmo_available'] else "SMHI-only"
         effects_summary = " + WeatherEffects" if weather_state['weather_effects_enabled'] else ""
         uv_summary = " + UV" if use_uv and uv_client else ""
@@ -485,7 +491,7 @@ def init_api_clients(config):
         return False
 
 def update_weather_data():
-    """FAS 2+3: Uppdatera väderdata med villkorsstyrd Netatmo-hantering + SMHI luftfuktighet + UV."""
+    """PHASE 2+3: Update weather data with conditional Netatmo handling + SMHI humidity + UV."""
     global weather_state
 
     try:
@@ -493,10 +499,10 @@ def update_weather_data():
 
         smhi_ok = False
 
-        # FAS 2: SMHI data med luftfuktighet (alltid obligatorisk)
+        # PHASE 2: SMHI data with humidity (always required)
         if smhi_client:
             try:
-                # FAS 2: KRITISK ÄNDRING - Använd get_current_weather_with_humidity() istället för get_current_weather()
+                # PHASE 2: CRITICAL CHANGE - use get_current_weather_with_humidity() instead of get_current_weather()
                 smhi_data = smhi_client.get_current_weather_with_humidity()
                 forecast_data = smhi_client.get_12h_forecast()
                 daily_forecast_data = smhi_client.get_daily_forecast(5)
@@ -517,7 +523,7 @@ def update_weather_data():
                     else:
                         print("⚠️ FAS 2: SMHI-data uppdaterad men ingen luftfuktighet tillgänglig")
 
-                    # FAS 2: WeatherEffects debugging
+                    # PHASE 2: WeatherEffects debugging
                     if weather_state['weather_effects_enabled'] and smhi_data.get('weather_symbol'):
                         weather_symbol = smhi_data['weather_symbol']
                         effect_type = get_smhi_weather_effect_type(weather_symbol)
@@ -530,14 +536,14 @@ def update_weather_data():
                 import traceback
                 traceback.print_exc()
 
-        # FAS 2: Villkorsstyrd Netatmo-uppdatering
+        # PHASE 2: Conditional Netatmo update
         if netatmo_client and weather_state['netatmo_available']:
             try:
                 netatmo_data = netatmo_client.get_current_weather()
                 with state_lock:
                     weather_state['netatmo_data'] = netatmo_data
 
-                # Logga trycktrend om tillgänglig
+                # Log the pressure trend if available
                 if netatmo_data and 'pressure_trend' in netatmo_data:
                     trend_data = netatmo_data['pressure_trend']
                     print(f"✅ FAS 2: Netatmo-data uppdaterad - Trycktrend: {trend_data.get('trend', 'n/a')} ({trend_data.get('analysis_quality', 'poor')})")
@@ -553,7 +559,7 @@ def update_weather_data():
             if weather_state['use_netatmo']:
                 print("📊 FAS 2: Netatmo ej tillgänglig - kör SMHI-only läge")
 
-        # FAS 3: Villkorsstyrd UV-uppdatering
+        # PHASE 3: Conditional UV update
         if uv_client and weather_state['uv_enabled']:
             try:
                 uv_data = uv_client.get_uv_index()
@@ -572,8 +578,8 @@ def update_weather_data():
             with state_lock:
                 weather_state['uv_data'] = None
 
-        # Utomhus-luftkvalitet (SMHI-station i första hand, CAMS globalt som fallback).
-        # Klienten cachar 1h internt, så det är billigt att anropa varje uppdateringscykel.
+        # Outdoor air quality (SMHI station first, global CAMS as fallback).
+        # The client caches for 1h internally, so calling it every update cycle is cheap.
         aq_mode = weather_state['air_quality_mode']
         if aq_mode in ('outdoor', 'both') and smhi_client:
             try:
@@ -593,7 +599,7 @@ def update_weather_data():
             with state_lock:
                 weather_state['air_quality_outdoor'] = None
 
-        # Soltider
+        # Sun times
         if sun_calculator and smhi_client:
             sun_data = sun_calculator.get_sun_times(
                 smhi_client.latitude,
@@ -602,8 +608,8 @@ def update_weather_data():
             with state_lock:
                 weather_state['sun_data'] = sun_data
 
-        # Ärlig status: last_update bumpas bara när kärndatan (SMHI) faktiskt
-        # hämtades, så att frontend kan upptäcka stale data
+        # Honest status: last_update is only bumped when the core data (SMHI)
+        # was actually fetched, so the frontend can detect stale data
         with state_lock:
             if smhi_ok:
                 weather_state['last_update'] = datetime.now().isoformat()
@@ -618,7 +624,7 @@ def update_weather_data():
 
 
 def get_current_theme():
-    """Hämta aktuellt tema baserat på config och tid."""
+    """Get the current theme based on config and time of day."""
     if not weather_state['config']:
         return 'dark'
 
@@ -632,7 +638,7 @@ def get_current_theme():
         now = datetime.now()
         current_time = now.strftime('%H:%M')
 
-        # Enkel tid-jämförelse
+        # Simple time comparison
         if night_start <= current_time or current_time < night_end:
             return auto_config.get('night_theme', 'dark')
         else:
@@ -643,29 +649,29 @@ def get_current_theme():
 
 def create_smhi_pressure_trend_fallback(smhi_data, forecast_data=None):
     """
-    Trycktrend-fallback när Netatmos egen mätserie är för kort för en riktig
-    3h-analys (bara strax efter omstart/lucka). Använder väderleverantörens
-    PROGNOSTISERADE tryck som en ÄKTA tendens (Δ tryck kommande 3h) istället för
-    att gissa utifrån vädersymbolen. Ger alltid ett verkligt värde – aldrig
-    "samlar data".
+    Pressure-trend fallback for when Netatmo's own measurement series is too
+    short for a real 3h analysis (only right after a restart/gap). Uses the
+    weather provider's FORECASTED pressure as a REAL tendency (Δ pressure over
+    the coming 3h) instead of guessing from the weather symbol. Always yields
+    an actual value - never "collecting data".
 
-    Provider-agnostisk: alla leverantörer (SMHI/YR/Open-Meteo) delar samma
-    gränssnitt och fyller 'pressure' i både current- och prognosdata, så samma
-    beräkning fungerar oavsett 'weather_provider' i config.
+    Provider-agnostic: all providers (SMHI/YR/Open-Meteo) share the same
+    interface and fill 'pressure' in both current and forecast data, so the
+    same calculation works regardless of 'weather_provider' in config.
 
-    Tröskelvärdena matchar Netatmo-analysens svenska 3h-metodik så att fallbacken
-    och den riktiga trenden klassas på samma sätt.
+    The thresholds match the Netatmo analysis' Swedish 3h methodology so the
+    fallback and the real trend are classified the same way.
 
     Args:
-        smhi_data (dict): Väderdata från leverantören (innehåller 'pressure')
-        forecast_data (list): 12h-prognos (3h-steg, varje post har 'pressure')
+        smhi_data (dict): Weather data from the provider (contains 'pressure')
+        forecast_data (list): 12h forecast (3h steps, each entry has 'pressure')
 
     Returns:
-        dict: Trycktrend i samma format som Netatmo-trenden (trend/trend5/...)
+        dict: Pressure trend in the same format as the Netatmo trend (trend/trend5/...)
     """
     def _no_trend(source):
-        # Sista utväg om inte ens prognostryck finns (t.ex. leverantören nere):
-        # var ärlig med n/a i stället för att gissa.
+        # Last resort if not even forecast pressure exists (e.g. provider down):
+        # be honest with n/a instead of guessing.
         return {
             'trend': 'n/a',
             'trend5': 'unknown',
@@ -684,7 +690,7 @@ def create_smhi_pressure_trend_fallback(smhi_data, forecast_data=None):
     if current_pressure is None:
         return _no_trend('forecast')
 
-    # Första prognospunkten (+3h). 12h-prognosen har 3h-steg hos alla leverantörer.
+    # First forecast point (+3h). The 12h forecast has 3h steps for all providers.
     next_pressure = None
     for entry in (forecast_data or []):
         if isinstance(entry, dict) and entry.get('pressure') is not None:
@@ -694,10 +700,10 @@ def create_smhi_pressure_trend_fallback(smhi_data, forecast_data=None):
     if next_pressure is None:
         return _no_trend('forecast')
 
-    delta = next_pressure - current_pressure  # hPa över kommande 3h
+    delta = next_pressure - current_pressure  # hPa over the coming 3h
 
-    # Femgradig klassning – samma trösklar som Netatmos 3h-metodik:
-    # |Δ| < 0,5 = stabilt | 0,5–2,0 = stiger/faller | > 2,0 = snabbt
+    # Five-level classification - same thresholds as Netatmo's 3h methodology:
+    # |Δ| < 0.5 = stable | 0.5-2.0 = rising/falling | > 2.0 = fast
     step_threshold = 0.5
     fast_threshold = 2.0
     if delta < -fast_threshold:
@@ -732,24 +738,24 @@ def create_smhi_pressure_trend_fallback(smhi_data, forecast_data=None):
 
 def format_api_response_with_pressure_trend(netatmo_data, smhi_data, forecast_data=None):
     """
-    FAS 2: Formatera Netatmo-data för API-respons med intelligent trycktrend-hantering.
+    PHASE 2: Format Netatmo data for the API response with intelligent pressure-trend handling.
 
     Args:
-        netatmo_data (dict): Netatmo väderdata
-        smhi_data (dict): SMHI väderdata (för fallback)
+        netatmo_data (dict): Netatmo weather data
+        smhi_data (dict): SMHI weather data (for fallback)
 
     Returns:
-        dict: Formaterad data med trycktrend
+        dict: Formatted data including the pressure trend
     """
     if not netatmo_data:
         return None
 
-    # Kopiera all data
+    # Copy all data
     formatted_data = netatmo_data.copy()
 
-    # FAS 2: Intelligent trycktrend-hantering
+    # PHASE 2: Intelligent pressure-trend handling
     if 'pressure_trend' in netatmo_data and netatmo_data['pressure_trend']['trend'] != 'n/a':
-        # Netatmo trycktrend är tillgänglig och valid
+        # The Netatmo pressure trend is available and valid
         formatted_trend = {
             'trend': netatmo_data['pressure_trend']['trend'],
             'trend5': netatmo_data['pressure_trend'].get('trend5', netatmo_data['pressure_trend']['trend']),
@@ -762,7 +768,7 @@ def format_api_response_with_pressure_trend(netatmo_data, smhi_data, forecast_da
         formatted_data['pressure_trend'] = formatted_trend
         print(f"📊 FAS 2: API - Netatmo trycktrend: {formatted_trend['trend']} ({formatted_trend['analysis_quality']})")
     else:
-        # Använd prognosbaserad tendens om Netatmo-trend är n/a (uppvärmningsfönster)
+        # Use the forecast-based tendency when the Netatmo trend is n/a (warm-up window)
         smhi_fallback = create_smhi_pressure_trend_fallback(smhi_data, forecast_data)
         formatted_data['pressure_trend'] = smhi_fallback
         print(f"📊 FAS 2: API - Prognos-trycktrend (fallback): {smhi_fallback['trend']} (Δ3h {smhi_fallback.get('change')} hPa)")
@@ -779,23 +785,23 @@ def index():
 
     current_theme = get_current_theme()
 
-    # FAS 2+3: Tillhandahåll WeatherEffects och UV-status till template
+    # PHASE 2+3: Provide WeatherEffects and UV status to the template
     template_vars = {
         'location_name': location_name,
         'theme': current_theme,
         'weather_effects_enabled': weather_state['weather_effects_enabled'],
-        'uv_enabled': weather_state['uv_enabled']  # FAS 3
+        'uv_enabled': weather_state['uv_enabled']  # PHASE 3
     }
 
     return render_template('index.html', **template_vars)
 
 @app.route('/api/current')
 def api_current_weather():
-    """FAS 2+3: API endpoint för aktuell väderdata med intelligent Netatmo-hantering och UV."""
+    """PHASE 2+3: API endpoint for current weather data with intelligent Netatmo handling and UV."""
 
     state = state_snapshot()
 
-    # FAS 2: Villkorsstyrd Netatmo-formatering
+    # PHASE 2: Conditional Netatmo formatting
     formatted_netatmo = None
     if state['netatmo_data'] and state['netatmo_available']:
         formatted_netatmo = format_api_response_with_pressure_trend(
@@ -804,38 +810,38 @@ def api_current_weather():
             state['forecast_data']
         )
 
-    # FAS 2+3: Utökad config för frontend-intelligens
+    # PHASE 2+3: Extended config for frontend intelligence
     ui_config = None
     if state['config']:
         ui_config = {
             'wind_unit': state['config'].get('ui', {}).get('wind_unit', 'land'),
             'pressure_display': state['config'].get('ui', {}).get('pressure_display', 'numeric'),
-            'icon_pack': state['config'].get('ui', {}).get('icon_pack', 'weather-icons'),  # IKONPAKET: väderikonuppsättning
-            'icon_animations': state['config'].get('ui', {}).get('icon_animations', 'auto'),  # IKONANIMERINGAR: auto/all/hero/none
-            'icon_pack_rotation': state['config'].get('ui', {}).get('icon_pack_rotation', {'enabled': False}),  # IKONPAKETSROTATION: dag/vecka/månad
-            'language': state['config'].get('ui', {}).get('language', 'sv'),  # SPRÅK: UI-språk (sv/en/nb/...)
-            'use_netatmo': state['use_netatmo'],  # NYT: För frontend-detektering
-            'netatmo_available': state['netatmo_available'],  # NYT: Faktisk tillgänglighet
-            'weather_effects_enabled': state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status
-            'uv_enabled': state['uv_enabled']  # FAS 3: UV-status
+            'icon_pack': state['config'].get('ui', {}).get('icon_pack', 'weather-icons'),  # ICON PACK: weather icon set
+            'icon_animations': state['config'].get('ui', {}).get('icon_animations', 'auto'),  # ICON ANIMATIONS: auto/all/hero/none
+            'icon_pack_rotation': state['config'].get('ui', {}).get('icon_pack_rotation', {'enabled': False}),  # ICON PACK ROTATION: day/week/month
+            'language': state['config'].get('ui', {}).get('language', 'sv'),  # LANGUAGE: UI language (sv/en/nb/...)
+            'use_netatmo': state['use_netatmo'],  # NEW: for frontend detection
+            'netatmo_available': state['netatmo_available'],  # NEW: actual availability
+            'weather_effects_enabled': state['weather_effects_enabled'],  # PHASE 2: WeatherEffects status
+            'uv_enabled': state['uv_enabled']  # PHASE 3: UV status
         }
 
     response_data = {
-        'smhi': state['smhi_data'],  # FAS 2: Nu innehåller humidity från get_current_weather_with_humidity()
-        'netatmo': formatted_netatmo,  # Kan vara None i SMHI-only läge
+        'smhi': state['smhi_data'],  # PHASE 2: now includes humidity from get_current_weather_with_humidity()
+        'netatmo': formatted_netatmo,  # May be None in SMHI-only mode
         'sun': state['sun_data'],
         'last_update': state['last_update'],
         'theme': get_current_theme(),
         'status': state['status'],
         'config': ui_config,
-        # Luftkvalitet: läge + utomhusdata. Inomhus-CO2 läses ur netatmo-blocket ovan.
+        # Air quality: mode + outdoor data. Indoor CO2 is read from the netatmo block above.
         'air_quality': {
             'mode': state['air_quality_mode'],       # 'indoor' | 'outdoor' | 'both'
             'outdoor': state['air_quality_outdoor']  # {aqi,band,level,source,station_name,distance_km,...} | None
         }
     }
 
-    # FAS 2+3: Debug-logging för API-respons
+    # PHASE 2+3: Debug logging for the API response
     mode = "SMHI + Netatmo" if formatted_netatmo else "SMHI-only"
     effects = " + WeatherEffects" if state['weather_effects_enabled'] else ""
     uv = " + UV" if state['uv_enabled'] else ""
@@ -863,10 +869,10 @@ def api_daily_forecast():
 
 @app.route('/api/status')
 def api_status():
-    """FAS 2+3: API endpoint för systemstatus med Netatmo-info, WeatherEffects och UV."""
+    """PHASE 2+3: API endpoint for system status with Netatmo info, WeatherEffects and UV."""
     state = state_snapshot()
 
-    # FAS 2: Lägg till humidity-status
+    # PHASE 2: Add humidity status
     smhi_humidity_available = (
         state['smhi_data'] is not None and
         state['smhi_data'].get('humidity') is not None
@@ -878,20 +884,20 @@ def api_status():
         'theme': get_current_theme(),
         'config_loaded': state['config'] is not None,
         'smhi_active': smhi_client is not None,
-        'smhi_humidity_available': smhi_humidity_available,  # FAS 2: NYT - SMHI luftfuktighet tillgänglig
-        'netatmo_configured': state['use_netatmo'],  # FAS 2: Konfigurerat
-        'netatmo_active': state['netatmo_available'],  # FAS 2: Faktiskt tillgängligt
+        'smhi_humidity_available': smhi_humidity_available,  # PHASE 2: NEW - SMHI humidity available
+        'netatmo_configured': state['use_netatmo'],  # PHASE 2: configured
+        'netatmo_active': state['netatmo_available'],  # PHASE 2: actually available
         'sun_calc_active': sun_calculator is not None,
         'pressure_trend_available': (
             state['netatmo_data'] is not None and
             'pressure_trend' in state['netatmo_data'] and
             state['netatmo_data']['pressure_trend']['trend'] != 'n/a'
         ),
-        'system_mode': 'SMHI + Netatmo' if state['netatmo_available'] else 'SMHI-only',  # FAS 2: Systemläge
-        'weather_effects_enabled': state['weather_effects_enabled'],  # FAS 2: WeatherEffects-status
-        'weather_effects_config_loaded': state['weather_effects_config'] is not None,  # FAS 2: Config-status
-        'uv_enabled': state['uv_enabled'],  # FAS 3: UV-status
-        'uv_available': state['uv_data'] is not None  # FAS 3: UV-data tillgänglig
+        'system_mode': 'SMHI + Netatmo' if state['netatmo_available'] else 'SMHI-only',  # PHASE 2: system mode
+        'weather_effects_enabled': state['weather_effects_enabled'],  # PHASE 2: WeatherEffects status
+        'weather_effects_config_loaded': state['weather_effects_config'] is not None,  # PHASE 2: config status
+        'uv_enabled': state['uv_enabled'],  # PHASE 3: UV status
+        'uv_available': state['uv_data'] is not None  # PHASE 3: UV data available
     })
 
 @app.route('/api/theme')
@@ -903,7 +909,7 @@ def api_theme():
 
 @app.route('/api/pressure_trend')
 def api_pressure_trend():
-    """Dedikerad API endpoint för trycktrend-data (för debugging)."""
+    """Dedicated API endpoint for pressure-trend data (for debugging)."""
     state = state_snapshot()
 
     if not state['netatmo_data'] and not state['smhi_data']:
@@ -913,8 +919,8 @@ def api_pressure_trend():
             'system_mode': 'No data'
         })
 
-    # Intelligent trycktrend-respons: äkta Netatmo-trend när den finns,
-    # annars prognosbaserad tendens (samma logik som /api/current).
+    # Intelligent pressure-trend response: real Netatmo trend when available,
+    # otherwise forecast-based tendency (same logic as /api/current).
     netatmo_trend = None
     if state['netatmo_data'] and state['netatmo_available']:
         netatmo_trend = state['netatmo_data'].get('pressure_trend')
@@ -924,7 +930,7 @@ def api_pressure_trend():
         current_pressure = state['netatmo_data'].get('pressure')
         source = 'netatmo'
     else:
-        # Uppvärmningsfönster/ingen Netatmo: prognostendens (kommande 3h)
+        # Warm-up window/no Netatmo: forecast tendency (coming 3h)
         pressure_trend = create_smhi_pressure_trend_fallback(
             state['smhi_data'], state['forecast_data']
         )
@@ -943,29 +949,29 @@ def api_pressure_trend():
         'system_mode': 'SMHI + Netatmo' if state['netatmo_available'] else 'SMHI-only'
     })
 
-# === FAS 3: NYT API ENDPOINT FÖR UV-INDEX ===
+# === PHASE 3: NEW API ENDPOINT FOR UV INDEX ===
 
 @app.route('/api/uv')
 def api_uv():
     """
-    FAS 3: API endpoint för UV-index data från CAMS.
+    PHASE 3: API endpoint for UV index data from CAMS.
 
     Returns:
-        JSON: UV-index data med risknivå eller error
+        JSON: UV index data with risk level, or an error
     """
     try:
         print("☀️ FAS 3: UV API anropat")
 
         state = state_snapshot()
 
-        # Kontrollera om UV är aktiverat
+        # Check whether UV is enabled
         if not state['uv_enabled']:
             return jsonify({
                 'available': False,
                 'reason': 'UV-index inaktiverat i config'
             })
 
-        # Kontrollera om UV-data finns
+        # Check whether UV data exists
         if not state['uv_data']:
             return jsonify({
                 'available': False,
@@ -997,20 +1003,20 @@ def api_uv():
             'reason': f'Fel vid UV-hämtning: {str(e)}'
         })
 
-# === FAS 2: NYT API ENDPOINT FÖR WEATHEREFFECTS ===
+# === PHASE 2: NEW API ENDPOINT FOR WEATHEREFFECTS ===
 
 @app.route('/api/weather-effects-config')
 def api_weather_effects_config():
     """
-    FAS 2: API endpoint för WeatherEffects-konfiguration.
+    PHASE 2: API endpoint for the WeatherEffects configuration.
 
     Returns:
-        JSON: Validerad WeatherEffects-konfiguration för frontend
+        JSON: Validated WeatherEffects configuration for the frontend
     """
     try:
         print("🌦️ FAS 2: WeatherEffects config API anropat")
 
-        # Kontrollera att config är laddad
+        # Check that the config is loaded
         if not weather_state['config']:
             print("❌ FAS 2: Ingen huvudkonfiguration laddad")
             return jsonify({
@@ -1021,13 +1027,13 @@ def api_weather_effects_config():
 
         state = state_snapshot()
 
-        # Hämta WeatherEffects-konfiguration
+        # Get the WeatherEffects configuration
         raw_weather_effects_config = state.get('weather_effects_config', {})
 
-        # Validera konfigurationen
+        # Validate the configuration
         validated_config = validate_weather_effects_config(raw_weather_effects_config)
 
-        # Lägg till SMHI-integration data om SMHI-data finns
+        # Add SMHI integration data if SMHI data exists
         smhi_integration = {}
         if state['smhi_data']:
             weather_symbol = state['smhi_data'].get('weather_symbol')
@@ -1036,7 +1042,7 @@ def api_weather_effects_config():
             temperature = state['smhi_data'].get('temperature')
 
             if weather_symbol:
-                # INTELLIGENT BESLUT: Ta hänsyn till Netatmo-mätning
+                # INTELLIGENT DECISION: take the Netatmo measurement into account
                 netatmo_data = state.get('netatmo_data') if state.get('netatmo_available') else None
                 effect_type = get_intelligent_weather_effect_type(
                     weather_symbol,
@@ -1073,7 +1079,7 @@ def api_weather_effects_config():
 
 @app.route('/api/weather')
 def api_weather():
-    """Kombinerad API endpoint för all väderdata (inkl. WeatherEffects-info)."""
+    """Combined API endpoint for all weather data (incl. WeatherEffects info)."""
     state = state_snapshot()
     return jsonify({
         'current': state['smhi_data'],
@@ -1089,7 +1095,7 @@ def api_weather():
 
 @app.route('/api/weather-effects-debug')
 def api_weather_effects_debug():
-    """FAS 2: Debug endpoint för WeatherEffects troubleshooting."""
+    """PHASE 2: Debug endpoint for WeatherEffects troubleshooting."""
     state = state_snapshot()
 
     debug_info = {
@@ -1131,16 +1137,16 @@ def api_weather_effects_debug():
     return jsonify(debug_info)
 
 # ============================================================================
-# Här slutar del ett
+# End of part one
 # ============================================================================
 # ============================================================================
-# Här börjar del två
+# Start of part two
 # ============================================================================
 
 # === BACKGROUND TASKS ===
 
 def background_updater():
-    """Huvudloop för väderuppdateringar."""
+    """Main loop for weather updates."""
     if not weather_state['config']:
         return
 
@@ -1154,11 +1160,11 @@ def background_updater():
         try:
             update_weather_data()
         except Exception as e:
-            # Loopen får aldrig dö - då slutar all datauppdatering tyst
+            # The loop must never die - all data updates would silently stop
             print(f"❌ Oväntat fel i bakgrunds-uppdateraren: {e}")
 
 def netatmo_updater():
-    """FAS 2: Villkorsstyrd snabb loop för Netatmo-uppdateringar."""
+    """PHASE 2: Conditional fast loop for Netatmo updates."""
     if not weather_state['config'] or not weather_state['use_netatmo']:
         print("🔄 FAS 2: Netatmo-uppdaterare inaktiverad (use_netatmo=False)")
         return
@@ -1169,14 +1175,14 @@ def netatmo_updater():
     while True:
         time.sleep(netatmo_seconds)
 
-        # FAS 2: Kör bara om Netatmo är tillgängligt
+        # PHASE 2: Only run if Netatmo is available
         if netatmo_client and weather_state['netatmo_available']:
             try:
                 netatmo_data = netatmo_client.get_current_weather()
                 with state_lock:
                     weather_state['netatmo_data'] = netatmo_data
 
-                # Logga trycktrend-uppdatering
+                # Log the pressure-trend update
                 if netatmo_data and 'pressure_trend' in netatmo_data:
                     trend_data = netatmo_data['pressure_trend']
                     print(f"🔄 FAS 2: Netatmo snabb-uppdatering: {trend_data.get('trend', 'n/a')} - {trend_data.get('analysis_quality', 'poor')}")
@@ -1185,21 +1191,21 @@ def netatmo_updater():
 
             except Exception as e:
                 print(f"❌ FAS 2: Netatmo snabb-uppdatering fel: {e}")
-                # Behåll befintlig data men logga felet
+                # Keep the existing data but log the error
         else:
             print("🔄 FAS 2: Netatmo snabb-uppdaterare vilar (klient ej tillgänglig)")
 
 def uv_updater():
     """
-    FAS 3: Daglig UV-uppdaterare som kör kl. 01:00.
+    PHASE 3: Daily UV updater that runs at 01:00.
 
-    Uppdaterar UV-data från CAMS en gång per dygn.
+    Updates UV data from CAMS once per day.
     """
     if not weather_state['config'] or not weather_state['uv_enabled']:
         print("🔄 FAS 3: UV-uppdaterare inaktiverad (cams_uv.enabled=False)")
         return
 
-    # Hämta uppdateringstid från config
+    # Get the update time from config
     uv_config = weather_state['config'].get('cams_uv', {})
     update_time_str = uv_config.get('update_time', '01:00')  # Default: 01:00
 
@@ -1211,8 +1217,8 @@ def uv_updater():
 
     print(f"✅ FAS 3: UV-uppdaterare startad (daglig uppdatering kl. {update_hour:02d}:{update_minute:02d})")
 
-    # Initial hämtning om cache saknas - görs här i tråden (CAMS kan ta
-    # 60-180 s) så att Flask hinner börja lyssna på porten direkt vid start
+    # Initial fetch if the cache is missing - done here in the thread (CAMS can
+    # take 60-180 s) so Flask can start listening on the port right at startup
     cache_dir = uv_config.get('cache_dir', 'cache')
     cache_file = os.path.join(cache_dir, 'uv_cache.json')
     if uv_client and not os.path.exists(cache_file):
@@ -1229,28 +1235,29 @@ def uv_updater():
             print(f"⚠️ FAS 3: Initial UV-hämtning misslyckades: {e}")
 
     while True:
-        # Hela loopkroppen är skyddad: ett oväntat fel (t.ex. i tidsberäkningen)
-        # får inte döda tråden - då slutar UV-uppdateringarna tyst för alltid
+        # The entire loop body is protected: an unexpected error (e.g. in the
+        # time calculation) must not kill the thread - the UV updates would
+        # silently stop forever
         try:
             now = datetime.now()
 
-            # Beräkna nästa uppdateringstid
+            # Calculate the next update time
             next_update = now.replace(hour=update_hour, minute=update_minute, second=0, microsecond=0)
 
-            # Om tiden har passerat idag, schemalägg för imorgon
-            # (timedelta hanterar månads-/årsskiften korrekt)
+            # If the time has already passed today, schedule for tomorrow
+            # (timedelta handles month/year boundaries correctly)
             if now >= next_update:
                 next_update = next_update + timedelta(days=1)
 
-            # Beräkna väntetid
+            # Calculate the wait time
             wait_seconds = (next_update - now).total_seconds()
 
             print(f"⏰ FAS 3: Nästa UV-uppdatering: {next_update.strftime('%Y-%m-%d %H:%M:%S')} (om {wait_seconds/3600:.1f}h)")
 
-            # Vänta till uppdateringstid
+            # Wait until the update time
             time.sleep(wait_seconds)
 
-            # Kör uppdatering
+            # Run the update
             if uv_client and weather_state['uv_enabled']:
                 print(f"🔄 FAS 3: Daglig UV-uppdatering startar... ({datetime.now().strftime('%H:%M:%S')})")
                 uv_data = uv_client.get_uv_index()
@@ -1269,7 +1276,7 @@ def uv_updater():
 
         except Exception as e:
             print(f"❌ FAS 3: Fel i UV-uppdateraren: {e}")
-            time.sleep(3600)  # Backa en timme och försök igen
+            time.sleep(3600)  # Back off one hour and try again
 
 # === APP INITIALIZATION ===
 
@@ -1284,20 +1291,20 @@ def initialize_app():
 
     weather_state['config'] = config
 
-    # FAS 2+3: Fortsätt även om API-klienter delvis misslyckas
+    # PHASE 2+3: Continue even if API clients partially fail
     api_clients_ok = init_api_clients(config)
     if not api_clients_ok:
         print("⚠️ FAS 2+3: Vissa API-klienter misslyckades - fortsätter ändå")
 
-    # FAS 3: Initial UV-hämtning sker numera i uv_updater-tråden så att
-    # webbservern kan börja lyssna direkt (CAMS-hämtning kan ta 60-180 s)
+    # PHASE 3: The initial UV fetch now happens in the uv_updater thread so
+    # the web server can start listening immediately (CAMS fetch can take 60-180 s)
 
-    # FAS 2: Starta bakgrundstrådar villkorsstyrt
+    # PHASE 2: Start background threads conditionally
     bg_thread = threading.Thread(target=background_updater, daemon=True)
     bg_thread.start()
     print("✅ Bakgrunds-uppdaterare startad")
 
-    # FAS 2: Starta Netatmo-uppdaterare bara om aktiverat
+    # PHASE 2: Only start the Netatmo updater if enabled
     if weather_state['use_netatmo']:
         netatmo_thread = threading.Thread(target=netatmo_updater, daemon=True)
         netatmo_thread.start()
@@ -1305,7 +1312,7 @@ def initialize_app():
     else:
         print("📊 FAS 2: Netatmo-uppdaterare HOPPAS ÖVER (use_netatmo=False)")
 
-    # FAS 3: Starta UV-uppdaterare bara om aktiverat
+    # PHASE 3: Only start the UV updater if enabled
     if weather_state['uv_enabled']:
         uv_thread = threading.Thread(target=uv_updater, daemon=True)
         uv_thread.start()
@@ -1318,13 +1325,13 @@ def initialize_app():
     print("📱 Öppna: http://localhost:8036")
     print("🖥️ Chrome Kiosk: chromium-browser --kiosk --disable-infobars http://localhost:8036")
 
-    # FAS 2+3: Visa systemläge
+    # PHASE 2+3: Show the system mode
     mode = "SMHI + Netatmo" if weather_state['netatmo_available'] else "SMHI-only"
     effects = " + WeatherEffects" if weather_state['weather_effects_enabled'] else ""
     uv = " + UV" if weather_state['uv_enabled'] else ""
     print(f"🎯 Systemläge: {mode}{effects}{uv}")
 
-    # FAS 2: Visa WeatherEffects API endpoints
+    # PHASE 2: Show the WeatherEffects API endpoints
     if weather_state['weather_effects_enabled']:
         print(f"🌦️ WeatherEffects API: http://localhost:8036/api/weather-effects-config")
         effect_config = weather_state['weather_effects_config']
@@ -1333,13 +1340,13 @@ def initialize_app():
         intensity = effect_config.get('intensity', 'auto')
         print(f"   🌧️ Regn: {rain_count} droppar | ❄️ Snö: {snow_count} flingor | 🎚️ Intensitet: {intensity}")
 
-        # Debug endpoint om aktiverat
+        # Debug endpoint if enabled
         if effect_config.get('debug_logging'):
             print(f"🔧 WeatherEffects Debug: http://localhost:8036/api/weather-effects-debug")
     else:
         print(f"📊 WeatherEffects: INAKTIVERAT (weather_effects.enabled=False)")
 
-    # FAS 3: Visa UV API endpoints
+    # PHASE 3: Show the UV API endpoints
     if weather_state['uv_enabled']:
         print(f"☀️ UV-index API: http://localhost:8036/api/uv")
         uv_config = weather_state['config'].get('cams_uv', {})
@@ -1353,7 +1360,7 @@ def initialize_app():
     print(f"🌬️ Vindenheter: {config['ui']['wind_unit']} (redigerbart i reference/config.py)")
     print(f"🎨 Tema: {config['ui']['theme']} (mörkt tema rekommenderat)")
 
-    # FAS 2: Visa Netatmo-status
+    # PHASE 2: Show the Netatmo status
     if weather_state['use_netatmo']:
         if weather_state['netatmo_available']:
             print(f"✅ Netatmo: AKTIVT (med trycktrend)")
@@ -1373,7 +1380,7 @@ def initialize_app():
 if __name__ == '__main__':
     if initialize_app():
         try:
-            # Produktionsserver (Werkzeugs devserver är inte avsedd för 24/7-drift)
+            # Production server (Werkzeug's dev server is not intended for 24/7 operation)
             from waitress import serve
             print("🚀 Startar med waitress (produktionsserver)")
             serve(app, host='0.0.0.0', port=8036, threads=8)
@@ -1390,5 +1397,5 @@ if __name__ == '__main__':
         sys.exit(1)
 
 # ============================================================================
-# Här slutar del två
+# End of part two
 # ============================================================================

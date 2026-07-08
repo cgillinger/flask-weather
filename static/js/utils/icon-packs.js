@@ -1,30 +1,30 @@
 /**
  * @file icon-packs.js
- * @description Ikonpaketssystem: växla väderikonuppsättning via config (ui.icon_pack)
- * @dependencies WeatherIconRenderer (weather-icon-renderer.js) för font-rendering
+ * @description Icon pack system: switch weather icon set via config (ui.icon_pack)
+ * @dependencies WeatherIconRenderer (weather-icon-renderer.js) for font rendering
  *
- * Arkitektur:
- *   SMHI-symbol (1-27) ──► semantisk nyckel ──► aktivt pakets ikon (dag/natt)
+ * Architecture:
+ *   SMHI symbol (1-27) ──► semantic key ──► active pack's icon (day/night)
  *
- * SMHI_SEMANTIC_MAP är den ENDA platsen som tolkar SMHI-symbolnummer.
- * Varje paket mappar semantiska nycklar till sina egna ikoner och behöver
- * inte veta något om SMHI.
+ * SMHI_SEMANTIC_MAP is the ONLY place that interprets SMHI symbol numbers.
+ * Each pack maps semantic keys to its own icons and doesn't need
+ * to know anything about SMHI.
  *
- * Lägga till ett nytt paket:
- *   1. Lägg ikonfilerna under static/assets/icons/<paketnamn>/
- *      (inkludera paketets LICENSE-fil i mappen!)
- *   2. Lägg till en post i ICON_PACKS med type 'font' eller 'svg'
- *      och en ikon per semantisk nyckel ({day: ..., night: ...})
- *      - font: sätt baseClass (och länka paketets CSS i index.html)
- *      - svg:  sätt basePath (+ staticBasePath om paketet är animerat)
- *   3. Välj paketet med ui.icon_pack i reference/config.py
+ * Adding a new pack:
+ *   1. Put icon files under static/assets/icons/<packname>/
+ *      (include the pack's LICENSE file in the folder!)
+ *   2. Add an entry in ICON_PACKS with type 'font' or 'svg'
+ *      and one icon per semantic key ({day: ..., night: ...})
+ *      - font: set baseClass (and link the pack's CSS in index.html)
+ *      - svg:  set basePath (+ staticBasePath if the pack is animated)
+ *   3. Select the pack with ui.icon_pack in reference/config.py
  *
- * LICENSER: varje vendrat paket har sin licensfil i sin ikonmapp och
- * attribution i readme ("Ikonpaket och licenser"). OBS särskilt att
- * amedia-meteo är CC BY-NC-SA 4.0 (ENDAST icke-kommersiell användning).
+ * LICENSES: each vendored pack has its license file in its icon folder and
+ * attribution in readme ("Icon packs and licenses"). Note in particular that
+ * amedia-meteo is CC BY-NC-SA 4.0 (ONLY non-commercial use).
  */
 
-// === KANONISK MAPPNING: SMHI-symbol → semantisk vädernyckel ===
+// === CANONICAL MAPPING: SMHI symbol → semantic weather key ===
 const SMHI_SEMANTIC_MAP = {
     1: 'clear',
     2: 'mostly-clear',
@@ -55,11 +55,11 @@ const SMHI_SEMANTIC_MAP = {
     27: 'heavy-snow'
 };
 
-// === IKONPAKET ===
+// === ICON PACKS ===
 const ICON_PACKS = {
     /**
-     * Weather Icons-fonten (Erik Flowers) - klassiskt läge.
-     * Monokrom font som färgkodas automatiskt av ColorManager.
+     * Weather Icons font (Erik Flowers) - classic mode.
+     * Monochrome font that is color-coded automatically by ColorManager.
      */
     'weather-icons': {
         type: 'font',
@@ -95,24 +95,24 @@ const ICON_PACKS = {
     },
 
     /**
-     * amCharts animerade väder-SVG:er - färgglada ikoner med inbyggd animation.
-     * Egna färger; ColorManager-färgen ignoreras (style.color påverkar inte <img>).
-     * Setet saknar dimma/snöblandat - närmaste ikon används som ersättare.
+     * amCharts animated weather SVGs - colorful icons with built-in animation.
+     * Own colors; ColorManager color is ignored (style.color doesn't affect <img>).
+     * The set lacks fog/sleet - nearest icon is used as fallback.
      */
     'amcharts': {
         type: 'svg',
         basePath: '/static/assets/icons/amcharts-svg/',
-        // Icke-animerade kopior (utan <style>-block), genererade med
-        // scripts/generate_static_icons.py - används av animeringsläget
-        // ('hero'/'none') eftersom sidans CSS inte kan pausa animationer
-        // inuti en <img>
+        // Non-animated copies (without <style> block), generated with
+        // scripts/generate_static_icons.py - used by animation mode
+        // ('hero'/'none') because the page's CSS can't pause animations
+        // inside an <img>
         staticBasePath: '/static/assets/icons/amcharts-svg-static/',
-        // Visuell skalning via CSS transform - kompenserar för luften i
-        // SVG:ernas viewBox UTAN att påverka layouten (layoutboxen är
-        // alltid exakt 1em, som en fontglyf)
+        // Visual scaling via CSS transform - compensates for whitespace in
+        // SVGs' viewBox WITHOUT affecting layout (layout box is
+        // always exactly 1em, like a font glyph)
         scale: 1.3,
-        // Per-fil-korrigering: vissa filer ritar sitt innehåll i mindre
-        // del av viewBoxen än övriga (solen ~55% mot molnens ~80%)
+        // Per-file correction: some files draw their content in smaller
+        // part of viewBox than others (sun ~55% vs. clouds ~80%)
         fileScale: {
             'day/day.svg': 1.4,
             'night/night.svg': 1.35
@@ -149,10 +149,10 @@ const ICON_PACKS = {
     },
 
     /**
-     * Meteocons (Bas Milius) - animerade SVG:er i fill-stil, MIT-licens.
-     * Animationerna är SMIL utan filter och därmed betydligt billigare än
-     * amcharts - men på Safari/iPad gäller ändå auto-lägets hero-only.
-     * Licens: LICENSE i ikonmappen. Källa: https://github.com/basmilius/meteocons
+     * Meteocons (Bas Milius) - animated SVGs in fill style, MIT license.
+     * Animations are SMIL without filters and thus significantly cheaper than
+     * amcharts - but on Safari/iPad auto mode still uses hero-only.
+     * License: LICENSE in icon folder. Source: https://github.com/basmilius/meteocons
      */
     'meteocons': {
         type: 'svg',
@@ -191,17 +191,17 @@ const ICON_PACKS = {
     },
 
     /**
-     * Amedia Weather Icons - statiska färg-SVG:er med dag/natt-varianter.
-     * Filnamnen är Meteorologisk institutts symbol-ID:n (weathericon 1.1).
-     * LICENS: CC BY-NC-SA 4.0 - ENDAST icke-kommersiell användning!
-     * Attribution: Amedia Utvikling. Se LICENSE.md i ikonmappen.
-     * Källa: https://github.com/amedia/meteo-icons
+     * Amedia Weather Icons - static color SVGs with day/night variants.
+     * File names are Meteorological Institute symbol IDs (weathericon 1.1).
+     * LICENSE: CC BY-NC-SA 4.0 - ONLY non-commercial use!
+     * Attribution: Amedia Utvikling. See LICENSE.md in icon folder.
+     * Source: https://github.com/amedia/meteo-icons
      */
     'amedia-meteo': {
         type: 'svg',
         basePath: '/static/assets/icons/amedia-meteo/',
-        // Ikonerna ritar sitt innehåll med mer viewBox-luft än övriga
-        // SVG-paket - kompensera visuellt (påverkar bara detta paket)
+        // Icons draw their content with more viewBox whitespace than other
+        // SVG packs - compensate visually (affects only this pack)
         scale: 1.2,
         icons: {
             'clear':               {day: 'day/1.svg',  night: 'night/1.svg'},
@@ -235,10 +235,10 @@ const ICON_PACKS = {
     },
 
     /**
-     * Open Weather Icons (Ivan Vilanculo) - fontpaket byggt för
-     * OpenWeatherMaps symbolkoder (01d-50n), MIT-licens. Monokrom och
-     * färgkodas av ColorManager. OWM saknar snöblandat - snöikonen används.
-     * Licens: LICENSE.md i ikonmappen. Källa: https://github.com/isneezy/open-weather-icons
+     * Open Weather Icons (Ivan Vilanculo) - font pack built for
+     * OpenWeatherMaps symbol codes (01d-50n), MIT license. Monochrome and
+     * color-coded by ColorManager. OWM lacks sleet - snow icon is used.
+     * License: LICENSE.md in icon folder. Source: https://github.com/isneezy/open-weather-icons
      */
     'open-weather-icons': {
         type: 'font',
@@ -275,12 +275,12 @@ const ICON_PACKS = {
     },
 
     /**
-     * Kickstand WeatherIcons - minimalistiskt fontpaket (12 glyfer),
-     * SIL OFL 1.1. Climacons-inspirerat linjemanér, färgkodas av
-     * ColorManager. Liten glyfuppsättning: snöblandat visas som regn och
-     * intensitetsgrader ser likadana ut. CSS:en med klassmappningen ligger
-     * i ikonmappen (kickstand-weather.css, länkas i index.html).
-     * Licens: License.txt i ikonmappen. Källa: https://github.com/kickstandapps/WeatherIcons
+     * Kickstand WeatherIcons - minimalist font pack (12 glyphs),
+     * SIL OFL 1.1. Climacons-inspired line style, color-coded by
+     * ColorManager. Small glyph set: sleet displays as rain and
+     * intensity levels look the same. CSS with class mapping is in
+     * icon folder (kickstand-weather.css, linked in index.html).
+     * License: License.txt in icon folder. Source: https://github.com/kickstandapps/WeatherIcons
      */
     'kickstand-weather': {
         type: 'font',
@@ -317,16 +317,16 @@ const ICON_PACKS = {
     }
 };
 
-// === ANIMERINGSLÄGE ===
+// === ANIMATION MODE ===
 
 /**
- * Detektera WebKit-klienter (Safari samt ALLA webbläsare på iPad/iPhone,
- * som är WebKit under huven). WebKit CPU-rastrerar animerade SVG:er i
- * <img> genom deras feGaussianBlur-filter varje bildruta - med ~10 ikoner
- * samtidigt laggar det. Auto-läget ger därför dessa klienter hero-only.
- * OBS: iPadOS uppger sig som "Macintosh" i user agent - avslöjas av
+ * Detect WebKit clients (Safari and ALL browsers on iPad/iPhone,
+ * which are WebKit under the hood). WebKit CPU-rasterizes animated SVGs in
+ * <img> through their feGaussianBlur filter every frame - with ~10 icons
+ * at once it lags. Auto mode therefore gives these clients hero-only.
+ * NOTE: iPadOS reports itself as "Macintosh" in user agent - revealed by
  * multi-touch (maxTouchPoints).
- * @returns {boolean} true om klienten bör få reducerad ikonanimering
+ * @returns {boolean} true if client should get reduced icon animation
  */
 function isWebKitClient() {
     const ua = navigator.userAgent;
@@ -340,21 +340,21 @@ function isWebKitClient() {
 const IconRegistry = {
     activePack: 'weather-icons',
 
-    // Upplöst animeringsläge: 'all' | 'hero' | 'none'
-    // ('auto' från config löses upp till 'all' eller 'hero' i setAnimationMode)
+    // Resolved animation mode: 'all' | 'hero' | 'none'
+    // ('auto' from config is resolved to 'all' or 'hero' in setAnimationMode)
     animationMode: 'all',
 
     /**
-     * Sätt aktivt ikonpaket (anropas från fetch-api-client när config hämtats)
-     * @param {string} packName - Nyckel i ICON_PACKS
+     * Set active icon pack (called from fetch-api-client when config is loaded)
+     * @param {string} packName - Key in ICON_PACKS
      */
     setActivePack(packName) {
         if (!packName || packName === this.activePack) return;
 
         if (ICON_PACKS[packName]) {
             this.activePack = packName;
-            // Exponera aktivt paket för CSS - möjliggör paketspecifika
-            // slot-regler (t.ex. amedia-meteo som ritar nättare än övriga)
+            // Expose active pack for CSS - enables pack-specific
+            // slot rules (e.g. amedia-meteo which renders nicer than others)
             document.documentElement.dataset.iconPack = packName;
             console.log(`🎨 Ikonpaket bytt till: ${packName}`);
         } else {
@@ -363,7 +363,7 @@ const IconRegistry = {
     },
 
     /**
-     * Sätt ikonanimeringsläge (anropas från fetch-api-client när config hämtats)
+     * Set icon animation mode (called from fetch-api-client when config is loaded)
      * @param {string} mode - 'auto' | 'all' | 'hero' | 'none' (ui.icon_animations)
      */
     setAnimationMode(mode) {
@@ -380,14 +380,14 @@ const IconRegistry = {
     },
 
     /**
-     * Lös upp ikonpaketsrotation (ui.icon_pack_rotation) till dagens paket.
-     * Deterministiskt ur datumet - alla klienter (kiosk, iPad, ...) landar
-     * i samma paket utan servertillstånd eller synk. Paketlistan hämtas
-     * ur ICON_PACKS-registryt (i manifestordning), aldrig hårdkodad:
-     * paket som läggs till i registryt kommer med i rotationen automatiskt.
+     * Resolve icon pack rotation (ui.icon_pack_rotation) to today's pack.
+     * Deterministic from the date - all clients (kiosk, iPad, ...) land
+     * in the same pack without server state or sync. Pack list is fetched
+     * from ICON_PACKS registry (in manifest order), never hardcoded:
+     * packs added to the registry come with rotation automatically.
      * @param {Object} rotation - {enabled, interval: 'day'|'week'|'month', exclude: []}
-     * @param {Date} at - Tidpunkt att lösa upp för (default nu; injicerbar för test)
-     * @returns {string|null} Paketnamn, eller null om alla paket uteslutits
+     * @param {Date} at - Time point to resolve for (default now; injectable for test)
+     * @returns {string|null} Pack name, or null if all packs are excluded
      */
     resolveRotationPack(rotation, at = new Date()) {
         const exclude = Array.isArray(rotation.exclude) ? rotation.exclude : [];
@@ -397,13 +397,13 @@ const IconRegistry = {
             return null;
         }
 
-        // Monotona periodräknare (lokal tid) - inga hopp vid årsskiften
+        // Monotonic period counter (local time) - no jumps at year boundaries
         const epochDays = Math.floor((at.getTime() - at.getTimezoneOffset() * 60000) / 86400000);
         let period;
         switch (rotation.interval) {
             case 'day':   period = epochDays; break;
             case 'month': period = at.getFullYear() * 12 + at.getMonth(); break;
-            case 'week':  period = Math.floor((epochDays + 3) / 7); break; // epoch var en torsdag - +3 ger måndagsgräns
+            case 'week':  period = Math.floor((epochDays + 3) / 7); break; // epoch was Thursday - +3 gives Monday boundary
             default:
                 console.warn(`⚠️ Ikonpaketsrotation: okänt intervall '${rotation.interval}' - använder 'week'`);
                 period = Math.floor((epochDays + 3) / 7);
@@ -412,11 +412,11 @@ const IconRegistry = {
     },
 
     /**
-     * Skapa väderikon-element för en SMHI-symbol med aktivt paket
-     * @param {number} symbol - SMHI vädersymbol (1-27)
-     * @param {boolean} isDay - Dag- eller nattvariant
-     * @param {Array} extraClasses - Extra CSS-klasser (t.ex. storleksklass)
-     * @returns {HTMLElement} <i>-element (font) eller <img>-element (svg)
+     * Create weather icon element for an SMHI symbol with active pack
+     * @param {number} symbol - SMHI weather symbol (1-27)
+     * @param {boolean} isDay - Day or night variant
+     * @param {Array} extraClasses - Extra CSS classes (e.g. size class)
+     * @returns {HTMLElement} <i> element (font) or <img> element (svg)
      */
     createWeatherIcon(symbol, isDay = true, extraClasses = []) {
         const semanticKey = SMHI_SEMANTIC_MAP[parseInt(symbol)];
@@ -429,10 +429,10 @@ const IconRegistry = {
         }
 
         if (pack.type === 'font') {
-            // Paket med egen baseClass ('owi', 'ksi', ...) renderas generiskt;
-            // deras @font-face/klasser laddas via CSS länkad i index.html.
-            // Weather Icons-fonten går via sin dedikerade renderare (wi-prefix
-            // och inline font-family).
+            // Packs with their own baseClass ('owi', 'ksi', ...) render generically;
+            // their @font-face/classes are loaded via CSS linked in index.html.
+            // Weather Icons font goes through its dedicated renderer (wi-prefix
+            // and inline font-family).
             if (pack.baseClass) {
                 const icon = document.createElement('i');
                 icon.className = [pack.baseClass, iconName, ...extraClasses].join(' ');
@@ -441,13 +441,13 @@ const IconRegistry = {
             return WeatherIconRenderer.createIcon(iconName, extraClasses);
         }
 
-        // SVG-paket: <img> med TVINGAD layoutbox på 1em (som en fontglyf,
-        // se styles.css) - paketets scale justerar bara det visuella via
-        // transform och kan aldrig spränga layouten
+        // SVG pack: <img> with FORCED layout box of 1em (like a font glyph,
+        // see styles.css) - the pack's scale only adjusts the visual via
+        // transform and can never break the layout
         //
-        // ANIMERINGSLÄGE: hero-ikonen (aktuellt väder) identifieras på sin
-        // CSS-klass från current-weather-view; övriga ikoner får statiska
-        // filer när läget är 'hero' eller 'none'
+        // ANIMATION MODE: hero icon (current weather) is identified by its
+        // CSS class from current-weather-view; other icons get static
+        // files when mode is 'hero' or 'none'
         const isHero = extraClasses.includes('weather-main-icon');
         const animate = this.animationMode === 'all' ||
             (this.animationMode === 'hero' && isHero);

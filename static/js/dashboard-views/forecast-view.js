@@ -2,22 +2,22 @@
  * @file forecast-view.js
  * @version 1.2.0
  * @lastModified 2025-01-11 (v1.2.0)
- * @description Prognos-funktioner för tim- och dagsprognoser
+ * @description Forecast functions for hourly and daily forecasts
  * @dependencies ColorManager (color-manager.js), WeatherIconRenderer, formatters-dashboard.js, wind-calculations.js
  * @author Flask Weather Dashboard Team
- * 
- * STEG 12 REFAKTORERING: Extraherat från dashboard.js
- * v1.1.0: Integrerad med ColorManager för temperatur- och ikon-färgkodning
- * v1.1.1: Vindikonsfärg nu dynamisk via ColorManager (grön/gul/orange/röd)
- * v1.1.2: Opacity borttagen från vindikoner för full färgmättnad
- * v1.2.0: Förenklad prognos-färgskala för läsbarhet (VIT standard, ISBLÅ/LJUSRÖD extremer)
+ *
+ * STEP 12 REFACTORING: Extracted from dashboard.js
+ * v1.1.0: Integrated with ColorManager for temperature and icon color coding
+ * v1.1.1: Wind icon color now dynamic via ColorManager (green/yellow/orange/red)
+ * v1.1.2: Opacity removed from wind icons for full color saturation
+ * v1.2.0: Simplified forecast color scale for readability (WHITE default, ICE BLUE/LIGHT RED extremes)
  */
 
 // === HOURLY FORECAST FUNCTIONS ===
 
 /**
- * Uppdatera timprognos-visning
- * @param {array} forecastData - Array med timprognos-data
+ * Update hourly forecast display
+ * @param {array} forecastData - Array with hourly forecast data
  */
 function updateHourlyForecast(forecastData) {
     const container = document.getElementById('hourly-forecast');
@@ -38,9 +38,9 @@ function updateHourlyForecast(forecastData) {
 }
 
 /**
- * Skapa ett timprognos-kort
- * @param {object} forecast - Enskild timprognos-data
- * @returns {HTMLElement} Färdigt prognos-kort
+ * Create an hourly forecast card
+ * @param {object} forecast - Single hourly forecast data
+ * @returns {HTMLElement} Ready forecast card
  */
 function createForecastCard(forecast) {
     const card = document.createElement('div');
@@ -57,17 +57,17 @@ function createForecastCard(forecast) {
     
     const isDay = hour >= 6 && hour <= 20;
 
-    // POSITION 4+5 LOGIK: Visa vind ALLTID, och nederbörd UNDER om >2mm
+    // POSITION 4+5 LOGIC: Show wind ALWAYS, and precipitation BELOW if >2mm
     let windContent = '';
     let precipContent = '';
 
-    // VIND (alltid synlig)
+    // WIND (always visible)
     if (forecast.wind_speed) {
         const windKmh = Math.round(forecast.wind_speed * 3.6);
         const windData = convertWindSpeed(windKmh, dashboardState.windUnit);
         const windColor = ColorManager.getWindColor(forecast.wind_speed);
 
-        // Enkel enradstext — ta bara första raden (t.ex. "Måttlig")
+        // Simple single-line text — take only first line (e.g. "Moderate")
         const windLines = formatWindTextForTwoLines(windData.value);
         const windLabel = windLines.line1;
 
@@ -91,7 +91,7 @@ function createForecastCard(forecast) {
         </div>`;
     }
 
-    // NEDERBÖRD (bara om >2mm)
+    // PRECIPITATION (only if >2mm)
     const hasSignificantRain = forecast.precipitation && forecast.precipitation > 2;
     if (hasSignificantRain) {
         precipContent = `<div class="forecast-precipitation">
@@ -103,9 +103,9 @@ function createForecastCard(forecast) {
     const iconId = `forecast-icon-${Math.random().toString(36).substr(2, 9)}`;
     const tempDegree = formatTemperatureInteger(forecast.temperature);
     
-    // FÖRENKLAD PROGNOS-FÄRGSKALA v1.2.0: Använd getForecastTemperatureColor för läsbarhet
+    // SIMPLIFIED FORECAST COLOR SCALE v1.2.0: Use getForecastTemperatureColor for readability
     const tempColor = ColorManager.getForecastTemperatureColor(forecast.temperature);
-    
+
     card.innerHTML = `
         <div class="forecast-time">${forecast.local_time}</div>
         <div class="forecast-icon" id="${iconId}"></div>
@@ -113,10 +113,10 @@ function createForecastCard(forecast) {
         ${windContent}
         ${precipContent}
     `;
-    
+
     const iconContainer = card.querySelector(`#${iconId}`);
-    
-    // IKONPAKET + CENTRALISERAD FÄRGKODNING (färgen påverkar bara font-ikoner)
+
+    // ICON PACK + CENTRALIZED COLOR CODING (color affects only font icons)
     const weatherIcon = WeatherIconRenderer.createWeatherIcon(forecast.weather_symbol, isDay, ['forecast-weather-icon']);
     const iconColor = ColorManager.getWeatherIconColor(forecast.weather_symbol);
     weatherIcon.style.color = iconColor;
@@ -129,8 +129,8 @@ function createForecastCard(forecast) {
 // === DAILY FORECAST FUNCTIONS ===
 
 /**
- * Uppdatera dagsprognos-visning
- * @param {array} dailyData - Array med dagsprognos-data
+ * Update daily forecast display
+ * @param {array} dailyData - Array with daily forecast data
  */
 function updateDailyForecast(dailyData) {
     const container = document.getElementById('daily-forecast');
@@ -151,15 +151,15 @@ function updateDailyForecast(dailyData) {
 }
 
 /**
- * Skapa en dagsprognos-rad
- * @param {object} day - Enskild dagsprognos-data
- * @returns {HTMLElement} Färdig dagsprognos-rad
+ * Create a daily forecast row
+ * @param {object} day - Single daily forecast data
+ * @returns {HTMLElement} Ready daily forecast row
  */
 function createDailyForecastItem(day) {
     const item = document.createElement('div');
     item.className = 'daily-forecast-item';
     
-    // SPRÅK: veckodag via Intl från ISO-datumet (versal initial som tidigare)
+    // LANGUAGE: day of week via Intl from ISO date (capital initial as before)
     let weekdaySwedish = day.weekday;
     if (day.date) {
         const wd = new Date(`${day.date}T12:00:00`).toLocaleDateString(I18n.locale(), { weekday: 'long' });
@@ -169,38 +169,38 @@ function createDailyForecastItem(day) {
     let dateDisplay = day.date;
     try {
         const dateObj = new Date(day.date);
-        // SPRÅK: månadsförkortning via Intl med aktivt språks locale
+        // LANGUAGE: month abbreviation via Intl with active language's locale
         const monthShort = dateObj.toLocaleDateString(I18n.locale(), { month: 'short' }).replace('.', '');
         dateDisplay = `${dateObj.getDate()} ${monthShort}`;
     } catch (e) {
-        // Använd original om parsning misslyckas
+        // Use original if parsing fails
     }
     
     const iconId = `daily-icon-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const tempMaxFormatted = formatTemperatureDaily(day.temp_max);
     const tempMinFormatted = formatTemperatureDaily(day.temp_min);
-    
+
     item.innerHTML = `
         <div class="daily-icon" id="${iconId}"></div>
         <div class="daily-temp">${tempMaxFormatted}/${tempMinFormatted}</div>
         <div class="daily-weekday">${weekdaySwedish}</div>
         <div class="daily-date">${dateDisplay}</div>
     `;
-    
+
     const iconContainer = item.querySelector(`#${iconId}`);
-    
-    // IKONPAKET + CENTRALISERAD FÄRGKODNING (färgen påverkar bara font-ikoner)
+
+    // ICON PACK + CENTRALIZED COLOR CODING (color affects only font icons)
     const weatherIcon = WeatherIconRenderer.createWeatherIcon(day.weather_symbol, true, ['daily-weather-icon']);
     const iconColor = ColorManager.getWeatherIconColor(day.weather_symbol);
     weatherIcon.style.color = iconColor;
     
     iconContainer.appendChild(weatherIcon);
     
-    // FÖRENKLAD PROGNOS-FÄRGSKALA v1.2.0: Använd getForecastTemperatureColor för läsbarhet
+    // SIMPLIFIED FORECAST COLOR SCALE v1.2.0: Use getForecastTemperatureColor for readability
     const tempElement = item.querySelector('.daily-temp');
     if (tempElement) {
-        // Använd max-temp för färg (högsta är viktigast för läsbarhet)
+        // Use max-temp for color (highest is most important for readability)
         const tempColor = ColorManager.getForecastTemperatureColor(day.temp_max);
         tempElement.style.color = tempColor;
     }
@@ -208,4 +208,4 @@ function createDailyForecastItem(day) {
     return item;
 }
 
-console.log('✅ Forecast View v1.2.0 laddat - Förenklad prognos-färgskala för läsbarhet!');
+console.log('✅ Forecast View v1.2.0 loaded - Simplified forecast color scale for readability!');

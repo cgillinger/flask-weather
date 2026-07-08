@@ -6,7 +6,7 @@ echo "🔍 Körs via DSM Scheduled Task $(date)"
 export PYTHONPATH=/var/services/homes/Christian/.local/lib/python3.8/site-packages
 cd /var/services/homes/Christian/flask_weather
 
-# Logga python-sökväg och version för felsökning
+# Log Python path and version for troubleshooting
 which /bin/python3 >> /var/services/homes/Christian/flask_weather/flask.log 2>&1
 /bin/python3 --version >> /var/services/homes/Christian/flask_weather/flask.log 2>&1
 

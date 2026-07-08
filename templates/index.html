@@ -22,8 +22,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons-wind.min.css">
 
-    <!-- Fontbaserade ikonpaket (fontfiler laddas av webbläsaren först när
-         paketet faktiskt används - att länka CSS:en är i praktiken gratis) -->
+    <!-- Font-based icon packs (font files loaded by browser first when
+         package is actually used - linking CSS is in practice free) -->
     <link rel="stylesheet" href="/static/assets/icons/open-weather-icons/css/open-weather-icons.css?v={{ asset_version }}">
     <link rel="stylesheet" href="/static/assets/icons/kickstand-weather/kickstand-weather.css?v={{ asset_version }}">
 
@@ -50,13 +50,13 @@
     <div class="viewport-center">
         <div class="dashboard-container">
             
-            <!-- ========== TOP ZONE: NU & HÄR ========== -->
+            <!-- ========== TOP ZONE: NOW & HERE ========== -->
             <div class="top-zone">
                 
                 <!-- TIME UNIT -->
                 <div class="time-unit">
                     <div class="circular-clock-container">
-                        <!-- 60 LED-prickar för sekunder -->
+                        <!-- 60 LED dots for seconds -->
                         <div class="clock-dots-container"></div>
                         
                         <!-- Digital tid och datum -->
@@ -77,14 +77,14 @@
 
                     <!-- TEMP UNIT -->
                     <div class="temp-unit" id="temp-unit">
-                        <!-- FAKTISK COLUMN (Netatmo - primär/stor) -->
+                        <!-- ACTUAL COLUMN (Netatmo - primary/large) -->
                         <div class="faktisk-column" id="netatmo-temperature-section">
                             <div class="main-temperature" id="netatmo-temperature-small">--.-°</div>
                             <div class="netatmo-label" data-i18n="LABEL_ACTUAL">FAKTISK</div>
-                            <!-- Vinddata läggs till här av JavaScript -->
+                            <!-- Wind data added here by JavaScript -->
                         </div>
 
-                        <!-- PROGNOS COLUMN (SMHI - sekundär/liten) -->
+                        <!-- FORECAST COLUMN (SMHI - secondary/small) -->
                         <div class="prognos-column">
                             <div class="smhi-temp-small" id="smhi-temperature">--.-°</div>
                             <div class="smhi-label" id="smhi-label" data-i18n="LABEL_FORECAST">PROGNOS</div>
@@ -115,11 +115,11 @@
                 
             </div>
             
-            <!-- ========== MID ZONE: FAKTA ========== -->
+            <!-- ========== MID ZONE: FACTS ========== -->
             <div class="mid-zone">
                 <div class="data-points-grid" id="weather-details-grid">
                     
-                    <!-- Luftfuktighet -->
+                    <!-- Humidity -->
                     <div class="data-point" id="smhi-humidity">
                         50% Luftfuktighet
                     </div>
@@ -134,7 +134,7 @@
                         </div>
                     </div>
 
-                    <!-- Luftkvalitet -->
+                    <!-- Air quality -->
                     <div class="data-point air-quality-container" id="air-quality-container">
                         <span id="air-quality">400 ppm Luftkvalitet</span>
                     </div>
@@ -145,13 +145,13 @@
                         <span id="uv-index-text">UV -- (Låg risk)</span>
                     </div>
 
-                    <!-- Ljudnivå (Netatmo) -->
+                    <!-- Sound level (Netatmo) -->
                     <div class="data-point noise-level-container netatmo-hidden" id="noise-level-container" style="display: none;">
                         <i class="fas fa-volume-up" style="color: #9575cd;"></i>
                         <span id="noise-level">-- dB Ljudnivå</span>
                     </div>
                     
-                    <!-- Nederbörd (Netatmo) -->
+                    <!-- Precipitation (Netatmo) -->
                     <div class="data-point rain-data-container netatmo-hidden" id="rain-data-container" style="display: none;">
                         <i class="wi wi-raindrops" style="color: #4fc3f7;"></i>
                         <span id="rain-data">0 mm Nederbörd</span>
@@ -159,10 +159,10 @@
                 </div>
             </div>
             
-            <!-- ========== BOTTOM ZONE: FRAMÅT ========== -->
+            <!-- ========== BOTTOM ZONE: FORWARD ========== -->
             <div class="bottom-zone">
                 
-                <!-- 12H-PROGNOS UNIT -->
+                <!-- 12H-FORECAST UNIT -->
                 <div class="hourly-forecast-unit">
                     <h2 class="section-title" data-i18n="SECTION_12H">12-timmarsprognos</h2>
                     <div class="hourly-forecast" id="hourly-forecast">
@@ -170,7 +170,7 @@
                     </div>
                 </div>
 
-                <!-- 5-DAGAR UNIT -->
+                <!-- 5-DAYS UNIT -->
                 <div class="daily-forecast-unit">
                     <h2 class="section-title" data-i18n="SECTION_5DAY">5-dagarsprognos</h2>
                     <div class="daily-forecast-content">
@@ -182,10 +182,10 @@
                 
             </div>
 
-            <!-- Staleness-indikator: syns bara när data inte kan uppdateras -->
+            <!-- Staleness indicator: visible only when data cannot be updated -->
             <div id="stale-indicator" class="stale-indicator" style="display: none;"></div>
 
-            <!-- Status Section (dold) -->
+            <!-- Status Section (hidden) -->
             <div class="status-section" style="display: none;">
                 <div class="status-text" id="status-text">Laddar väderdata...</div>
                 <div class="data-source-indicator" id="data-source-indicator" style="display: none;">
@@ -195,9 +195,9 @@
         </div>
     </div>
 
-    <!-- ========== JAVASCRIPT MODULES - FÄRGHANTERING v1.1.1 ========== -->
+    <!-- ========== JAVASCRIPT MODULES - COLOR MANAGEMENT v1.1.1 ========== -->
 
-    <!-- SPRÅK: I18n-motorn + språkkataloger - MÅSTE laddas före allt annat -->
+    <!-- LANGUAGE: I18n engine + language catalogs - MUST be loaded before everything else -->
     <script src="/static/js/utils/i18n.js?v={{ asset_version }}"></script>
     <script src="/static/translations/sv.js?v={{ asset_version }}"></script>
     <script src="/static/translations/nb.js?v={{ asset_version }}"></script>
@@ -208,22 +208,22 @@
     <script src="/static/translations/es.js?v={{ asset_version }}"></script>
     <script src="/static/translations/en.js?v={{ asset_version }}"></script>
 
-    <!-- STEG 1-3: Grundläggande utilities -->
+    <!-- STEP 1-3: Basic utilities -->
     <script src="/static/js/dashboard/formatters-dashboard.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard/wind-calculations.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard/dom-helpers.js?v={{ asset_version }}"></script>
     
-    <!-- FÄRGHANTERING: ColorManager - LADDA TIDIGT (före komponenter som använder den) -->
+    <!-- COLOR MANAGEMENT: ColorManager - LOAD EARLY (before components using it) -->
     <script src="/static/js/utils/color-manager.js?v={{ asset_version }}"></script>
 
-    <!-- IKONPAKET: IconRegistry - före icon renderers och views -->
+    <!-- ICON PACK: IconRegistry - before icon renderers and views -->
     <script src="/static/js/utils/icon-packs.js?v={{ asset_version }}"></script>
     
-    <!-- STEG 4-5: Icon renderers (använder ColorManager) -->
+    <!-- STEP 4-5: Icon renderers (uses ColorManager) -->
     <script src="/static/js/dashboard-components/weather-icon-renderer.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard-components/fontawesome-renderer.js?v={{ asset_version }}"></script>
     
-    <!-- STEG 6-9: Display och data komponenter -->
+    <!-- STEP 6-9: Display and data components -->
     <script src="/static/js/dashboard-components/circular-clock.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard-components/barometer-display.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard-components/uv-display.js?v={{ asset_version }}"></script>
@@ -232,7 +232,7 @@
     <script src="/static/js/dashboard-data/intelligent-data-source.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard-components/ui-adaptation-engine.js?v={{ asset_version }}"></script>
     
-    <!-- STEG 10-12: API client och views (använder ColorManager) -->
+    <!-- STEP 10-12: API client and views (uses ColorManager) -->
     <script src="/static/js/dashboard-data/fetch-api-client.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard-views/current-weather-view.js?v={{ asset_version }}"></script>
     <script src="/static/js/dashboard-views/forecast-view.js?v={{ asset_version }}"></script>

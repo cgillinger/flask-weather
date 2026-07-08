@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-CAMS UV Client - Atmosphere Data Store Integration (cdsapi-baserad)
-Hämtar UV-index från CAMS via CDS API med 24h cachning
+CAMS UV Client - Atmosphere Data Store integration (cdsapi-based)
+Fetches the UV index from CAMS via the CDS API, with 24h caching
 
 Dataset: cams-global-atmospheric-composition-forecasts
-Variable: uv_biologically_effective_dose_clear_sky (molnfri himmel enligt SSM)
-Källa: Copernicus Atmosphere Data Store (ADS)
-API: cdsapi Python-bibliotek
+Variable: uv_biologically_effective_dose_clear_sky (clear sky, per SSM guidance)
+Source: Copernicus Atmosphere Data Store (ADS)
+API: cdsapi Python library
 
-STRATEGI: Hämtar ALLA timmar (0-23) och rapporterar MAX UV-index för dagen
+STRATEGY: fetch ALL hours (0-23) and report the day's MAX UV index
 """
 
 import cdsapi
@@ -22,20 +22,20 @@ import tempfile
 
 class CAMSUVClient:
     """
-    CAMS UV-Index Client med 24h cachning via CDS API
-    
-    Ansvar:
-    - Hämta UV-data från CAMS via CDS API (alla timmar)
-    - Beräkna MAX UV-index för hela dygnet
-    - Cachelagra i cache/uv_cache.json
-    - Validera cache-ålder (24h)
-    - Returnera formaterad data enligt SSM-skala
+    CAMS UV index client with 24h caching via the CDS API
+
+    Responsibilities:
+    - Fetch UV data from CAMS via the CDS API (all hours)
+    - Compute the MAX UV index for the full day
+    - Cache results in cache/uv_cache.json
+    - Validate cache age (24h)
+    - Return data formatted according to the SSM scale
     """
-    
-    # Dataset-konfiguration
+
+    # Dataset configuration
     DATASET_NAME = "cams-global-atmospheric-composition-forecasts"
-    
-    # Strålskyddsmyndighetens UV-risknivåer
+
+    # UV risk levels from SSM (the Swedish Radiation Safety Authority)
     UV_RISK_LEVELS = {
         'low': {'max': 2, 'text': 'Låg UV-risk', 'color': 'green'},
         'moderate': {'max': 5, 'text': 'Måttlig UV-risk', 'color': 'yellow'},
@@ -46,12 +46,12 @@ class CAMSUVClient:
     
     def __init__(self, latitude: float, longitude: float, cache_dir: str = "cache"):
         """
-        Initialiserar CAMS UV-klient
-        
+        Initialize the CAMS UV client
+
         Args:
-            latitude: Latitud (decimal grader)
-            longitude: Longitud (decimal grader)
-            cache_dir: Katalog för cache-filer (default: "cache")
+            latitude: Latitude (decimal degrees)
+            longitude: Longitude (decimal degrees)
+            cache_dir: Directory for cache files (default: "cache")
         """
         self.latitude = latitude
         self.longitude = longitude
@@ -59,10 +59,10 @@ class CAMSUVClient:
         self.cache_file = os.path.join(cache_dir, "uv_cache.json")
         self.cache_duration = timedelta(hours=24)
         
-        # Skapa cache-katalog om den inte finns
+        # Create the cache directory if it does not exist
         os.makedirs(cache_dir, exist_ok=True)
-        
-        # Initialisera CDS API-klient
+
+        # Initialize the CDS API client
         try:
             self.client = cdsapi.Client()
             print("✅ CAMS UV Client initierad (cdsapi)")
@@ -75,10 +75,10 @@ class CAMSUVClient:
     
     def _is_cache_valid(self) -> bool:
         """
-        Kontrollera om cache är giltig (< 24h gammal)
-        
+        Check whether the cache is valid (< 24h old)
+
         Returns:
-            True om cache är giltig, False annars
+            True if the cache is valid, False otherwise
         """
         if not os.path.exists(self.cache_file):
             return False
@@ -110,13 +110,13 @@ class CAMSUVClient:
     
     def _classify_uv_risk(self, uv_index: float) -> Dict[str, str]:
         """
-        Klassificera UV-index enligt SSM:s risknivåer
-        
+        Classify a UV index according to SSM's risk levels
+
         Args:
-            uv_index: UV-index värde
-            
+            uv_index: UV index value
+
         Returns:
-            Dict med risk_level och risk_text
+            Dict with risk_level and risk_text
         """
         for level, config in self.UV_RISK_LEVELS.items():
             if uv_index <= config['max']:
@@ -126,7 +126,7 @@ class CAMSUVClient:
                     'color': config['color']
                 }
         
-        # Fallback (borde aldrig nås)
+        # Fallback (should never be reached)
         return {
             'risk_level': 'extreme',
             'risk_text': 'Extrem UV-risk',
@@ -135,21 +135,21 @@ class CAMSUVClient:
     
     def _extract_uv_from_netcdf(self, netcdf_path: str) -> Optional[Dict]:
         """
-        Extrahera MAX UV-index från NetCDF-fil (alla timmar)
-        Konverterar W/m² till UV-index genom att multiplicera med 40
-        
+        Extract the MAX UV index from a NetCDF file (all hours)
+        Converts W/m² to UV index by multiplying by 40
+
         Args:
-            netcdf_path: Sökväg till NetCDF-fil
-            
+            netcdf_path: Path to the NetCDF file
+
         Returns:
-            Dict med max_uv_index och peak_hour, eller None vid fel
+            Dict with max_uv_index and peak_hour, or None on error
         """
         try:
             dataset = nc.Dataset(netcdf_path, 'r')
             
             print(f"📋 Tillgängliga variabler: {list(dataset.variables.keys())}")
             
-            # Hitta UV-variabel
+            # Find the UV variable
             uv_var_names = ['uv_biologically_effective_dose_clear_sky', 
                            'uvbedcs', 
                            'uv_biologically_effective_dose',
@@ -167,20 +167,20 @@ class CAMSUVClient:
                 dataset.close()
                 return None
             
-            # Extrahera UV-data (W/m²)
+            # Extract the UV data (W/m²)
             uv_data = uv_var[:]
             print(f"📊 UV data shape: {uv_data.shape}")
             print(f"📊 UV data units: {uv_var.units if hasattr(uv_var, 'units') else 'unknown'}")
             
-            # Kontrollera om första dimensionen är tid (24 timmar)
-            # Shape exempel: (24, 1, 4, 6) där 24 = timmar
+            # Check whether the first dimension is time (24 hours)
+            # Example shape: (24, 1, 4, 6) where 24 = hours
             if uv_data.ndim >= 1 and uv_data.shape[0] == 24:
                 print(f"⏰ Tidsdimension detekterad: {uv_data.shape[0]} timmar")
                 
-                # Beräkna UV-index för varje timme
+                # Compute the UV index for every hour
                 uv_values = []
                 for i in range(24):
-                    # Ta medelvärde över alla andra dimensioner (lat/lon)
+                    # Average over all other dimensions (lat/lon)
                     if uv_data.ndim == 1:
                         uv_wm2 = float(uv_data[i])
                     elif uv_data.ndim == 2:
@@ -192,10 +192,10 @@ class CAMSUVClient:
                     else:
                         uv_wm2 = float(uv_data[i].mean())
                     
-                    uv_index = uv_wm2 * 40  # Konvertera W/m² till UV-index
+                    uv_index = uv_wm2 * 40  # Convert W/m² to UV index
                     uv_values.append(uv_index)
-                
-                # Hitta MAX UV och vilket klockslag
+
+                # Find the MAX UV and at what hour it occurs
                 max_uv_index = max(uv_values)
                 peak_hour = uv_values.index(max_uv_index)
                 
@@ -209,11 +209,11 @@ class CAMSUVClient:
                 return {
                     'max_uv_index': max_uv_index,
                     'peak_hour': peak_hour,
-                    'all_hours': uv_values  # För eventuell framtida graf
+                    'all_hours': uv_values  # For a possible future chart
                 }
             
             else:
-                # Ingen tidsdimension - fallback till enkelt medelvärde
+                # No time dimension - fall back to a simple mean
                 print(f"⚠️ Oväntad data-shape: {uv_data.shape}, använder medelvärde")
                 
                 if uv_data.size > 1:
@@ -230,7 +230,7 @@ class CAMSUVClient:
                 
                 return {
                     'max_uv_index': uv_index,
-                    'peak_hour': 12,  # Antar middag
+                    'peak_hour': 12,  # Assume midday
                     'all_hours': []
                 }
             
@@ -242,16 +242,16 @@ class CAMSUVClient:
     
     def _fetch_fresh_uv_data(self) -> Optional[Dict]:
         """
-        Hämta ny UV-data från CAMS via CDS API (alla timmar för MAX-beräkning)
-        
+        Fetch fresh UV data from CAMS via the CDS API (all hours, for the MAX calculation)
+
         Returns:
-            Dict med UV-data eller None vid fel
+            Dict with UV data or None on error
         """
         if self.client is None:
             print("❌ CDS API-klient inte tillgänglig")
             return None
         
-        # Dagens datum
+        # Today's date
         today = datetime.now(timezone.utc)
         date_str = today.strftime("%Y-%m-%d")
         
@@ -259,17 +259,17 @@ class CAMSUVClient:
         print(f"📅 Datum: {date_str}")
         print(f"📍 Position: {self.latitude}, {self.longitude}")
         
-        # Temporär fil för NetCDF-nedladdning
+        # Temporary file for the NetCDF download
         with tempfile.NamedTemporaryFile(suffix='.nc', delete=False) as tmp_file:
             tmp_path = tmp_file.name
-        
+
         try:
-            # Request för ALLA timmar (0-23) för MAX-beräkning
+            # Request ALL hours (0-23) for the MAX calculation
             request = {
                 'variable': 'uv_biologically_effective_dose_clear_sky',
                 'date': date_str,
                 'time': '00:00',
-                'leadtime_hour': [str(h) for h in range(24)],  # 0-23 timmar
+                'leadtime_hour': [str(h) for h in range(24)],  # hours 0-23
                 'type': 'forecast',
                 'area': [
                     self.latitude + 0.7,   # North
@@ -290,7 +290,7 @@ class CAMSUVClient:
             print("\n⏳ Skickar request (kan ta 60-180 sekunder för alla timmar)...")
             print("💡 Hämtar alla 24 timmar för att beräkna MAX UV-index")
             
-            # Hämta data med cdsapi
+            # Retrieve the data with cdsapi
             self.client.retrieve(
                 self.DATASET_NAME,
                 request,
@@ -299,7 +299,7 @@ class CAMSUVClient:
             
             print(f"✅ Data nedladdad till: {tmp_path}")
             
-            # Kontrollera filstorlek
+            # Check the file size
             file_size = os.path.getsize(tmp_path)
             print(f"📦 Filstorlek: {file_size} bytes")
             
@@ -308,10 +308,10 @@ class CAMSUVClient:
                 os.unlink(tmp_path)
                 return None
             
-            # Extrahera MAX UV-värde från NetCDF
+            # Extract the MAX UV value from the NetCDF file
             uv_result = self._extract_uv_from_netcdf(tmp_path)
-            
-            # Rensa temporär fil
+
+            # Remove the temporary file
             os.unlink(tmp_path)
             
             if uv_result is None:
@@ -320,10 +320,10 @@ class CAMSUVClient:
             max_uv_index = uv_result['max_uv_index']
             peak_hour = uv_result['peak_hour']
             
-            # Klassificera enligt SSM-skala
+            # Classify according to the SSM scale
             risk_info = self._classify_uv_risk(max_uv_index)
-            
-            # Bygg resultat
+
+            # Build the result
             result = {
                 'uv_index': round(max_uv_index, 1),
                 'peak_hour': peak_hour,
@@ -351,7 +351,7 @@ class CAMSUVClient:
             import traceback
             traceback.print_exc()
             
-            # Rensa temporär fil vid fel
+            # Remove the temporary file on error
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             
@@ -359,14 +359,13 @@ class CAMSUVClient:
     
     def _save_to_cache(self, data: Dict) -> None:
         """
-        Spara UV-data till cache
-        
+        Save UV data to the cache
+
         Args:
-            data: UV-data att cacha
+            data: UV data to cache
         """
         try:
-            # Atomär skrivning: en krasch mitt i skrivningen får inte
-            # korrumpera cachen
+            # Atomic write: a crash mid-write must not corrupt the cache
             tmp_path = self.cache_file + '.atomic-tmp'
             with open(tmp_path, 'w') as f:
                 json.dump(data, f, indent=2)
@@ -377,10 +376,10 @@ class CAMSUVClient:
     
     def _load_from_cache(self) -> Optional[Dict]:
         """
-        Ladda UV-data från cache
-        
+        Load UV data from the cache
+
         Returns:
-            Cachad UV-data eller None
+            Cached UV data or None
         """
         try:
             with open(self.cache_file, 'r') as f:
@@ -393,13 +392,13 @@ class CAMSUVClient:
     
     def get_uv_index(self) -> Optional[Dict]:
         """
-        Hämta MAX UV-index för dagen (från cache eller nytt API-anrop)
-        
+        Get the day's MAX UV index (from cache or a fresh API call)
+
         Returns:
-            Dict med UV-data eller None vid fel:
+            Dict with UV data or None on error:
             {
-                'uv_index': float (MAX för dagen),
-                'peak_hour': int (0-23, när MAX inträffar),
+                'uv_index': float (MAX for the day),
+                'peak_hour': int (0-23, when the MAX occurs),
                 'risk_level': str,
                 'risk_text': str,
                 'color': str,
@@ -409,32 +408,32 @@ class CAMSUVClient:
                 'method': 'max_daily'
             }
         """
-        # Kontrollera cache först
+        # Check the cache first
         if self._is_cache_valid():
             cached_data = self._load_from_cache()
             if cached_data:
                 return cached_data
         
-        # Hämta ny data från CAMS
+        # Fetch fresh data from CAMS
         fresh_data = self._fetch_fresh_uv_data()
         
         if fresh_data:
             self._save_to_cache(fresh_data)
             return fresh_data
         
-        # Fallback till gammal cache om API misslyckas
+        # Fall back to the stale cache if the API call fails
         print("⚠️ API-fel, försöker använda gammal cache...")
         return self._load_from_cache()
 
 
-# Test-funktion
+# Test function
 def test_cams_uv_client():
-    """Test av CAMS UV Client med MAX UV-strategi"""
+    """Test of the CAMS UV client with the MAX UV strategy"""
     print("=" * 80)
     print("🌞 CAMS UV CLIENT TEST (MAX UV-strategi)")
     print("=" * 80)
     
-    # Stockholm koordinater
+    # Stockholm coordinates
     client = CAMSUVClient(59.33, 18.06)
     
     print("\n📊 Test 1: Hämta MAX UV-index för dagen")
@@ -444,7 +443,7 @@ def test_cams_uv_client():
         print("\n✅ UV-data hämtad:")
         print(f"  MAX UV-index: {uv_data['uv_index']}")
         
-        # Hantera peak_hour (kan saknas i gammal cache)
+        # Handle peak_hour (may be missing in an old cache)
         peak_hour = uv_data.get('peak_hour')
         if peak_hour is not None and isinstance(peak_hour, int):
             print(f"  Topp kl: {peak_hour:02d}:00")

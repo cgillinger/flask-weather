@@ -1,22 +1,22 @@
 /**
  * @file i18n.js
- * @description Språkmotor: översättningsregister + t()-hjälpare (SPRÅKPROJEKTET)
- * @dependencies Inga - laddas FÖRE alla andra moduler och översättningsfiler
+ * @description Language engine: translation registry + t() helper (LANGUAGE PROJECT)
+ * @dependencies None - loaded BEFORE all other modules and translation files
  *
- * Arkitektur (samma mönster som MagicMirrors translations/):
- *   - Varje språkfil under static/translations/ registrerar sig själv:
- *     I18n.register('sv', { NYCKEL: 'text', ... })
- *   - All UI-text slås upp med t('NYCKEL') eller t('NYCKEL', {param: värde})
- *   - Språket väljs med ui.language i reference/config.py och plumbas via
- *     /api/current (fetch-api-client anropar I18n.setLanguage)
- *   - Fallback-kedja: valt språk → svenska → nyckeln själv
- *   - Datum/veckodagar översätts INTE via filerna - de använder webbläsarens
- *     Intl med I18n.locale() (språkfilens __locale, t.ex. 'sv-SE')
+ * Architecture (same pattern as MagicMirror's translations/):
+ *   - Each language file under static/translations/ registers itself:
+ *     I18n.register('sv', { KEY: 'text', ... })
+ *   - All UI text is looked up with t('KEY') or t('KEY', {param: value})
+ *   - Language is chosen with ui.language in reference/config.py and wired via
+ *     /api/current (fetch-api-client calls I18n.setLanguage)
+ *   - Fallback chain: chosen language → Swedish → key itself
+ *   - Dates/weekdays are NOT translated via files - they use browser's
+ *     Intl with I18n.locale() (language file's __locale, e.g. 'sv-SE')
  *
- * Lägga till ett nytt språk:
- *   1. Kopiera static/translations/sv.js till <kod>.js och översätt värdena
- *   2. Lägg till <script>-taggen i templates/index.html (efter sv.js)
- *   3. Sätt 'language': '<kod>' i reference/config.py
+ * Adding a new language:
+ *   1. Copy static/translations/sv.js to <code>.js and translate values
+ *   2. Add <script> tag in templates/index.html (after sv.js)
+ *   3. Set 'language': '<code>' in reference/config.py
  */
 
 const I18n = {
@@ -25,18 +25,18 @@ const I18n = {
     fallback: 'sv',
 
     /**
-     * Registrera en språkkatalog (anropas av översättningsfilerna)
-     * @param {string} code - Språkkod ('sv', 'en', 'nb', ...)
-     * @param {Object} catalog - Nyckel → översatt text (+ __locale för Intl)
+     * Register a language catalog (called by translation files)
+     * @param {string} code - Language code ('sv', 'en', 'nb', ...)
+     * @param {Object} catalog - Key → translated text (+ __locale for Intl)
      */
     register(code, catalog) {
         this.languages[code] = Object.assign(this.languages[code] || {}, catalog);
     },
 
     /**
-     * Byt aktivt språk (anropas från fetch-api-client när config hämtats)
-     * @param {string} code - Språkkod från ui.language
-     * @returns {boolean} true om språket byttes
+     * Change active language (called from fetch-api-client when config is loaded)
+     * @param {string} code - Language code from ui.language
+     * @returns {boolean} true if language was changed
      */
     setLanguage(code) {
         if (!code || code === this.current) return false;
@@ -51,8 +51,8 @@ const I18n = {
     },
 
     /**
-     * BCP 47-locale för Intl-API:erna (datum, tider)
-     * @returns {string} t.ex. 'sv-SE'
+     * BCP 47 locale for Intl APIs (dates, times)
+     * @returns {string} e.g. 'sv-SE'
      */
     locale() {
         const cat = this.languages[this.current];
@@ -60,10 +60,10 @@ const I18n = {
     },
 
     /**
-     * Slå upp en översättning
-     * @param {string} key - Översättningsnyckel
-     * @param {Object} [params] - Platshållare: {value: 42} ersätter {value}
-     * @returns {string} Översatt text (fallback: svenska → nyckeln)
+     * Look up a translation
+     * @param {string} key - Translation key
+     * @param {Object} [params] - Placeholders: {value: 42} replaces {value}
+     * @returns {string} Translated text (fallback: Swedish → key)
      */
     t(key, params) {
         const cat = this.languages[this.current] || {};
@@ -79,8 +79,8 @@ const I18n = {
     },
 
     /**
-     * Översätt statiska DOM-element märkta med data-i18n="NYCKEL"
-     * (körs vid språkbyte; HTML:ens svenska default-texter står tills dess)
+     * Translate static DOM elements marked with data-i18n="KEY"
+     * (runs on language change; HTML's Swedish default texts stand until then)
      */
     apply() {
         document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -90,7 +90,7 @@ const I18n = {
 };
 
 window.I18n = I18n;
-// Global genväg - används av alla moduler
+// Global shortcut - used by all modules
 window.t = (key, params) => I18n.t(key, params);
 
 console.log('✅ I18n laddad');

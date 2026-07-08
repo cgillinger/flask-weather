@@ -1,357 +1,360 @@
-# config.example.py - Weather Dashboard Configuration Template med WeatherEffects
+# config_example.py - Weather Dashboard configuration template with WeatherEffects
 # =============================================================================
-# 🔒 SÄKERHET: Denna fil innehåller INGA riktiga tokens/nycklar
-# 📁 SETUP: Kopiera till config.py och fyll i dina riktiga värden
-# 🚫 VARNING: Lägg ALDRIG till config.py till Git - den innehåller hemligheter!
-# ✨ NYT FAS 2: WeatherEffects-konfiguration tillagd för MagicMirror-kompatibilitet
+# 🔒 SECURITY: This file contains NO real tokens/keys
+# 📁 SETUP: Copy it to config.py and fill in your real values
+# 🚫 WARNING: NEVER add config.py to Git - it contains secrets!
+# ✨ NEW IN PHASE 2: WeatherEffects configuration added for MagicMirror compatibility
 # =============================================================================
 
 CONFIG = {
-    # ⚡ HUVUDINSTÄLLNING: Välj mellan SMHI-only eller SMHI+Netatmo
-    # 📊 False = SMHI-only (STANDARD) - Enbart väderprognos från SMHI
-    # 🏠 True = SMHI+Netatmo - Prognos från SMHI + faktisk data från din väderstation
-    'use_netatmo': False,  # ← ÄNDRA TILL True OM du har Netatmo-väderstation
-    
-    # VÄDERLEVERANTÖR - vem som levererar prognosdata (PROJEKT WEATHERPROVIDER)
-    # 'yr'         = YR/met.no (Norge, global täckning - default vid installation)
-    # 'smhi'       = SMHI (Sverige, täcker bara Norden)
-    # 'open-meteo' = Open-Meteo (global täckning, väljer bästa modell per plats:
-    #                DWD/NOAA/Meteo-France/ECMWF m.fl.)
-    # Alla leverantörer normaliseras till SMHI:s symbolskala 1-27, så ikoner,
-    # WeatherEffects och frontend fungerar identiskt oavsett val.
-    # Koordinaterna nedan (smhi-blocket) används av alla leverantörer.
-    # Ingen av leverantörerna kräver API-nyckel. För YR/Open-Meteo tas
-    # luftfuktigheten ur prognosen istället för SMHI:s observationsstationer.
+    # ⚡ MAIN SETTING: Choose between forecast-only or forecast+Netatmo
+    # 📊 False = forecast-only (DEFAULT) - Weather forecast from your chosen provider only
+    # 🏠 True = forecast+Netatmo - Forecast plus live readings from your own weather station
+    'use_netatmo': False,  # ← CHANGE TO True IF you own a Netatmo weather station
+
+    # WEATHER PROVIDER - who supplies the forecast data (PROJECT WEATHERPROVIDER)
+    # 'yr'         = YR/met.no (Norway, global coverage - default on installation)
+    # 'smhi'       = SMHI (Sweden, covers the Nordics only)
+    # 'open-meteo' = Open-Meteo (global coverage, picks the best model per location:
+    #                DWD/NOAA/Meteo-France/ECMWF etc.)
+    # All providers are normalized to SMHI's symbol scale 1-27, so icons,
+    # WeatherEffects and the frontend work identically regardless of choice.
+    # The coordinates below (the 'smhi' block) are used by every provider.
+    # None of the providers requires an API key. For YR/Open-Meteo the
+    # humidity is taken from the forecast instead of SMHI's observation stations.
     'weather_provider': 'yr',
 
     'smhi': {
-        # 📍 OFFENTLIGA KOORDINATER - Stockholm som standard
-        'latitude': 59.3293,    # Stockholm koordinater (offentlig information)
-        'longitude': 18.0686,   # Andra städer: Täby/Ellagård 59.4644,18.0698 | Göteborg 57.7089,11.9746 | Malmö 55.6050,13.0038 | Uppsala 59.8586,17.6389
-        # 💡 TIPS: Täby/Ellagård (59.4644, 18.0698) kan ge mer representativ data för Netatmo-jämförelser
+        # 📍 PUBLIC COORDINATES - Stockholm by default
+        'latitude': 59.3293,    # Stockholm coordinates (public information)
+        'longitude': 18.0686,   # Other cities: Täby/Ellagård 59.4644,18.0698 | Gothenburg 57.7089,11.9746 | Malmö 55.6050,13.0038 | Uppsala 59.8586,17.6389
+        # 💡 TIP: Täby/Ellagård (59.4644, 18.0698) may give more representative data for Netatmo comparisons
     },
-    
+
     'netatmo': {
-        # 🔐 KÄNSLIGA NETATMO API-UPPGIFTER - Behövs ENDAST om use_netatmo=True
-        # ⚠️  Lämna som de är om du bara vill använda SMHI (use_netatmo=False)
-        'client_id': 'YOUR_NETATMO_CLIENT_ID_HERE',              # Från https://dev.netatmo.com/apps
-        'client_secret': 'YOUR_NETATMO_CLIENT_SECRET_HERE',      # Från https://dev.netatmo.com/apps  
-        'refresh_token': 'YOUR_NETATMO_REFRESH_TOKEN_HERE',      # Från första OAuth-autentiseringen
-        'preferred_station': 'Utomhus',  # Vilken station som prioriteras för visning (smart blending använder alla)
+        # 🔐 SENSITIVE NETATMO API CREDENTIALS - Only needed if use_netatmo=True
+        # ⚠️  Leave them as-is if you only want forecast data (use_netatmo=False)
+        'client_id': 'YOUR_NETATMO_CLIENT_ID_HERE',              # From https://dev.netatmo.com/apps
+        'client_secret': 'YOUR_NETATMO_CLIENT_SECRET_HERE',      # From https://dev.netatmo.com/apps
+        'refresh_token': 'YOUR_NETATMO_REFRESH_TOKEN_HERE',      # From the initial OAuth authentication
+        'preferred_station': 'Utomhus',  # Which station is preferred for display (smart blending uses all of them)
         'comment': 'Konfiguration för Netatmo-väderstation. Ignoreras helt om use_netatmo=False.'
     },
-    
+
     'ipgeolocation': {
-        # 🔐 KÄNSLIG API-NYCKEL - Fyll i din riktiga nyckel (VALFRITT)
-        'api_key': 'YOUR_IPGEOLOCATION_API_KEY_HERE',           # Gratis från https://ipgeolocation.io/
+        # 🔐 SENSITIVE API KEY - Fill in your real key (OPTIONAL)
+        'api_key': 'YOUR_IPGEOLOCATION_API_KEY_HERE',           # Free from https://ipgeolocation.io/
         'comment': 'Hämta gratis API-nyckel från https://ipgeolocation.io/ för exakta soltider. Om tom används förenklad beräkning.'
     },
-    
+
     'display': {
-        # 📍 OFFENTLIG ORTNAMN-INSTÄLLNING
-        'location_name': 'Stockholm',  # Ortnamn som visas på skärmen
+        # 📍 PUBLIC LOCATION-NAME SETTING
+        'location_name': 'Stockholm',  # Location name shown on screen
         'comment': 'Namn på ort som visas på skärmen - hjälper användaren förstå var data kommer ifrån'
     },
 
-    # === 🍃 LUFTKVALITET ===
-    # Utomhus-luftkvalitet (European AQI) hämtas från närmaste SMHI-mätstation i
-    # Sverige, och faller globalt tillbaka på Open-Meteo/CAMS. Ingen API-nyckel krävs.
+    # === 🍃 AIR QUALITY ===
+    # Outdoor air quality (European AQI) is fetched from the nearest SMHI
+    # measurement station in Sweden, with a global fallback to
+    # Open-Meteo/CAMS. No API key required.
     'air_quality': {
-        # 'indoor'  = bara Netatmo-CO2 inomhus (kräver use_netatmo=True)
-        # 'outdoor' = bara utomhus-AQI (funkar utan Netatmo, var som helst i världen)
-        # 'both'    = visa båda. Utan Netatmo visas bara utomhus automatiskt.
+        # 'indoor'  = indoor Netatmo CO2 only (requires use_netatmo=True)
+        # 'outdoor' = outdoor AQI only (works without Netatmo, anywhere in the world)
+        # 'both'    = show both. Without Netatmo only outdoor is shown automatically.
         'mode': 'outdoor',
     },
 
     'ui': {
-        # 🎛️ OFFENTLIGA UI-INSTÄLLNINGAR - Anpassa efter behov
-        'fullscreen': True,                      # True/False - Fullskärmsläge för kiosk
-        'refresh_interval_minutes': 15,         # 5-60 minuter - SMHI data-uppdatering (rekommenderat: 15)
-        'netatmo_refresh_interval_minutes': 10, # 5-30 minuter - Netatmo snabb-uppdatering (ignoreras om use_netatmo=False)
-        
-        # VINDENHETER - AKTIV: 'land' (svensk landterminologi)
-        'wind_unit': 'land',    # ALTERNATIV: 'sjo', 'land', 'beaufort', 'ms', 'kmh' (se guide nedan)
+        # 🎛️ PUBLIC UI SETTINGS - Adjust as needed
+        'fullscreen': True,                      # True/False - Fullscreen mode for kiosk use
+        'refresh_interval_minutes': 15,         # 5-60 minutes - forecast data refresh (recommended: 15)
+        'netatmo_refresh_interval_minutes': 10, # 5-30 minutes - Netatmo fast refresh (ignored if use_netatmo=False)
 
-        # TRYCKVISNING - hur barometern visas
-        # 'words'   = beskrivande ord som en fysisk barometer (Storm/Regn/Ostadigt/Vackert/Mycket torrt)
-        #             + siffra och trendpil på rad 2. Bra för tittare utan känsla för hPa-värden.
-        # 'numeric' = enbart siffervärde + texttrend (klassiskt läge)
+        # WIND UNITS - ACTIVE: 'land' (Swedish land terminology)
+        'wind_unit': 'land',    # OPTIONS: 'sjo', 'land', 'beaufort', 'ms', 'kmh' (see guide below)
+
+        # PRESSURE DISPLAY - how the barometer is shown
+        # 'words'   = descriptive words like a physical barometer (Storm/Rain/Changeable/Fair/Very dry)
+        #             plus the number and a trend arrow on line 2. Good for viewers
+        #             with no feel for hPa values.
+        # 'numeric' = numeric value + text trend only (classic mode)
         'pressure_display': 'words',
 
-        # IKONPAKET - vilken väderikonuppsättning som används
-        # 'weather-icons'      = Weather Icons-fonten (klassiskt läge, färgkodas automatiskt)
-        # 'amcharts'           = animerade färg-SVG:er med dag/natt-varianter
-        # 'meteocons'          = animerade färg-SVG:er, fill-stil (MIT, modernast)
-        # 'amedia-meteo'       = statiska färg-SVG:er, komplett dag/natt
-        #                        OBS: CC BY-NC-SA 4.0 - ENDAST icke-kommersiell användning!
-        # 'open-weather-icons' = font, OpenWeatherMap-symboler (färgkodas automatiskt)
-        # 'kickstand-weather'  = font, minimalistisk (12 glyfer, färgkodas automatiskt)
-        # Licenser: se "Ikonpaketens licenser" i readme + licensfil i varje ikonmapp.
-        # Nya paket läggs till i static/js/utils/icon-packs.js
+        # ICON PACK - which weather icon set is used
+        # 'weather-icons'      = the Weather Icons font (classic mode, colorized automatically)
+        # 'amcharts'           = animated color SVGs with day/night variants
+        # 'meteocons'          = animated color SVGs, fill style (MIT, most modern)
+        # 'amedia-meteo'       = static color SVGs, complete day/night set
+        #                        NOTE: CC BY-NC-SA 4.0 - non-commercial use ONLY!
+        # 'open-weather-icons' = font, OpenWeatherMap symbols (colorized automatically)
+        # 'kickstand-weather'  = font, minimalist (12 glyphs, colorized automatically)
+        # Licenses: see "Icon pack licenses" in the readme + the license file in each icon folder.
+        # New packs are added in static/js/utils/icon-packs.js
         'icon_pack': 'weather-icons',
 
-        # IKONANIMERINGAR - vilka väderikoner som animeras (gäller SVG-paket som 'amcharts')
-        # Safari och alla webbläsare på iPad/iPhone renderar animerade SVG-ikoner
-        # på CPU:n och laggar när ~10 ikoner animerar samtidigt - auto-läget ger
-        # därför dessa klienter enbart animerad huvudikon. Chromium-kiosker påverkas inte.
-        # 'auto' = animera allt, utom Safari/iPad som bara animerar huvudikonen (rekommenderat)
-        # 'all'  = animera alla ikoner på alla klienter
-        # 'hero' = animera bara huvudikonen (aktuellt väder), prognosikoner statiska
-        # 'none' = alla ikoner statiska
+        # ICON ANIMATIONS - which weather icons animate (applies to SVG packs like 'amcharts')
+        # Safari, and every browser on iPad/iPhone, renders animated SVG icons
+        # on the CPU and stutters when ~10 icons animate at once - so 'auto'
+        # gives those clients an animated hero icon only. Chromium kiosks are unaffected.
+        # 'auto' = animate everything, except Safari/iPad which only animate the hero icon (recommended)
+        # 'all'  = animate every icon on every client
+        # 'hero' = animate only the hero icon (current weather), forecast icons static
+        # 'none' = all icons static
         'icon_animations': 'auto',
 
-        # SPRÅK - UI-språk för dashboarden (SPRÅKPROJEKTET)
-        # 'sv' svenska | 'nb'/'no' norska | 'da' danska | 'fi' finska
-        # 'de' tyska | 'fr' franska | 'es' spanska | 'en' engelska
-        # 'en' är default vid installation. Okänt språk faller tillbaka på
-        # svenska. Datum/veckodagar följer
-        # språket automatiskt (webbläsarens Intl). Vindterminologin per språk
-        # följer respektive lands väderinstitut (SMHI/YR/DMI/FMI/DWD/
+        # LANGUAGE - UI language for the dashboard (LANGUAGE PROJECT)
+        # 'sv' Swedish | 'nb'/'no' Norwegian | 'da' Danish | 'fi' Finnish
+        # 'de' German | 'fr' French | 'es' Spanish | 'en' English
+        # 'en' is the default on installation. An unknown language falls back
+        # to Swedish. Dates/weekdays follow the language automatically
+        # (the browser's Intl). The wind terminology per language follows each
+        # country's weather institute (SMHI/YR/DMI/FMI/DWD/
         # Météo-France/AEMET/Met Office).
         'language': 'en',
 
-        # IKONPAKETSROTATION - rotera automatiskt mellan ikonpaketen.
-        # När enabled=True ignoreras 'icon_pack' ovan. Rotationen omfattar ALLA
-        # paket i static/js/utils/icon-packs.js (aldrig hårdkodad lista - nya
-        # paket kommer med automatiskt), minus de som anges i 'exclude'.
-        # Paketet väljs deterministiskt ur datumet, så alla klienter (kiosk,
-        # iPad, ...) visar samma paket utan synk. Byte sker vid midnatt lokal
-        # tid / måndag / månadsskifte beroende på intervall.
+        # ICON PACK ROTATION - rotate automatically between icon packs.
+        # When enabled=True the 'icon_pack' setting above is ignored. The
+        # rotation covers ALL packs in static/js/utils/icon-packs.js (never a
+        # hardcoded list - new packs are included automatically), minus those
+        # listed in 'exclude'. The pack is chosen deterministically from the
+        # date, so every client (kiosk, iPad, ...) shows the same pack with no
+        # syncing. Switches happen at local midnight / Monday / the turn of
+        # the month depending on the interval.
         # 'interval': 'day' | 'week' | 'month'
-        # 'exclude':  paketnamn som hoppas över, t.ex. ['kickstand-weather']
+        # 'exclude':  pack names to skip, e.g. ['kickstand-weather']
         'icon_pack_rotation': {
             'enabled': False,
             'interval': 'week',
             'exclude': [],
         },
 
-        # TEMA - AKTIV: 'dark' (enda produktionsklara temat)
-        'theme': 'dark',        # ALTERNATIV: 'light' (EJ produktionsklar!), 'dark', 'auto'
-        
-        # Automatiskt tema-byte (används när theme='auto')
+        # THEME - ACTIVE: 'dark' (the only production-ready theme)
+        'theme': 'dark',        # OPTIONS: 'light' (NOT production-ready!), 'dark', 'auto'
+
+        # Automatic theme switching (used when theme='auto')
         'auto_theme': {
-            'day_theme': 'light',     # Tema för dagtid
-            'night_theme': 'dark',    # Tema för natttid  
-            'night_start': '21:00',   # När natttema börjar (HH:MM)
-            'night_end': '06:00'      # När natttema slutar (HH:MM)
+            'day_theme': 'light',     # Theme for daytime
+            'night_theme': 'dark',    # Theme for nighttime
+            'night_start': '21:00',   # When the night theme starts (HH:MM)
+            'night_end': '06:00'      # When the night theme ends (HH:MM)
         },
-        
-        # Fönsterinställningar (används ej i kiosk-läge)
-        'window_width': 1000,    # 800-1920 pixlar
-        'window_height': 700,    # 600-1080 pixlar
-        
-        # Sol-funktioner
-        'show_sun_times': True,  # True/False - Visa soluppgång/solnedgång
-        'sun_cache_hours': 24    # 1-168 timmar - Hur länge soltider cachas
+
+        # Window settings (not used in kiosk mode)
+        'window_width': 1000,    # 800-1920 pixels
+        'window_height': 700,    # 600-1080 pixels
+
+        # Sun features
+        'show_sun_times': True,  # True/False - Show sunrise/sunset
+        'sun_cache_hours': 24    # 1-168 hours - How long sun times are cached
     },
-    
+
     # =============================================================================
-    # ✨ FAS 2: WEATHEREFFECTS KONFIGURATION - MagicMirror-kompatibel
+    # ✨ PHASE 2: WEATHEREFFECTS CONFIGURATION - MagicMirror-compatible
     # =============================================================================
-    
+
     'weather_effects': {
-        # 🌦️ HUVUDINSTÄLLNING: Aktivera/inaktivera vädereffekter
-        'enabled': False,  # EXEMPEL: False = Inaktiverat, ändra till True för att aktivera regn/snö-animationer
-        
-        # 🎚️ INTENSITET: Automatisk eller manuell intensitetskontroll
-        'intensity': 'auto',  # 'auto' = Baserat på SMHI precipitation, 'light', 'medium', 'heavy'
-        
-        # ☔ REGN-KONFIGURATION (MagicMirror-standard inställningar)
+        # 🌦️ MAIN SETTING: Enable/disable weather effects
+        'enabled': False,  # EXAMPLE: False = disabled, change to True to enable rain/snow animations
+
+        # 🎚️ INTENSITY: Automatic or manual intensity control
+        'intensity': 'auto',  # 'auto' = based on forecast precipitation, 'light', 'medium', 'heavy'
+
+        # ☔ RAIN CONFIGURATION (MagicMirror default settings)
         'rain_config': {
-            'droplet_count': 50,        # 10-100: Antal regndroppar (MM standard: 50)
-            'droplet_speed': 2.0,       # 0.5-5.0: Hastighet i sekunder (MM standard: 2.0)  
+            'droplet_count': 50,        # 10-100: Number of raindrops (MM default: 50)
+            'droplet_speed': 2.0,       # 0.5-5.0: Speed in seconds (MM default: 2.0)
             'wind_direction': 'none',   # 'none', 'left-to-right', 'right-to-left'
-            'enable_splashes': False,   # True/False: Splash-effekter vid markträff (MM standard: False)
+            'enable_splashes': False,   # True/False: Splash effects on ground impact (MM default: False)
             'comment': 'Regn-animationer baserade på SMHI symbols 8-10, 18-20 (regnskurar/regn) + 11,21 (åska)'
         },
-        
-        # ❄️ SNÖ-KONFIGURATION (MagicMirror-standard inställningar)
+
+        # ❄️ SNOW CONFIGURATION (MagicMirror default settings)
         'snow_config': {
-            'flake_count': 25,          # 10-50: Antal snöflingor (MM standard: 25)
-            'characters': ['*', '+'],   # Lista med tecken för snöflingor (MM standard: ['*', '+'])
-            'sparkle_enabled': False,   # True/False: Glittrande snöflingor (MM standard: False)
-            'min_size': 0.8,           # 0.5-2.0: Minsta storlek i em (MM standard: 0.8)
-            'max_size': 1.5,           # 1.0-3.0: Största storlek i em (MM standard: 1.5)
-            'speed': 1.0,              # 0.5-2.0: Hastighets-multiplier (MM standard: 1.0)
+            'flake_count': 25,          # 10-50: Number of snowflakes (MM default: 25)
+            'characters': ['*', '+'],   # List of characters used as snowflakes (MM default: ['*', '+'])
+            'sparkle_enabled': False,   # True/False: Sparkling snowflakes (MM default: False)
+            'min_size': 0.8,           # 0.5-2.0: Smallest size in em (MM default: 0.8)
+            'max_size': 1.5,           # 1.0-3.0: Largest size in em (MM default: 1.5)
+            'speed': 1.0,              # 0.5-2.0: Speed multiplier (MM default: 1.0)
             'comment': 'Snö-animationer baserade på SMHI symbols 15-17, 25-27 (snöbyar/snöfall) + 12-14, 22-24 (snöblandat)'
         },
-        
-        # ⚙️ AVANCERADE INSTÄLLNINGAR
-        'transition_duration': 1000,   # 500-3000: Transition-tid i ms (MM standard: 1000)
-        'debug_logging': False,        # True/False: Detaljerad console-loggning för felsökning
-        'fallback_enabled': True,      # True/False: Graceful fallbacks vid API-fel
-        
-        # 🎯 LP156WH4 OPTIMERINGAR (1366×768 LED LCD Panel)
+
+        # ⚙️ ADVANCED SETTINGS
+        'transition_duration': 1000,   # 500-3000: Transition time in ms (MM default: 1000)
+        'debug_logging': False,        # True/False: Detailed console logging for troubleshooting
+        'fallback_enabled': True,      # True/False: Graceful fallbacks on API errors
+
+        # 🎯 LP156WH4 OPTIMIZATIONS (1366×768 LED LCD panel)
         'lp156wh4_optimizations': {
-            'enabled': True,           # True/False: Aktivera LP156WH4-specifika optimeringar
-            'contrast_boost': 1.1,     # 1.0-1.3: Kontrast-förstärkning för LED LCD (standard: 1.1)
-            'brightness_boost': 1.1,   # 1.0-1.3: Ljusstyrke-förstärkning (standard: 1.1)
-            'gpu_acceleration': True,  # True/False: GPU-acceleration för Pi5 (standard: True)
-            'target_fps': 60,         # 30/60: Målframerate för animationer (standard: 60)
+            'enabled': True,           # True/False: Enable LP156WH4-specific optimizations
+            'contrast_boost': 1.1,     # 1.0-1.3: Contrast boost for LED LCD (default: 1.1)
+            'brightness_boost': 1.1,   # 1.0-1.3: Brightness boost (default: 1.1)
+            'gpu_acceleration': True,  # True/False: GPU acceleration for Pi5 (default: True)
+            'target_fps': 60,         # 30/60: Target frame rate for animations (default: 60)
             'comment': 'Optimeringar för LP156WH4 panel och Pi5 GPU-prestanda'
         },
-        
-        # 📊 SMHI SYMBOL MAPPING (Läs-endast referens)
+
+        # 📊 SMHI SYMBOL MAPPING (read-only reference)
         'smhi_mapping_reference': {
-            'rain': [8, 9, 10, 18, 19, 20],      # Regnskurar och regn
-            'snow': [15, 16, 17, 25, 26, 27],    # Snöbyar och snöfall
-            'sleet': [12, 13, 14, 22, 23, 24],   # Snöblandat regn (behandlas som snö)
-            'thunder': [11, 21],                 # Åska (behandlas som intensivt regn)
-            'clear': [1, 2, 3, 4, 5, 6, 7],     # Klart väder (ingen effekt)
+            'rain': [8, 9, 10, 18, 19, 20],      # Rain showers and rain
+            'snow': [15, 16, 17, 25, 26, 27],    # Snow showers and snowfall
+            'sleet': [12, 13, 14, 22, 23, 24],   # Sleet (treated as snow)
+            'thunder': [11, 21],                 # Thunder (treated as intense rain)
+            'clear': [1, 2, 3, 4, 5, 6, 7],     # Clear weather (no effect)
             'comment': 'SMHI weather symbols → WeatherEffects mapping (används automatiskt av systemet)'
         },
-        
+
         'comment': 'WeatherEffects ger MagicMirror-kompatibla regn/snö-animationer baserade på SMHI-data'
     }
 }
 
 # =============================================================================
-# 🎯 VIKTIGT: FÖRSTÅ SKILLNADEN MELLAN LÄGENA
+# 🎯 IMPORTANT: UNDERSTAND THE DIFFERENCE BETWEEN THE MODES
 # =============================================================================
 
-# 📊 SMHI-ONLY LÄGE (use_netatmo = False) - STANDARD & REKOMMENDERAT FÖR NYBÖRJARE
-# ✅ Fungerar direkt utan extra setup
-# ✅ Visar väderprognos från SMHI
-# ✅ Visar luftfuktighet från SMHI observationer  
-# ✅ Visar lufttryck från SMHI
-# ✅ Enkel trycktrend baserad på SMHI-data
-# ✅ WeatherEffects (regn/snö-animationer) baserade på SMHI weather symbols
-# ❌ Ingen faktisk temperatur från din plats
-# ❌ Ingen CO2-mätning eller ljudnivå
+# 📊 FORECAST-ONLY MODE (use_netatmo = False) - DEFAULT & RECOMMENDED FOR BEGINNERS
+# ✅ Works out of the box with no extra setup
+# ✅ Shows the weather forecast from your chosen provider
+# ✅ Shows humidity (from SMHI observations, or from the forecast for YR/Open-Meteo)
+# ✅ Shows air pressure from the forecast
+# ✅ Simple pressure trend based on forecast data
+# ✅ WeatherEffects (rain/snow animations) driven by the weather symbols
+# ❌ No actual temperature measured at your location
+# ❌ No CO2 measurement or noise level
 
-# 🏠 SMHI+NETATMO LÄGE (use_netatmo = True) - FÖR AVANCERADE ANVÄNDARE MED VÄDERSTATION
-# ✅ Allt från SMHI-only läget PLUS:
-# ✅ Faktisk temperatur från din Netatmo-väderstation
-# ✅ CO2-mätning och luftkvalitet
-# ✅ Ljudnivå-mätning
-# ✅ Avancerad trycktrend baserad på Netatmo-historik
-# ✅ Smart data-blending från flera stationer
-# ✅ WeatherEffects fortsätter fungera (baserade på SMHI symbols)
-# ❌ Kräver Netatmo-väderstation och API-setup
+# 🏠 FORECAST+NETATMO MODE (use_netatmo = True) - FOR ADVANCED USERS WITH A WEATHER STATION
+# ✅ Everything from forecast-only mode PLUS:
+# ✅ Actual temperature from your Netatmo weather station
+# ✅ CO2 measurement and air quality
+# ✅ Noise-level measurement
+# ✅ Advanced pressure trend based on Netatmo history
+# ✅ Smart data blending across multiple stations
+# ✅ WeatherEffects keep working (driven by the weather symbols)
+# ❌ Requires a Netatmo weather station and API setup
 
-# 💡 REKOMMENDATION: Börja med use_netatmo=False, uppgradera senare om du skaffar väderstation
-
-# =============================================================================
-# 🚀 SNABB SETUP-GUIDE FÖR NYBÖRJARE
-# =============================================================================
-
-# 🎯 STEG 1: GRUNDSETUP (SMHI-ONLY)
-#    1. Kopiera denna fil: cp config.example.py config.py
-#    2. Öppna config.py i en texteditor
-#    3. Ändra koordinater om du inte bor i Stockholm (se städer nedan)
-#    4. Ändra location_name till ditt ortnamn
-#    5. Spara filen och kör: python3 app.py
-#    ✅ KLART! Du har en fungerande väder-dashboard
-
-# 🌦️ STEG 2: AKTIVERA WEATHEREFFECTS (VALFRITT - REKOMMENDERAT)
-#    1. Öppna config.py
-#    2. Ändra weather_effects.enabled från False till True
-#    3. Spara filen och starta om: python3 app.py
-#    4. Ladda om webbläsarsidan
-#    ✅ KLART! Nu visas regn/snö-animationer vid dåligt väder
-
-# 🏠 STEG 3: LÄGG TILL NETATMO (VALFRITT - AVANCERAT)
-#    1. Skaffa Netatmo-väderstation
-#    2. Gå till https://dev.netatmo.com/apps
-#    3. Skapa en ny app eller använd befintlig
-#    4. Anteckna Client ID och Client Secret
-#    5. Genomför OAuth-flow för att få refresh_token
-#    6. Öppna config.py och sätt use_netatmo = True
-#    7. Ersätt alla 'YOUR_NETATMO_*_HERE' med riktiga värden
-#    8. Starta om: python3 app.py
-
-# 🌅 STEG 4: FÖRBÄTTRA SOLTIDER (VALFRITT)
-#    1. Gå till https://ipgeolocation.io/
-#    2. Registrera dig för gratis konto (1000 anrop/månad)
-#    3. Kopiera din API-nyckel
-#    4. Ersätt 'YOUR_IPGEOLOCATION_API_KEY_HERE' med din nyckel
-#    (Om du hoppar över detta används förenklad solberäkning)
+# 💡 RECOMMENDATION: Start with use_netatmo=False, upgrade later if you get a weather station
 
 # =============================================================================
-# 🌦️ WEATHEREFFECTS SNABBGUIDE - NYT FAS 2
+# 🚀 QUICK SETUP GUIDE FOR BEGINNERS
 # =============================================================================
 
-# 🚀 SNABB AKTIVERING:
-#    1. Sätt weather_effects.enabled = True i config.py
-#    2. Starta om Flask-servern: python3 app.py
-#    3. WeatherEffects aktiveras automatiskt vid regn/snö från SMHI
-#    ✅ KLART! Animationer visas nu baserat på väderdata
+# 🎯 STEP 1: BASIC SETUP (FORECAST-ONLY)
+#    1. Copy this file: cp reference/config_example.py reference/config.py
+#    2. Open config.py in a text editor
+#    3. Change the coordinates if you don't live in Stockholm (see cities below)
+#    4. Change location_name to your own location
+#    5. Save the file and run: python3 app.py
+#    ✅ DONE! You have a working weather dashboard
 
-# 🎚️ INTENSITETSINSTÄLLNINGAR:
-# - 'auto': Automatisk baserat på SMHI precipitation (REKOMMENDERAT)
-# - 'light': Få partiklar, långsamma animationer (bra för låg prestanda)
-# - 'medium': Standard antal partiklar och hastighet
-# - 'heavy': Många partiklar, snabba animationer (kräver bra prestanda)
+# 🌦️ STEP 2: ENABLE WEATHEREFFECTS (OPTIONAL - RECOMMENDED)
+#    1. Open config.py
+#    2. Change weather_effects.enabled from False to True
+#    3. Save the file and restart: python3 app.py
+#    4. Reload the browser page
+#    ✅ DONE! Rain/snow animations now appear in bad weather
 
-# ☔ REGN-ANPASSNINGAR:
-# - droplet_count: 30 = lätt regn, 50 = medel, 80 = kraftigt regn
-# - droplet_speed: 3.0 = snabbt regn, 2.0 = medel, 1.0 = långsamt regn
-# - wind_direction: 'left-to-right' för vindpåverkat regn
+# 🏠 STEP 3: ADD NETATMO (OPTIONAL - ADVANCED)
+#    1. Get a Netatmo weather station
+#    2. Go to https://dev.netatmo.com/apps
+#    3. Create a new app or use an existing one
+#    4. Note down the Client ID and Client Secret
+#    5. Complete the OAuth flow to obtain a refresh_token
+#    6. Open config.py and set use_netatmo = True
+#    7. Replace every 'YOUR_NETATMO_*_HERE' with real values
+#    8. Restart: python3 app.py
 
-# ❄️ SNÖ-ANPASSNINGAR:
-# - flake_count: 15 = lätt snöfall, 25 = medel, 40 = kraftigt snöfall
-# - characters: ['❄', '❅', '❆'] för Unicode-snöflingor (kräver font-stöd)
-# - sparkle_enabled: True för glittrande snöflingor (mer GPU-intensivt)
-
-# 🔧 PRESTANDA-OPTIMERING FÖR PI3B/PI5:
-# - Minska droplet_count/flake_count om animationer är hackiga
-# - Sätt target_fps till 30 om 60fps är för krävande
-# - Inaktivera gpu_acceleration om det ger problem
-
-# 🐛 FELSÖKNING WEATHEREFFECTS:
-# - Sätt debug_logging = True för detaljerad console-output
-# - Kontrollera browser developer tools för JavaScript-fel
-# - Verifiera att /api/weather-effects-config returnerar korrekt JSON
-# - Kontrollera att både CSS och JS för WeatherEffects laddas
-
-# 🚫 INAKTIVERA WEATHEREFFECTS:
-#    1. Sätt weather_effects.enabled = False i config.py
-#    2. Starta om Flask-servern: python3 app.py
-#    3. Inga regn/snö-animationer visas (endast statisk väderdata)
+# 🌅 STEP 4: IMPROVE SUN TIMES (OPTIONAL)
+#    1. Go to https://ipgeolocation.io/
+#    2. Sign up for a free account (1000 calls/month)
+#    3. Copy your API key
+#    4. Replace 'YOUR_IPGEOLOCATION_API_KEY_HERE' with your key
+#    (If you skip this, a simplified sun calculation is used)
 
 # =============================================================================
-# VINDENHETER GUIDE - Fullständig lista över tillgängliga alternativ
+# 🌦️ WEATHEREFFECTS QUICK GUIDE - NEW IN PHASE 2
 # =============================================================================
 
-# AKTIV: 'land' = Svensk landterminologi enligt Beaufort-skalan
+# 🚀 QUICK ACTIVATION:
+#    1. Set weather_effects.enabled = True in config.py
+#    2. Restart the Flask server: python3 app.py
+#    3. WeatherEffects activate automatically when the forecast shows rain/snow
+#    ✅ DONE! Animations are now driven by the weather data
+
+# 🎚️ INTENSITY SETTINGS:
+# - 'auto': Automatic, based on forecast precipitation (RECOMMENDED)
+# - 'light': Few particles, slow animations (good for low-end hardware)
+# - 'medium': Default particle count and speed
+# - 'heavy': Many particles, fast animations (needs decent performance)
+
+# ☔ RAIN TWEAKS:
+# - droplet_count: 30 = light rain, 50 = medium, 80 = heavy rain
+# - droplet_speed: 3.0 = fast rain, 2.0 = medium, 1.0 = slow rain
+# - wind_direction: 'left-to-right' for wind-blown rain
+
+# ❄️ SNOW TWEAKS:
+# - flake_count: 15 = light snowfall, 25 = medium, 40 = heavy snowfall
+# - characters: ['❄', '❅', '❆'] for Unicode snowflakes (requires font support)
+# - sparkle_enabled: True for sparkling snowflakes (more GPU-intensive)
+
+# 🔧 PERFORMANCE TUNING FOR PI3B/PI5:
+# - Reduce droplet_count/flake_count if animations stutter
+# - Set target_fps to 30 if 60 fps is too demanding
+# - Disable gpu_acceleration if it causes problems
+
+# 🐛 TROUBLESHOOTING WEATHEREFFECTS:
+# - Set debug_logging = True for detailed console output
+# - Check the browser developer tools for JavaScript errors
+# - Verify that /api/weather-effects-config returns valid JSON
+# - Check that both the CSS and JS for WeatherEffects load
+
+# 🚫 DISABLE WEATHEREFFECTS:
+#    1. Set weather_effects.enabled = False in config.py
+#    2. Restart the Flask server: python3 app.py
+#    3. No rain/snow animations are shown (static weather data only)
+
+# =============================================================================
+# WIND UNITS GUIDE - Complete list of available options
+# =============================================================================
+
+# ACTIVE: 'land' = Swedish land terminology per the Beaufort scale
 # 0: Lugnt (<1 km/h)
-# 1-2: Svag vind (1-11 km/h) 
+# 1-2: Svag vind (1-11 km/h)
 # 3-4: Måttlig vind (12-28 km/h)
 # 5-6: Frisk vind (29-49 km/h)
 # 7-9: Hård vind (50-88 km/h)
 # 10-11: Storm (89-117 km/h)
 # 12: Orkan (118+ km/h)
 
-# ALTERNATIV:
-# 'sjo'     = Sjöterminologi: Stiltje, Bris, Kuling, Storm, Orkan
-# 'beaufort'= Beaufort 0-12 med svenska namn (Lugnt, Svag vind, etc.)
-# 'ms'      = X.X m/s (decimaler) - Teknisk mätning
-# 'kmh'     = XX km/h (heltal) - Vardagligt format
+# OPTIONS:
+# 'sjo'     = Sea terminology: Stiltje, Bris, Kuling, Storm, Orkan
+# 'beaufort'= Beaufort 0-12 with Swedish names (Lugnt, Svag vind, etc.)
+# 'ms'      = X.X m/s (decimals) - technical measurement
+# 'kmh'     = XX km/h (integer) - everyday format
 
 # =============================================================================
-# TEMA GUIDE
+# THEME GUIDE
 # =============================================================================
 
-# AKTIV: 'dark' = Mörkt tema (enda fullt utvecklade temat)
-# VARNING: 'light' = Ljust tema (EJ produktionsklart - mycket fult!)
-# 'auto' = Växlar automatiskt enligt auto_theme-tider
+# ACTIVE: 'dark' = dark theme (the only fully developed theme)
+# WARNING: 'light' = light theme (NOT production-ready - very ugly!)
+# 'auto' = switches automatically according to the auto_theme times
 
 # =============================================================================
-# UPPDATERINGSINTERVALL GUIDE
+# REFRESH INTERVAL GUIDE
 # =============================================================================
 
-# AKTUELLA: 15/10 minuter (balanserat för Pi3B)
-# Snabb:    5/5 minuter (mer CPU-belastning)
-# Standard: 15/10 minuter (rekommenderat)
-# Sparsamhet: 30/20 minuter (låg CPU-belastning)
+# CURRENT:  15/10 minutes (balanced for a Pi3B)
+# Fast:     5/5 minutes (more CPU load)
+# Standard: 15/10 minutes (recommended)
+# Frugal:   30/20 minutes (low CPU load)
 
 # =============================================================================
-# KOORDINATER FÖR SVENSKA STÄDER
+# COORDINATES FOR SWEDISH CITIES
 # =============================================================================
 
-# Stockholm: 59.3293, 18.0686  (STANDARD)
-# Täby/Ellagård: 59.4644, 18.0698  (ALTERNATIV - närmare Netatmo-stationer)
-# Göteborg:  57.7089, 11.9746
+# Stockholm: 59.3293, 18.0686  (DEFAULT)
+# Täby/Ellagård: 59.4644, 18.0698  (ALTERNATIVE - closer to Netatmo stations)
+# Gothenburg: 57.7089, 11.9746
 # Malmö:     55.6050, 13.0038
 # Uppsala:   59.8586, 17.6389
 # Linköping: 58.4108, 15.6214
@@ -359,84 +362,84 @@ CONFIG = {
 # Västerås:  59.6162, 16.5528
 
 # =============================================================================
-# FELSÖKNING - VANLIGA PROBLEM OCH LÖSNINGAR
+# TROUBLESHOOTING - COMMON PROBLEMS AND SOLUTIONS
 # =============================================================================
 
-# ❌ PROBLEM: "Import error för config"
-# ✅ LÖSNING: Kontrollera att config.py finns (ej config.example.py)
+# ❌ PROBLEM: "Import error for config"
+# ✅ SOLUTION: Check that config.py exists (not just config_example.py)
 
-# ❌ PROBLEM: "Kan inte starta utan giltig konfiguration"
-# ✅ LÖSNING: Kontrollera att config.py är korrekt kopierad och har rätt format
+# ❌ PROBLEM: "Cannot start without a valid configuration"
+# ✅ SOLUTION: Check that config.py was copied correctly and has the right format
 
-# ❌ PROBLEM: "Fel koordinater/fel väder"
-# ✅ LÖSNING: Kontrollera latitude/longitude i config.py
+# ❌ PROBLEM: "Wrong coordinates/wrong weather"
+# ✅ SOLUTION: Check latitude/longitude in config.py
 
-# ❌ PROBLEM: "WeatherEffects fungerar inte" (NYT FAS 2)
-# ✅ LÖSNING: Kontrollera weather_effects.enabled = True och starta om Flask-servern
+# ❌ PROBLEM: "WeatherEffects don't work" (PHASE 2)
+# ✅ SOLUTION: Check that weather_effects.enabled = True and restart the Flask server
 
-# ❌ PROBLEM: "Animationer är hackiga på Pi3B/Pi5" (NYT FAS 2)
-# ✅ LÖSNING: Minska droplet_count/flake_count eller sätt target_fps till 30
+# ❌ PROBLEM: "Animations stutter on Pi3B/Pi5" (PHASE 2)
+# ✅ SOLUTION: Reduce droplet_count/flake_count or set target_fps to 30
 
-# ❌ PROBLEM: "Inga effekter visas trots regn/snö" (NYT FAS 2)
-# ✅ LÖSNING: Aktivera debug_logging och kontrollera console för SMHI symbol-mappning
+# ❌ PROBLEM: "No effects despite rain/snow" (PHASE 2)
+# ✅ SOLUTION: Enable debug_logging and check the console for the weather-symbol mapping
 
-# ❌ PROBLEM: "JavaScript-fel för WeatherEffects" (NYT FAS 2)
-# ✅ LÖSNING: Kontrollera att /static/js/weather-effects.js laddas korrekt
+# ❌ PROBLEM: "JavaScript errors for WeatherEffects" (PHASE 2)
+# ✅ SOLUTION: Check that /static/js/weather-effects.js loads correctly
 
-# ❌ PROBLEM: "Netatmo autentiseringsfel" (ENDAST om use_netatmo=True)
-# ✅ LÖSNING: Kontrollera client_id, client_secret och refresh_token
+# ❌ PROBLEM: "Netatmo authentication error" (ONLY if use_netatmo=True)
+# ✅ SOLUTION: Check client_id, client_secret and refresh_token
 
-# ❌ PROBLEM: "Inga soltider eller konstiga tider"
-# ✅ LÖSNING: Kontrollera ipgeolocation api_key eller använd fallback-beräkning
+# ❌ PROBLEM: "No sun times or strange times"
+# ✅ SOLUTION: Check the ipgeolocation api_key, or rely on the fallback calculation
 
-# ❌ PROBLEM: "Vinddata visas fel"
-# ✅ LÖSNING: Kontrollera wind_unit-inställning
+# ❌ PROBLEM: "Wind data displayed wrong"
+# ✅ SOLUTION: Check the wind_unit setting
 
-# ❌ PROBLEM: "Dashboard visar fel läge"
-# ✅ LÖSNING: Kontrollera use_netatmo inställningen (True/False)
-
-# =============================================================================
-# HUR DU ÄNDRAR MELLAN LÄGENA
-# =============================================================================
-
-# 📊 FÖR ATT KÖRA SMHI-ONLY (STANDARD):
-#    1. Öppna config.py
-#    2. Sätt: use_netatmo = False
-#    3. Spara filen
-#    4. Starta om: python3 app.py
-#    → Du ser bara SMHI-väderprognos (WeatherEffects fortsätter fungera)
-
-# 🌦️ FÖR ATT AKTIVERA WEATHEREFFECTS:
-#    1. Öppna config.py
-#    2. Sätt: weather_effects.enabled = True
-#    3. Spara filen
-#    4. Starta om: python3 app.py
-#    → Du ser regn/snö-animationer vid dåligt väder
-
-# 🏠 FÖR ATT LÄGGA TILL NETATMO:
-#    1. Sätt upp Netatmo API-uppgifter först (se guide ovan)
-#    2. Öppna config.py
-#    3. Sätt: use_netatmo = True
-#    4. Spara filen
-#    5. Starta om: python3 app.py
-#    → Du ser SMHI + faktisk data från din väderstation
+# ❌ PROBLEM: "Dashboard shows the wrong mode"
+# ✅ SOLUTION: Check the use_netatmo setting (True/False)
 
 # =============================================================================
-# SÄKERHET OCH BACKUP
+# HOW TO SWITCH BETWEEN THE MODES
 # =============================================================================
 
-# ⚠️  VIKTIGT: config.py innehåller känsliga API-nycklar (om du använder Netatmo)
-# 🔒 LÄGG ALDRIG till config.py i Git (är utesluten via .gitignore)
-# 💾 GÖR backup av config.py före uppdateringar
-# 🔄 Använd environment variables i produktion för extra säkerhet
+# 📊 TO RUN FORECAST-ONLY (DEFAULT):
+#    1. Open config.py
+#    2. Set: use_netatmo = False
+#    3. Save the file
+#    4. Restart: python3 app.py
+#    → You only see the weather forecast (WeatherEffects keep working)
+
+# 🌦️ TO ENABLE WEATHEREFFECTS:
+#    1. Open config.py
+#    2. Set: weather_effects.enabled = True
+#    3. Save the file
+#    4. Restart: python3 app.py
+#    → You see rain/snow animations in bad weather
+
+# 🏠 TO ADD NETATMO:
+#    1. Set up the Netatmo API credentials first (see guide above)
+#    2. Open config.py
+#    3. Set: use_netatmo = True
+#    4. Save the file
+#    5. Restart: python3 app.py
+#    → You see the forecast + live data from your weather station
 
 # =============================================================================
-# SUPPORT OCH HJÄLP
+# SECURITY AND BACKUP
 # =============================================================================
 
-# 📚 OM DU BEHÖVER HJÄLP:
-#    1. Kontrollera att du följt setup-guiden ovan
-#    2. Kolla felsökningssektionen
-#    3. Testa med SMHI-only läget först (use_netatmo=False)
-#    4. Aktivera WeatherEffects för mer visuell upplevelse
-#    5. Kontrollera loggar när du kör python3 app.py
+# ⚠️  IMPORTANT: config.py contains sensitive API keys (if you use Netatmo)
+# 🔒 NEVER add config.py to Git (it is excluded via .gitignore)
+# 💾 BACK UP config.py before upgrades
+# 🔄 Use environment variables in production for extra security
+
+# =============================================================================
+# SUPPORT AND HELP
+# =============================================================================
+
+# 📚 IF YOU NEED HELP:
+#    1. Check that you followed the setup guide above
+#    2. Read the troubleshooting section
+#    3. Test forecast-only mode first (use_netatmo=False)
+#    4. Enable WeatherEffects for a richer visual experience
+#    5. Check the logs while running python3 app.py

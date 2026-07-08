@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Netatmo API-klient för väderstation-data
-OAuth2 implementation med smart data-blending från alla stationer
-+ SMHI-KOMPATIBEL TRYCKTREND-FUNKTIONALITET: 3-timmars analys enligt svensk meteorologisk standard
+Netatmo API client for weather station data
+OAuth2 implementation with smart data blending from all stations
++ SMHI-COMPATIBLE PRESSURE TREND FUNCTIONALITY: 3-hour analysis per Swedish meteorological standard
 """
 
 import json
@@ -16,17 +16,17 @@ from urllib.parse import urlencode
 
 
 class NetatmoClient:
-    """Netatmo API-klient med OAuth2, smart data-blending och SMHI-kompatibel trycktrend-analys."""
+    """Netatmo API client with OAuth2, smart data blending and SMHI-compatible pressure trend analysis."""
     
     def __init__(self, client_id, client_secret, refresh_token, preferred_station=None):
         """
-        Initialisera Netatmo-klient.
-        
+        Initialize the Netatmo client.
+
         Args:
             client_id (str): Netatmo app Client ID
-            client_secret (str): Netatmo app Client Secret  
-            refresh_token (str): Initial refresh token från dev portal
-            preferred_station (str): Önskad station/modul att visa (används för display, blending sker automatiskt)
+            client_secret (str): Netatmo app Client Secret
+            refresh_token (str): Initial refresh token from the dev portal
+            preferred_station (str): Preferred station/module to show (display only; blending happens automatically)
         """
         self.client_id = client_id
         self.client_secret = client_secret
@@ -42,9 +42,9 @@ class NetatmoClient:
         self.access_token = None
         self.refresh_token = refresh_token
         self.token_expires_at = None
-        # Tokens lagras i cache/ (volym-monterad på Synology) så att roterade
-        # refresh-tokens överlever container-rebuilds. Utan detta bryts
-        # Netatmo-inloggningen permanent vid rebuild om token hunnit rotera.
+        # Tokens are stored in cache/ (volume-mounted on Synology) so that rotated
+        # refresh tokens survive container rebuilds. Without this, Netatmo login
+        # breaks permanently on rebuild if the token has already rotated.
         os.makedirs("cache", exist_ok=True)
         self.token_file = os.path.join("cache", "tokens.json")
         self.legacy_token_file = "tokens.json"
@@ -52,20 +52,20 @@ class NetatmoClient:
         # Cache
         self._cache_data = None
         self._cache_timestamp = None
-        self._cache_duration = 300  # 5 minuters cache (Netatmo uppdaterar var 10:e min)
+        self._cache_duration = 300  # 5-minute cache (Netatmo updates every 10 min)
         
         # Threading
         self._refresh_timer = None
         
-        # SMHI-KOMPATIBEL TRYCKTREND-HISTORIK
-        # Lagras i cache/ (volym-monterad på Synology) så historiken överlever
-        # container-rebuilds. Annars nollställs den vid varje deploy och de
-        # femgradiga snabbt-stegen "tystnar" i ~3h tills fönstret fyllts på.
+        # SMHI-COMPATIBLE PRESSURE TREND HISTORY
+        # Stored in cache/ (volume-mounted on Synology) so the history survives
+        # container rebuilds. Otherwise it resets on every deploy and the
+        # five-step "fast" levels go silent for ~3h until the window refills.
         cache_dir = "cache"
         os.makedirs(cache_dir, exist_ok=True)
         self.pressure_history_file = os.path.join(cache_dir, "pressure_history.json")
 
-        # Engångsmigrering: ta med ev. äldre historik från repo-roten in i cache/.
+        # One-time migration: bring any older history from the repo root into cache/.
         legacy_history_file = "pressure_history.json"
         if not os.path.exists(self.pressure_history_file) and os.path.exists(legacy_history_file):
             try:
@@ -76,38 +76,38 @@ class NetatmoClient:
 
         self._pressure_history = self._load_pressure_history()
         
-        # Blending-prioriteter (moduler prioriteras för utomhusdata)
+        # Blending priorities (modules preferred for outdoor data)
         self.blending_strategy = {
-            'temperature': ['module', 'main_device'],  # Föredra moduler för temperatur
-            'humidity': ['module', 'main_device'],     # Föredra moduler för luftfuktighet  
-            'pressure': ['main_device'],                # Tryck finns bara på huvudenhet
-            'co2': ['main_device'],                     # CO2 finns bara på huvudenhet
-            'noise': ['main_device'],                   # Ljud finns bara på huvudenhet
-            'rain': ['rain_module', 'module', 'main_device'],  # Prioritera regnmätare högst
-            'rain_sum_1': ['rain_module'],              # 1h nederbörd (bara regnmätare)
-            'rain_sum_24': ['rain_module']              # 24h nederbörd (bara regnmätare)
+            'temperature': ['module', 'main_device'],  # Prefer modules for temperature
+            'humidity': ['module', 'main_device'],     # Prefer modules for humidity
+            'pressure': ['main_device'],                # Pressure only exists on the main device
+            'co2': ['main_device'],                     # CO2 only exists on the main device
+            'noise': ['main_device'],                   # Noise only exists on the main device
+            'rain': ['rain_module', 'module', 'main_device'],  # Rain gauge gets highest priority
+            'rain_sum_1': ['rain_module'],              # 1h precipitation (rain gauge only)
+            'rain_sum_24': ['rain_module']              # 24h precipitation (rain gauge only)
         }
         
         print("🔑 Netatmo-klient initierad med smart data-blending + SMHI-kompatibel trycktrend-analys")
         
-        # Ladda sparade tokens eller använd initial
+        # Load saved tokens or use the initial one
         self._load_saved_tokens()
-        
-        # Autentisera direkt
+
+        # Authenticate immediately
         self._authenticate()
-    
-    # === SMHI-KOMPATIBEL TRYCKTREND-HISTORIK FUNKTIONER ===
+
+    # === SMHI-COMPATIBLE PRESSURE TREND HISTORY FUNCTIONS ===
     
     def _load_pressure_history(self):
-        """Ladda tryckhistorik från fil."""
+        """Load pressure history from file."""
         if os.path.exists(self.pressure_history_file):
             try:
                 with open(self.pressure_history_file, 'r', encoding='utf-8') as f:
                     history = json.load(f)
                 
-                # Validera struktur
+                # Validate structure
                 if isinstance(history, dict) and 'timestamps' in history and 'pressures' in history:
-                    # Rensa gamla data (äldre än 7 dagar)
+                    # Drop old data (older than 7 days)
                     cutoff_time = time.time() - (7 * 24 * 3600)
                     clean_history = self._clean_old_pressure_data(history, cutoff_time)
                     
@@ -125,11 +125,11 @@ class NetatmoClient:
             return {"timestamps": [], "pressures": []}
     
     def _clean_old_pressure_data(self, history, cutoff_time):
-        """Ta bort data äldre än cutoff_time."""
+        """Remove data older than cutoff_time."""
         timestamps = history['timestamps']
         pressures = history['pressures']
         
-        # Hitta index för data som ska behållas
+        # Find the indices of data to keep
         keep_indices = [i for i, ts in enumerate(timestamps) if ts >= cutoff_time]
         
         if keep_indices:
@@ -148,7 +148,7 @@ class NetatmoClient:
             return {"timestamps": [], "pressures": []}
     
     def _save_pressure_history(self):
-        """Spara tryckhistorik till fil (atomärt, mot korrupt fil vid krasch)."""
+        """Save pressure history to file (atomically, to avoid a corrupt file on crash)."""
         try:
             tmp_path = self.pressure_history_file + '.tmp'
             with open(tmp_path, 'w', encoding='utf-8') as f:
@@ -159,62 +159,62 @@ class NetatmoClient:
     
     def _add_pressure_measurement(self, pressure_hpa, timestamp=None):
         """
-        Lägg till ny tryckmätning i historiken.
-        
+        Add a new pressure measurement to the history.
+
         Args:
-            pressure_hpa (float): Tryck i hPa
-            timestamp (float, optional): Unix timestamp, None = nu
+            pressure_hpa (float): Pressure in hPa
+            timestamp (float, optional): Unix timestamp, None = now
         """
         if timestamp is None:
             timestamp = time.time()
         
-        # Kontrollera att det inte är duplikat (inom 5 minuter)
+        # Check that it is not a duplicate (within 5 minutes)
         if self._pressure_history['timestamps']:
             last_timestamp = self._pressure_history['timestamps'][-1]
-            if abs(timestamp - last_timestamp) < 300:  # 5 minuter
-                # Uppdatera senaste mätningen istället för att lägga till ny
+            if abs(timestamp - last_timestamp) < 300:  # 5 minutes
+                # Update the latest measurement instead of adding a new one
                 self._pressure_history['timestamps'][-1] = timestamp
                 self._pressure_history['pressures'][-1] = pressure_hpa
                 return
         
-        # Lägg till ny mätning
+        # Add new measurement
         self._pressure_history['timestamps'].append(timestamp)
         self._pressure_history['pressures'].append(pressure_hpa)
-        
-        # Begränsa historik till max 2000 punkter (ungefär 7 dagar vid 5min intervall)
+
+        # Cap history at 2000 points (roughly 7 days at 5-minute intervals)
         max_points = 2000
         if len(self._pressure_history['timestamps']) > max_points:
             excess = len(self._pressure_history['timestamps']) - max_points
             self._pressure_history['timestamps'] = self._pressure_history['timestamps'][excess:]
             self._pressure_history['pressures'] = self._pressure_history['pressures'][excess:]
         
-        # Spara till fil
+        # Save to file
         self._save_pressure_history()
         
         print(f"📊 Tryckmätning sparad: {pressure_hpa} hPa (totalt {len(self._pressure_history['timestamps'])} punkter)")
     
     def _analyze_pressure_trend(self):
         """
-        SMHI-kompatibel trycktrend-analys enligt svensk meteorologisk standard.
-        
-        Implementerar SMHIs 3-timmars metodik med svenska tröskelvärden.
-        
+        SMHI-compatible pressure trend analysis per Swedish meteorological standard.
+
+        Implements SMHI's 3-hour methodology with Swedish thresholds.
+
         Returns:
             dict: {
                 "trend": "rising|falling|stable|n/a",
-                "description": "Svenska beskrivningar...",
+                "description": "Swedish descriptions...",
                 "icon": "wi-xxx",
-                "data_hours": antal_timmar_data,
-                "pressure_change": skillnad_i_hPa,
+                "data_hours": hours_of_data,
+                "pressure_change": difference_in_hPa,
                 "analysis_quality": "poor|basic|good|excellent",
                 "smhi_compatible": True,
-                "analysis_periods": {...}  # Detaljerad analys för olika perioder
+                "analysis_periods": {...}  # Detailed analysis for the different periods
             }
         """
         timestamps = self._pressure_history['timestamps']
         pressures = self._pressure_history['pressures']
         
-        # Kontrollera om vi har tillräckligt med data
+        # Check whether we have enough data
         if len(pressures) < 2:
             return {
                 "trend": "n/a",
@@ -232,14 +232,14 @@ class NetatmoClient:
         oldest_time = timestamps[0]
         data_hours = (current_time - oldest_time) / 3600
         
-        # Analysera olika tidsperioder enligt SMHI-metodik
+        # Analyze different time periods per SMHI methodology
         analysis_periods = self._analyze_multiple_periods_smhi(timestamps, pressures, current_time)
-        
-        # SMHI PRIMÄR METOD: 3-timmars analys (högst prioritet)
+
+        # SMHI PRIMARY METHOD: 3-hour analysis (highest priority)
         primary_analysis = analysis_periods.get('3h')
-        
+
         if primary_analysis and primary_analysis['data_points'] >= 3:
-            # Använd SMHI 3-timmars metodik som primär
+            # Use SMHI's 3-hour methodology as primary
             trend_result = self._determine_smhi_trend(
                 primary_analysis, 
                 analysis_periods,
@@ -255,7 +255,7 @@ class NetatmoClient:
             
             return trend_result
         
-        # FALLBACK: 6-timmars analys om 3h inte tillgänglig
+        # FALLBACK: 6-hour analysis if 3h is unavailable
         elif analysis_periods.get('6h') and analysis_periods['6h']['data_points'] >= 4:
             fallback_analysis = analysis_periods['6h']
             trend_result = self._determine_smhi_trend(
@@ -274,7 +274,7 @@ class NetatmoClient:
             
             return trend_result
         
-        # MINIMAL FALLBACK: För lite data
+        # MINIMAL FALLBACK: too little data
         else:
             return {
                 "trend": "n/a",
@@ -290,25 +290,25 @@ class NetatmoClient:
 
     def _analyze_multiple_periods_smhi(self, timestamps, pressures, current_time):
         """
-        Analysera tryckdata för olika tidsperioder enligt SMHI-metodik.
-        
+        Analyze pressure data over different time periods per SMHI methodology.
+
         Returns:
-            dict: Analys för 3h, 6h, 12h, 24h perioder
+            dict: Analysis for the 3h, 6h, 12h, 24h periods
         """
         periods = {
-            '3h': 3 * 3600,    # SMHI primär metod
-            '6h': 6 * 3600,    # SMHI sekundär 
-            '12h': 12 * 3600,  # Utökad kontext
-            '24h': 24 * 3600   # Dygnskontext
+            '3h': 3 * 3600,    # SMHI primary method
+            '6h': 6 * 3600,    # SMHI secondary
+            '12h': 12 * 3600,  # Extended context
+            '24h': 24 * 3600   # Daily context
         }
         
         analysis_results = {}
         
         for period_name, period_seconds in periods.items():
-            # Hitta data inom tidsperioden
+            # Find data within the time period
             start_time = current_time - period_seconds
-            
-            # Filtrera data för perioden
+
+            # Filter data for the period
             period_data = []
             for i, ts in enumerate(timestamps):
                 if ts >= start_time:
@@ -330,16 +330,16 @@ class NetatmoClient:
                 }
                 continue
             
-            # Beräkna förändring för perioden
+            # Compute the change over the period
             start_pressure = period_data[0]['pressure']
             end_pressure = period_data[-1]['pressure']
             pressure_change = end_pressure - start_pressure
-            
-            # Beräkna verklig tidsspan
+
+            # Compute the actual time span
             actual_seconds = period_data[-1]['timestamp'] - period_data[0]['timestamp']
             actual_hours = actual_seconds / 3600
-            
-            # Beräkna förändringshastighet per timme
+
+            # Compute the rate of change per hour
             change_rate = pressure_change / max(actual_hours, 0.1) if actual_hours > 0 else 0
             
             analysis_results[period_name] = {
@@ -350,45 +350,45 @@ class NetatmoClient:
                 'start_pressure': start_pressure,
                 'end_pressure': end_pressure,
                 'available': True,
-                'period_coverage': (actual_hours / (period_seconds / 3600)) * 100  # Procent täckning
+                'period_coverage': (actual_hours / (period_seconds / 3600)) * 100  # Percent coverage
             }
         
         return analysis_results
 
     def _determine_smhi_trend(self, primary_analysis, all_periods, data_hours, fallback_period="3h"):
         """
-        Bestäm trend enligt SMHI-metodik med svenska tröskelvärden.
-        
+        Determine the trend per SMHI methodology with Swedish thresholds.
+
         Args:
-            primary_analysis: Huvudanalys (normalt 3h)
-            all_periods: Alla tidsperioder för kontext
-            data_hours: Total datahistorik
-            fallback_period: Vilken period som används som primär
-        
+            primary_analysis: Main analysis (normally 3h)
+            all_periods: All time periods, for context
+            data_hours: Total data history
+            fallback_period: Which period is used as primary
+
         Returns:
-            dict: Trend-resultat med svenska beskrivningar
+            dict: Trend result with Swedish descriptions
         """
         pressure_change = primary_analysis['pressure_change']
         change_rate = primary_analysis['change_rate']
         actual_hours = primary_analysis['actual_hours']
         
-        # FEMGRADIG SKALA enligt pressure-descriptions.md (digitaliserad Huger-barometer)
-        # Δ per 3 h:  <−2 faller snabbt | −2…−0,5 faller | ±0,5 stabilt | +0,5…+2 stiger | >+2 stiger snabbt
-        # 'step' = gräns stabilt↔stiger/faller, 'fast' = gräns till snabbt-stegen.
+        # FIVE-STEP SCALE per pressure-descriptions.md (digitized Huger barometer)
+        # Δ per 3 h:  <−2 falling fast | −2…−0.5 falling | ±0.5 stable | +0.5…+2 rising | >+2 rising fast
+        # 'step' = boundary stable↔rising/falling, 'fast' = boundary to the fast steps.
         if fallback_period == "3h":
-            step_threshold = 0.5   # |Δ| ≥ 0.5 hPa på 3h = stiger/faller
-            fast_threshold = 2.0   # |Δ| > 2 hPa på 3h = snabbt
+            step_threshold = 0.5   # |Δ| ≥ 0.5 hPa over 3h = rising/falling
+            fast_threshold = 2.0   # |Δ| > 2 hPa over 3h = fast
         else:
-            # 6h+ fallback: skala trösklarna proportionellt mot faktiskt tidsspann
-            # (ej extrapolering — undviker att brus förstärks till falska "snabbt")
+            # 6h+ fallback: scale thresholds proportionally to the actual time span
+            # (not extrapolation — avoids amplifying noise into false "fast" readings)
             multiplier = (actual_hours / 3.0) if actual_hours > 0 else 1.0
             step_threshold = 0.5 * multiplier
             fast_threshold = 2.0 * multiplier
 
-        # Kontextanalys från längre perioder
+        # Context analysis from longer periods
         context = self._get_trend_context(all_periods)
 
-        # Femgradig klassificering på 3h-Δ (pressure_change), specens styckvisa gränser
+        # Five-step classification on the 3h Δ (pressure_change), piecewise boundaries from the spec
         if pressure_change < -fast_threshold:
             trend5 = "falling_fast"
             description = f"Snabbt fallande tryck - {context['weather_desc']}"
@@ -404,8 +404,8 @@ class NetatmoClient:
 
         elif pressure_change < step_threshold:
             trend5 = "stable"
-            # Nyanserad beskrivning baserat på kontext
-            if abs(change_rate) > 0.1:  # Svag förändring detekterad
+            # Nuanced description based on context
+            if abs(change_rate) > 0.1:  # Weak change detected
                 if pressure_change > 0:
                     description = f"Nästan stabilt, svagt stigande - {context['weather_desc']}"
                 else:
@@ -427,7 +427,7 @@ class NetatmoClient:
             description = f"Snabbt stigande tryck - {context['weather_desc']}"
             icon = "wi-direction-up"
 
-        # Behåll tregradig 'trend' för bakåtkompatibilitet (frontend-fallback, äldre konsumenter)
+        # Keep the three-step 'trend' for backwards compatibility (frontend fallback, older consumers)
         if trend5 in ("rising", "rising_fast"):
             trend = "rising"
         elif trend5 in ("falling", "falling_fast"):
@@ -448,17 +448,17 @@ class NetatmoClient:
 
     def _get_trend_context(self, all_periods):
         """
-        Analysera längre trender för att ge kontext till SMHI 3h-analysen.
-        
+        Analyze longer trends to give context to the SMHI 3h analysis.
+
         Returns:
-            dict: Kontextinformation för beskrivningar
+            dict: Context information for descriptions
         """
         context = {
             'long_term_trend': 'unknown',
             'weather_desc': 'väderläge oklart'
         }
         
-        # Analysera 24h trend för kontext
+        # Analyze the 24h trend for context
         if all_periods.get('24h') and all_periods['24h']['available']:
             day_change = all_periods['24h']['pressure_change']
             
@@ -472,18 +472,18 @@ class NetatmoClient:
                 context['long_term_trend'] = 'falling'
                 context['weather_desc'] = 'lågtryck utvecklas'
         
-        # Kontrollera om trenden stabiliseras (6h vs 12h jämförelse)
+        # Check whether the trend is stabilizing (6h vs 12h comparison)
         if (all_periods.get('6h') and all_periods.get('12h') and 
             all_periods['6h']['available'] and all_periods['12h']['available']):
             
             six_h_rate = abs(all_periods['6h']['change_rate'])
             twelve_h_rate = abs(all_periods['12h']['change_rate'])
             
-            # Om förändringshastigheten minskar = stabilisering
+            # If the rate of change is decreasing = stabilization
             if six_h_rate < twelve_h_rate * 0.7:
                 context['long_term_trend'] = 'stabilizing'
-                
-                # Mer specifik beskrivning vid stabilisering
+
+                # More specific description when stabilizing
                 if all_periods['12h']['pressure_change'] > 2:
                     context['weather_desc'] = 'högtryck stabiliseras'
                 elif all_periods['12h']['pressure_change'] < -2:
@@ -495,35 +495,35 @@ class NetatmoClient:
 
     def _assess_analysis_quality_smhi(self, analysis_periods, data_hours):
         """
-        Bedöm kvaliteten på SMHI-analysen baserat på datatillgång.
-        
+        Assess the quality of the SMHI analysis based on data availability.
+
         Returns:
             str: "poor|basic|good|excellent"
         """
-        # Kontrollera SMHI 3h-analysens kvalitet
+        # Check the quality of the SMHI 3h analysis
         three_h = analysis_periods.get('3h', {})
-        
+
         if not three_h.get('available', False):
             return "poor"
-        
-        # Bedöm baserat på datatäckning och längd
+
+        # Assess based on data coverage and history length
         coverage = three_h.get('period_coverage', 0)
         data_points = three_h.get('data_points', 0)
-        
+
         if coverage >= 90 and data_points >= 6 and data_hours >= 24:
-            return "excellent"  # SMHI-kvalitet + långtidskontext
+            return "excellent"  # SMHI quality + long-term context
         elif coverage >= 80 and data_points >= 4 and data_hours >= 12:
-            return "good"       # God SMHI-analys
+            return "good"       # Good SMHI analysis
         elif coverage >= 60 and data_points >= 3 and data_hours >= 6:
-            return "basic"      # Grundläggande SMHI-analys
+            return "basic"      # Basic SMHI analysis
         else:
-            return "poor"       # Otillräcklig data för tillförlitlig SMHI-analys
-    
-    # === BEFINTLIGA FUNKTIONER (INGA ÄNDRINGAR) ===
+            return "poor"       # Insufficient data for a reliable SMHI analysis
+
+    # === TOKEN HANDLING AND DATA FETCHING ===
     
     def _load_saved_tokens(self):
-        """Ladda sparade tokens från fil om de finns."""
-        # Migrering: äldre versioner sparade tokens.json i appkatalogen
+        """Load saved tokens from file if present."""
+        # Migration: older versions saved tokens.json in the app directory
         token_path = self.token_file
         if not os.path.exists(token_path) and os.path.exists(self.legacy_token_file):
             token_path = self.legacy_token_file
@@ -543,10 +543,10 @@ class NetatmoClient:
             print(f"📁 {self.token_file} finns inte - använder initial refresh_token")
 
     def _save_tokens(self, token_data):
-        """Spara tokens till fil för framtida användning."""
+        """Save tokens to file for future use."""
         try:
-            # Atomär skrivning: en krasch mitt i skrivningen får inte
-            # korrumpera token-filen (då tappas refresh-token permanent)
+            # Atomic write: a crash mid-write must not corrupt the token
+            # file (that would lose the refresh token permanently)
             tmp_path = self.token_file + '.tmp'
             with open(tmp_path, 'w') as f:
                 json.dump(token_data, f, indent=2)
@@ -556,10 +556,10 @@ class NetatmoClient:
             print(f"❌ Fel vid sparande av tokens: {e}")
     
     def _authenticate(self):
-        """Autentisera med refresh token för att få access token."""
+        """Authenticate with the refresh token to obtain an access token."""
         print("🔐 Autentiserar med Netatmo...")
-        
-        # Förbered POST-data
+
+        # Prepare POST data
         params = {
             'grant_type': 'refresh_token',
             'refresh_token': self.refresh_token,
@@ -568,7 +568,7 @@ class NetatmoClient:
         }
         
         try:
-            # API-anrop
+            # API call
             response = requests.post(
                 f"https://{self.api_base}{self.auth_endpoint}",
                 headers={'Content-Type': 'application/x-www-form-urlencoded'},
@@ -581,25 +581,25 @@ class NetatmoClient:
             
             result = response.json()
             
-            # Kontrollera fel
+            # Check for errors
             if 'error' in result:
                 raise Exception(f"{result['error']}: {result.get('error_description', 'Okänt fel')}")
-            
-            # Extrahera tokens
+
+            # Extract tokens
             self.access_token = result['access_token']
             self.refresh_token = result.get('refresh_token', self.refresh_token)
             expires_in = result.get('expires_in', 10800)  # Default 3h
-            
-            # Beräkna expiry-tid
+
+            # Compute expiry time
             self.token_expires_at = datetime.now() + timedelta(seconds=expires_in)
             
             print(f"✅ Netatmo autentiserad! Token expires: {self.token_expires_at.strftime('%H:%M:%S')}")
             
-            # Spara tokens
+            # Save tokens
             self._save_tokens(result)
-            
-            # Schemalägg auto-refresh (60s före expiry)
-            refresh_delay = max(expires_in - 60, 60)  # Minst 60s, max expires_in-60s
+
+            # Schedule auto-refresh (60s before expiry)
+            refresh_delay = max(expires_in - 60, 60)  # At least 60s, at most expires_in-60s
             self._schedule_token_refresh(refresh_delay)
             
         except requests.RequestException as e:
@@ -610,7 +610,7 @@ class NetatmoClient:
             raise
     
     def _schedule_token_refresh(self, delay_seconds):
-        """Schemalägg automatisk token-refresh."""
+        """Schedule automatic token refresh."""
         if self._refresh_timer:
             self._refresh_timer.cancel()
         
@@ -620,7 +620,7 @@ class NetatmoClient:
                 self._authenticate()
             except Exception as e:
                 print(f"❌ Auto-refresh misslyckades: {e}")
-                # Retry efter 60s vid fel
+                # Retry after 60s on failure
                 print("🔄 Försöker igen om 60 sekunder...")
                 self._schedule_token_refresh(60)
         
@@ -631,7 +631,7 @@ class NetatmoClient:
         print(f"⏰ Token auto-refresh schemalagd om {delay_seconds//60} minuter")
     
     def _is_cache_valid(self):
-        """Kontrollera om cache fortfarande är giltig."""
+        """Check whether the cache is still valid."""
         if not self._cache_data or not self._cache_timestamp:
             return False
         
@@ -640,12 +640,12 @@ class NetatmoClient:
     
     def get_station_data(self):
         """
-        Hämta väderstation-data från Netatmo API med smart blending.
-        
+        Fetch weather station data from the Netatmo API with smart blending.
+
         Returns:
-            dict: Parsed station data med optimala värden från alla stationer
+            dict: Parsed station data with the best values from all stations
         """
-        # Använd cache om giltig
+        # Use cache if still valid
         if self._is_cache_valid():
             print("📋 Använder cachad Netatmo-data")
             return self._cache_data
@@ -657,7 +657,7 @@ class NetatmoClient:
         try:
             print("🌐 Hämtar Netatmo station data med smart blending...")
             
-            # API-anrop
+            # API call
             response = requests.get(
                 f"https://{self.api_base}{self.data_endpoint}",
                 headers={
@@ -667,11 +667,11 @@ class NetatmoClient:
                 timeout=10
             )
             
-            # Hantera 403 (invalid token)
+            # Handle 403 (invalid token)
             if response.status_code == 403:
                 print("⚠️ Token invalid (403) - försöker refresh...")
                 self._authenticate()
-                # Retry med nytt token
+                # Retry with the new token
                 response = requests.get(
                     f"https://{self.api_base}{self.data_endpoint}",
                     headers={
@@ -686,18 +686,18 @@ class NetatmoClient:
             
             result = response.json()
             
-            # Kontrollera fel
+            # Check for errors
             if 'error' in result:
                 raise Exception(f"API Error: {result['error'].get('message', 'Okänt fel')}")
-            
-            # Parsa data med smart blending
+
+            # Parse data with smart blending
             station_data = self._parse_station_data_with_blending(result.get('body', {}))
-            
-            # SMHI-KOMPATIBEL TRYCKTREND: Spara tryckdata till historik
+
+            # SMHI-COMPATIBLE PRESSURE TREND: save pressure data to history
             if station_data and station_data.get('pressure'):
                 self._add_pressure_measurement(station_data['pressure'])
-            
-            # Uppdatera cache
+
+            # Update cache
             self._cache_data = station_data
             self._cache_timestamp = time.time()
             
@@ -707,25 +707,25 @@ class NetatmoClient:
             
         except requests.RequestException as e:
             print(f"❌ Nätverksfel vid Netatmo data-hämtning: {e}")
-            return self._cache_data  # Returnera cache som fallback
+            return self._cache_data  # Return cache as fallback
         except Exception as e:
             print(f"❌ Fel vid Netatmo data-hämtning: {e}")
-            return self._cache_data  # Returnera cache som fallback
+            return self._cache_data  # Return cache as fallback
     
     def _clean_station_type(self, type_text):
         """
-        Rensa station-typ från extra information.
-        
+        Clean the station type of extra information.
+
         Args:
-            type_text (str): Raw station type från API
-            
+            type_text (str): Raw station type from the API
+
         Returns:
-            str: Rensad station-typ
+            str: Cleaned station type
         """
         if not type_text:
             return "Okänd"
         
-        # Mapping för vanliga typer
+        # Mapping for common types
         type_mapping = {
             'NAMain': 'Huvudenhet',
             'NAModule1': 'Modul',
@@ -734,32 +734,32 @@ class NetatmoClient:
             'NAModule4': 'Inomhusmodul'
         }
         
-        # Ta bort parenteser och extra text
+        # Remove parentheses and extra text
         clean_type = type_text.split(' (')[0].strip()
-        
-        # Använd mapping om tillgänglig
+
+        # Use mapping if available
         return type_mapping.get(clean_type, clean_type)
     
     def _determine_station_category(self, device_type, station_name):
         """
-        Avgör om en station är huvudenhet, modul eller regnmodul baserat på typ och namn.
-        
+        Determine whether a station is a main device, module or rain module based on type and name.
+
         Args:
-            device_type (str): Enhetens typ från API
-            station_name (str): Stationens namn
-            
+            device_type (str): Device type from the API
+            station_name (str): Station name
+
         Returns:
-            str: 'main_device', 'module' eller 'rain_module'
+            str: 'main_device', 'module' or 'rain_module'
         """
-        # Kontrollera enhetstyp
+        # Check the device type
         if device_type in ['NAMain']:
             return 'main_device'
         elif device_type == 'NAModule3':
-            return 'rain_module'  # Regnmätare får egen kategori
+            return 'rain_module'  # Rain gauge gets its own category
         elif device_type in ['NAModule1', 'NAModule2', 'NAModule4']:
             return 'module'
-        
-        # Fallback baserat på namn (för robusthet)
+
+        # Fallback based on name (for robustness)
         name_lower = station_name.lower()
         if any(keyword in name_lower for keyword in ['regn', 'rain', 'precipitation', 'nederbörd']):
             return 'rain_module'
@@ -773,27 +773,27 @@ class NetatmoClient:
     
     def _blend_parameter_value(self, parameter_name, all_stations_data):
         """
-        Välj bästa värde för en parameter baserat på blending-strategi.
-        
+        Pick the best value for a parameter based on the blending strategy.
+
         Args:
-            parameter_name (str): Parameternamn (temperature, humidity, etc.)
-            all_stations_data (list): Lista med alla stationer och deras data
-            
+            parameter_name (str): Parameter name (temperature, humidity, etc.)
+            all_stations_data (list): List of all stations and their data
+
         Returns:
-            tuple: (värde, källa_station_namn, källa_typ)
+            tuple: (value, source_station_name, source_type)
         """
         strategy = self.blending_strategy.get(parameter_name, ['module', 'main_device'])
-        
-        # Samla tillgängliga värden enligt prioritet
+
+        # Collect available values according to priority
         candidates = []
         
         for station in all_stations_data:
             value = station['data'].get(parameter_name)
             if value is not None:
                 station_category = station['category']
-                priority = 999  # Default låg prioritet
-                
-                # Sätt prioritet baserat på strategi
+                priority = 999  # Default low priority
+
+                # Set priority based on the strategy
                 if station_category in strategy:
                     priority = strategy.index(station_category)
                 
@@ -808,7 +808,7 @@ class NetatmoClient:
         if not candidates:
             return None, None, None
         
-        # Sortera efter prioritet (lägre nummer = högre prioritet)
+        # Sort by priority (lower number = higher priority)
         candidates.sort(key=lambda x: x['priority'])
         best = candidates[0]
         
@@ -816,13 +816,13 @@ class NetatmoClient:
     
     def _parse_station_data_with_blending(self, body):
         """
-        Parsa Netatmo API-svar med smart data-blending från alla stationer.
-        
+        Parse the Netatmo API response with smart data blending from all stations.
+
         Args:
             body (dict): API response body
-            
+
         Returns:
-            dict: Blended weather data från alla tillgängliga stationer
+            dict: Blended weather data from all available stations
         """
         try:
             devices = body.get('devices', [])
@@ -830,18 +830,18 @@ class NetatmoClient:
                 print("⚠️ Inga devices hittades i Netatmo-data")
                 return None
             
-            # Samla alla stationer med deras data
+            # Collect all stations with their data
             all_stations = []
             
             print(f"🔍 Analyserar alla tillgängliga stationer för data-blending...")
             
-            # Iterera över alla devices (huvudstationer)
+            # Iterate over all devices (main stations)
             for device in devices:
                 station_name = device.get('station_name', 'Okänd station')
                 device_type = device.get('type', 'Unknown')
                 dashboard_data = device.get('dashboard_data', {})
                 
-                # Lägg till huvudenheten
+                # Add the main device
                 clean_type = self._clean_station_type(device_type)
                 category = self._determine_station_category(device_type, station_name)
                 
@@ -861,7 +861,7 @@ class NetatmoClient:
                 }
                 all_stations.append(main_station)
                 
-                # Iterera över moduler
+                # Iterate over modules
                 modules = device.get('modules', [])
                 for module in modules:
                     module_name = module.get('module_name', 'Okänd modul')
@@ -881,9 +881,9 @@ class NetatmoClient:
                             'pressure': module_data.get('Pressure'),
                             'co2': module_data.get('CO2'),
                             'noise': module_data.get('Noise'),
-                            'rain': module_data.get('Rain'),           # Aktuell nederbörd
-                            'rain_sum_1': module_data.get('sum_rain_1'),  # 1h nederbörd
-                            'rain_sum_24': module_data.get('sum_rain_24') # 24h nederbörd
+                            'rain': module_data.get('Rain'),           # Current precipitation
+                            'rain_sum_1': module_data.get('sum_rain_1'),  # 1h precipitation
+                            'rain_sum_24': module_data.get('sum_rain_24') # 24h precipitation
                         },
                         'timestamp': module_data.get('time_utc'),
                         'device_id': module.get('_id'),
@@ -891,7 +891,7 @@ class NetatmoClient:
                     }
                     all_stations.append(module_station)
             
-            # Logga alla tillgängliga stationer
+            # Log all available stations
             print(f"📊 Hittade {len(all_stations)} stationer för blending:")
             for i, station in enumerate(all_stations, 1):
                 available_params = [k for k, v in station['data'].items() if v is not None]
@@ -899,7 +899,7 @@ class NetatmoClient:
                 print(f"  {i}. {station['name']} ({station['type']}, {station['category']}){parent_info}")
                 print(f"     📊 Data: {', '.join(available_params) if available_params else 'Inga'}")
             
-            # Utför smart blending för varje parameter
+            # Perform smart blending for each parameter
             print(f"\n🧠 Utför smart data-blending...")
             blended_data = {}
             data_sources = {}
@@ -915,46 +915,46 @@ class NetatmoClient:
                 else:
                     print(f"  ❌ {param}: Inte tillgängligt")
             
-            # Skapa slutgiltigt dataset
+            # Build the final dataset
             if not blended_data:
                 print("⚠️ Ingen data kunde blandas från stationerna")
                 return None
             
-            # Hitta primär station för visningsnamn (föredra preferred eller första med temperatur)
+            # Find the primary station for the display name (prefer preferred, else first with temperature)
             primary_station = None
             if self.preferred_station:
-                # Leta efter preferred station
+                # Look for the preferred station
                 for station in all_stations:
                     if station['name'] == self.preferred_station:
                         primary_station = station
                         break
             
             if not primary_station:
-                # Fallback till första station med temperatur
+                # Fallback to the first station with temperature
                 for station in all_stations:
                     if station['data'].get('temperature') is not None:
                         primary_station = station
                         break
             
             if not primary_station:
-                primary_station = all_stations[0]  # Absolut fallback
-            
-            # Beräkna data-ålder (använd senaste timestamp)
+                primary_station = all_stations[0]  # Absolute fallback
+
+            # Compute data age (use the latest timestamp)
             latest_timestamp = max([s.get('timestamp', 0) for s in all_stations if s.get('timestamp')])
             data_age_minutes = None
             if latest_timestamp:
                 data_age = time.time() - latest_timestamp
                 data_age_minutes = int(data_age / 60)
             
-            # Hantera enheter från user preferences
+            # Handle units from user preferences
             user_prefs = body.get('user', {}).get('administrative', {})
             unit_temp = user_prefs.get('unit', 0)  # 0=Celsius, 1=Fahrenheit
-            
-            # Konvertera temperatur om nödvändigt
+
+            # Convert temperature if needed
             if unit_temp == 1 and blended_data.get('temperature'):
                 blended_data['temperature'] = (blended_data['temperature'] - 32) * 5/9
-            
-            # Slutgiltigt resultat
+
+            # Final result
             final_data = {
                 'station_name': primary_station['name'],
                 'station_type': primary_station['type'],
@@ -968,9 +968,9 @@ class NetatmoClient:
                 'rain_sum_24': blended_data.get('rain_sum_24'),
                 'timestamp': latest_timestamp,
                 'data_age_minutes': data_age_minutes,
-                'data_sources': data_sources,  # Ny: visar varifrån varje värde kommer
+                'data_sources': data_sources,  # Shows where each value comes from
                 'available_stations': [s['name'] for s in all_stations],
-                'blending_used': True  # Flagga att blending användes
+                'blending_used': True  # Flag that blending was used
             }
             
             print(f"\n✅ Smart blending klar!")
@@ -999,19 +999,19 @@ class NetatmoClient:
     
     def get_current_weather(self):
         """
-        Hämta aktuellt väder med smart blending + SMHI-kompatibel trycktrend-analys.
-        
+        Fetch current weather with smart blending + SMHI-compatible pressure trend analysis.
+
         Returns:
-            dict: Weather data kompatibel med WeatherDisplay inkl. SMHI-kompatibel trycktrend
+            dict: Weather data compatible with WeatherDisplay, incl. SMHI-compatible pressure trend
         """
         station_data = self.get_station_data()
         if not station_data:
             return None
         
-        # Utför SMHI-kompatibel trycktrend-analys
+        # Perform SMHI-compatible pressure trend analysis
         pressure_trend = self._analyze_pressure_trend()
-        
-        # Konvertera till SMHI-kompatibelt format + trycktrend
+
+        # Convert to SMHI-compatible format + pressure trend
         weather_data = {
             'temperature': station_data.get('temperature'),
             'humidity': station_data.get('humidity'),
@@ -1027,16 +1027,16 @@ class NetatmoClient:
             'data_sources': station_data.get('data_sources', {}),
             'blending_used': station_data.get('blending_used', False),
             
-            # REGN-DATA från regnmodul (högst prioriterad)
-            'rain': station_data.get('rain'),              # Aktuell nederbörd (mm)
+            # RAIN DATA from the rain module (highest priority)
+            'rain': station_data.get('rain'),              # Current precipitation (mm)
             'rain_sum_1': station_data.get('rain_sum_1'),  # 1h total (mm)
             'rain_sum_24': station_data.get('rain_sum_24'), # 24h total (mm)
-            
-            # SMHI-KOMPATIBEL TRYCKTREND-DATA
+
+            # SMHI-COMPATIBLE PRESSURE TREND DATA
             'pressure_trend': pressure_trend
         }
-        
-        # Logga SMHI-kompatibel trycktrend för debug
+
+        # Log SMHI-compatible pressure trend for debugging
         if pressure_trend['trend'] != 'n/a':
             smhi_info = ""
             if pressure_trend.get('smhi_compatible'):
@@ -1052,18 +1052,18 @@ class NetatmoClient:
         return weather_data
     
     def cleanup(self):
-        """Städa upp resurser."""
+        """Clean up resources."""
         if self._refresh_timer:
             self._refresh_timer.cancel()
         print("🧹 Netatmo-klient nedstängd")
 
 
 def main():
-    """Test-funktion för att köra klienten separat."""
+    """Test function for running the client standalone."""
     print("🧪 Testar Netatmo-klient med smart data-blending + SMHI-kompatibel trycktrend...")
     
-    # Test-credentials läses från miljövariabler (aldrig hårdkodade i repot).
-    # Sätt dem lokalt innan du kör klienten fristående, t.ex.:
+    # Test credentials are read from environment variables (never hardcoded in the repo).
+    # Set them locally before running the client standalone, e.g.:
     #   export NETATMO_CLIENT_ID=... NETATMO_CLIENT_SECRET=... NETATMO_REFRESH_TOKEN=...
     import os
     client_id = os.environ.get("NETATMO_CLIENT_ID", "")
@@ -1074,14 +1074,14 @@ def main():
               "som miljövariabler för att köra detta test.")
         return
     
-    # Testa med "Utomhus" som preferred för visning
+    # Test with "Utomhus" as the preferred display station
     preferred_station = "Utomhus"
-    
+
     try:
-        # Skapa klient med smart blending + SMHI-kompatibel trycktrend
+        # Create a client with smart blending + SMHI-compatible pressure trend
         client = NetatmoClient(client_id, client_secret, refresh_token, preferred_station)
-        
-        # Hämta blended data med SMHI-kompatibel trycktrend
+
+        # Fetch blended data with SMHI-compatible pressure trend
         weather_data = client.get_current_weather()
         
         if weather_data:
@@ -1098,7 +1098,7 @@ def main():
                 print(f"🔊 Ljud: {weather_data.get('noise', 'N/A')} dB")
             print(f"📅 Data ålder: {weather_data.get('data_age_minutes', 'N/A')} minuter")
             
-            # Visa SMHI-kompatibel trycktrend
+            # Show SMHI-compatible pressure trend
             pressure_trend = weather_data.get('pressure_trend', {})
             print(f"\n📈 SMHI-KOMPATIBEL TRYCKTREND:")
             print(f"  Trend: {pressure_trend.get('trend', 'n/a')}")
@@ -1109,7 +1109,7 @@ def main():
             print(f"  Kvalitet: {pressure_trend.get('analysis_quality', 'poor')}")
             print(f"  SMHI-kompatibel: {pressure_trend.get('smhi_compatible', False)}")
             
-            # Visa primär period och analys-resultat
+            # Show primary period and analysis results
             if pressure_trend.get('primary_period'):
                 print(f"  Primär period: {pressure_trend.get('primary_period')}")
             
@@ -1124,19 +1124,19 @@ def main():
                         coverage = data.get('period_coverage', 0)
                         print(f"    {period}: {change:+.1f} hPa på {hours:.1f}h = {rate:+.2f} hPa/h (täckning: {coverage:.0f}%)")
             
-            # Visa datakällor
+            # Show data sources
             sources = weather_data.get('data_sources', {})
             if sources:
                 print(f"\n📊 DATAKÄLLOR:")
                 for param, source in sources.items():
                     print(f"  {param}: {source}")
             
-            # Visa alla tillgängliga stationer
+            # Show all available stations
             available = weather_data.get('available_stations', [])
             if available:
                 print(f"\n📋 Alla stationer: {', '.join(available)}")
                 
-            # SMHI-kompatibilitetstest
+            # SMHI compatibility test
             print("\n" + "="*60)
             print("🇸🇪 SMHI-KOMPATIBILITETSTEST")
             print("="*60)
@@ -1150,7 +1150,7 @@ def main():
         else:
             print("❌ Kunde inte hämta blended väderdata")
         
-        # Städa upp
+        # Clean up
         client.cleanup()
         
     except Exception as e:

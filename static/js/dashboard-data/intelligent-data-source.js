@@ -1,21 +1,21 @@
 /**
- * Intelligent Data Source - STEG 8 REFAKTORERING
- * Intelligent datahantering extraherat från dashboard.js
- * Hanterar Netatmo/SMHI-växling, datakälla-logik och fallback-system
+ * Intelligent Data Source - STEP 8 REFACTORING
+ * Intelligent data handling extracted from dashboard.js
+ * Handles Netatmo/SMHI switching, data source logic and fallback system
  */
 
 // === INTELLIGENT DATA SOURCE SYSTEM ===
 
 /**
- * Kontrollera om Netatmo är tillgängligt baserat på config och data
- * @returns {boolean} True om Netatmo är aktivt och tillgängligt
+ * Check if Netatmo is available based on config and data
+ * @returns {boolean} True if Netatmo is active and available
  */
 function isNetatmoAvailable() {
     return dashboardState.useNetatmo && dashboardState.config && dashboardState.config.use_netatmo;
 }
 
 /**
- * Hämta datakälla för specifik datatyp
+ * Get data source for specific data type
  * @param {string} dataType - 'temperature', 'humidity', 'pressure', 'pressure_trend', 'co2', 'noise'
  * @returns {object} { source: 'netatmo'|'smhi'|'none', available: boolean, fallback: string|null }
  */
@@ -105,9 +105,9 @@ function getDataSource(dataType) {
 }
 
 /**
- * Formatera data med källinformation för debugging
- * @param {any} value - Datavärdet
- * @param {string} dataType - Typ av data
+ * Format data with source information for debugging
+ * @param {any} value - Data value
+ * @param {string} dataType - Type of data
  * @returns {object} { value, source, formatted, debug }
  */
 function formatDataWithSource(value, dataType) {
@@ -160,8 +160,8 @@ function formatDataWithSource(value, dataType) {
 }
 
 /**
- * Uppdatera data-tillgänglighet baserat på API-respons
- * @param {object} apiData - Komplett API-respons
+ * Update data availability based on API response
+ * @param {object} apiData - Complete API response
  */
 function updateDataAvailability(apiData) {
     // Reset availability
@@ -184,10 +184,10 @@ function updateDataAvailability(apiData) {
         );
     }
     
-    // HUMIDITY FIX: Kontrollera SMHI-data mer noggrant
+    // HUMIDITY FIX: Check SMHI data more carefully
     if (apiData.smhi) {
         const smhi = apiData.smhi;
-        // SMHI current weather har normalt inte humidity, men vi kontrollerar ändå
+        // SMHI current weather normally doesn't have humidity, but we check anyway
         dashboardState.dataAvailability.smhiHumidity = (smhi.humidity !== null && smhi.humidity !== undefined);
         dashboardState.dataAvailability.smhiPressure = (smhi.pressure !== null && smhi.pressure !== undefined);
         
@@ -199,12 +199,12 @@ function updateDataAvailability(apiData) {
 }
 
 /**
- * Skapa SMHI-baserad trycktrend som fallback
+ * Create SMHI-based pressure trend as fallback
  * @param {object} smhiData - SMHI current weather data
- * @returns {object} Förenklad trycktrend-struktur
+ * @returns {object} Simplified pressure trend structure
  */
 function createSmhiPressureTrendFallback(smhiData) {
-    // Förenklad trycktrend från SMHI (statisk för nu, kan förbättras med prognosdata)
+    // Simplified pressure trend from SMHI (static for now, can be improved with forecast data)
     if (!smhiData || !smhiData.pressure) {
         return {
             trend: 'n/a',
@@ -217,7 +217,7 @@ function createSmhiPressureTrendFallback(smhiData) {
         };
     }
     
-    // Mycket förenklad "trend" baserat på absolut tryck
+    // Very simplified "trend" based on absolute pressure
     const pressure = smhiData.pressure;
     let trend = 'stable';
     let description = 'Stabilt lufttryck (SMHI)';

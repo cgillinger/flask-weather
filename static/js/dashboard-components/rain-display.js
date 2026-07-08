@@ -1,15 +1,15 @@
-// rain-display.js - Modul för att visa nederbörd från Netatmo regnmodul
-// Prioriterad data från NAModule3 (Regnmätare)
+// rain-display.js - Module for displaying precipitation from the Netatmo rain module
+// Prioritized data from NAModule3 (rain gauge)
 
 const RainDisplay = (function() {
     'use strict';
 
-    // DOM-element
+    // DOM elements
     let rainContainer = null;
     let rainDataSpan = null;
 
     /**
-     * Initialisera regndata-display
+     * Initialize the rain data display
      */
     function init() {
         rainContainer = document.getElementById('rain-data-container');
@@ -25,14 +25,14 @@ const RainDisplay = (function() {
     }
 
     /**
-     * Formatera regndata med intelligenta enheter
-     * @param {number} rain - Aktuell nederbörd (mm)
+     * Format rain data with sensible units
+     * @param {number} rain - Current precipitation (mm)
      * @param {number} sum1h - 1h total (mm)
      * @param {number} sum24h - 24h total (mm)
-     * @returns {string} Formaterad sträng
+     * @returns {string} Formatted string
      */
     function formatRainData(rain, sum1h, sum24h) {
-        // Prioritera mest relevant data
+        // Prioritize the most relevant data
         if (sum1h !== null && sum1h !== undefined && sum1h > 0) {
             return `${sum1h.toFixed(1)} mm (1h)`;
         } else if (sum24h !== null && sum24h !== undefined && sum24h > 0) {
@@ -47,8 +47,8 @@ const RainDisplay = (function() {
     }
 
     /**
-     * Uppdatera regndata-visning
-     * @param {object} netatmoData - Netatmo väderdata med regninfo
+     * Update the rain data display
+     * @param {object} netatmoData - Netatmo weather data with rain info
      */
     function update(netatmoData) {
         if (!rainContainer || !rainDataSpan) {
@@ -56,7 +56,7 @@ const RainDisplay = (function() {
             return;
         }
 
-        // Kontrollera om det finns regndata
+        // Check whether any rain data exists
         const hasRainData = netatmoData && (
             netatmoData.rain !== null && netatmoData.rain !== undefined ||
             netatmoData.rain_sum_1 !== null && netatmoData.rain_sum_1 !== undefined ||
@@ -64,7 +64,7 @@ const RainDisplay = (function() {
         );
 
         if (hasRainData) {
-            // Formatera och visa regndata
+            // Format and show rain data
             const rainText = formatRainData(
                 netatmoData.rain,
                 netatmoData.rain_sum_1,
@@ -72,21 +72,21 @@ const RainDisplay = (function() {
             );
 
             rainDataSpan.textContent = rainText;
-            
-            // Visa container om den var dold
+
+            // Show container if it was hidden
             if (rainContainer.style.display === 'none') {
                 rainContainer.style.display = '';
                 rainContainer.classList.remove('netatmo-hidden');
             }
 
-            // Logga datakälla om tillgänglig
+            // Log data source if available
             if (netatmoData.data_sources && netatmoData.data_sources.rain) {
                 console.log(`🌧️ Nederbörd: ${rainText} från ${netatmoData.data_sources.rain}`);
             } else {
                 console.log(`🌧️ Nederbörd: ${rainText}`);
             }
         } else {
-            // Dölj container om ingen regndata
+            // Hide container when there is no rain data
             rainContainer.style.display = 'none';
             rainContainer.classList.add('netatmo-hidden');
             console.log('📊 Ingen regndata tillgänglig');
@@ -94,7 +94,7 @@ const RainDisplay = (function() {
     }
 
     /**
-     * Dölj regndata-display (för SMHI-only läge)
+     * Hide the rain data display (for SMHI-only mode)
      */
     function hide() {
         if (rainContainer) {
@@ -104,52 +104,15 @@ const RainDisplay = (function() {
         }
     }
 
-    /**
-     * Visa detaljerad regnstatistik i console (för debugging)
-     * @param {object} netatmoData - Netatmo väderdata
-     */
-    function logDetailedStats(netatmoData) {
-        if (!netatmoData) return;
-
-        console.group('🌧️ Detaljerad regnstatistik');
-        
-        if (netatmoData.rain !== null && netatmoData.rain !== undefined) {
-            console.log(`Aktuell: ${netatmoData.rain.toFixed(2)} mm`);
-        }
-        
-        if (netatmoData.rain_sum_1 !== null && netatmoData.rain_sum_1 !== undefined) {
-            console.log(`1h total: ${netatmoData.rain_sum_1.toFixed(2)} mm`);
-        }
-        
-        if (netatmoData.rain_sum_24 !== null && netatmoData.rain_sum_24 !== undefined) {
-            console.log(`24h total: ${netatmoData.rain_sum_24.toFixed(2)} mm`);
-        }
-
-        if (netatmoData.data_sources) {
-            if (netatmoData.data_sources.rain) {
-                console.log(`Källa: ${netatmoData.data_sources.rain}`);
-            }
-            if (netatmoData.data_sources.rain_sum_1) {
-                console.log(`1h källa: ${netatmoData.data_sources.rain_sum_1}`);
-            }
-            if (netatmoData.data_sources.rain_sum_24) {
-                console.log(`24h källa: ${netatmoData.data_sources.rain_sum_24}`);
-            }
-        }
-        
-        console.groupEnd();
-    }
-
     // Public API
     return {
         init: init,
         update: update,
-        hide: hide,
-        logDetailedStats: logDetailedStats
+        hide: hide
     };
 })();
 
-// Auto-initialisera vid DOMContentLoaded om inte redan gjort
+// Auto-initialize on DOMContentLoaded if not already done
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         RainDisplay.init();

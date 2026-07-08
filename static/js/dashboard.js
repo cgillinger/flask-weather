@@ -1,23 +1,23 @@
 /**
  * Modern Weather Dashboard - Main Orchestrator
- * FAS 3: GRACIÖS UI-DEGRADERING för Netatmo-oberoende drift
- * 
- * 🎯 REFAKTORERING SLUTFÖRD: STEG 1-12 extraherade till separata moduler
- * 📊 DENNA FIL: Endast global state, initialisering och koordinering
- * 
- * IMPORTERADE MODULER:
- * - STEG 1: formatters-dashboard.js (formatTemperature, getWeatherDescription, etc.)
- * - STEG 2: wind-calculations.js (WIND_SCALES, convertWindSpeed, formatWindTextForTwoLines)
- * - STEG 3: dom-helpers.js (updateElement, updateElementHTML, updateSunTimeOptimized, isDaytime)  
- * - STEG 4: weather-icon-renderer.js (WeatherIconRenderer)
- * - STEG 5: fontawesome-renderer.js (FontAwesomeRenderer)
- * - STEG 6: circular-clock.js (CircularClock)
- * - STEG 7: barometer-display.js (BarometerDisplay)
- * - STEG 8: intelligent-data-source.js (getDataSource, formatDataWithSource, etc.)
- * - STEG 9: ui-adaptation-engine.js (applyUIAdaptations, adaptHumiditySection, etc.)
- * - STEG 10: fetch-api-client.js (fetchWithTimeout, updateAllData, checkThemeUpdate)
- * - STEG 11: current-weather-view.js (updateCurrentWeather, updateWindUnderFaktisk, etc.)
- * - STEG 12: forecast-view.js (updateHourlyForecast, createForecastCard, updateDailyForecast, createDailyForecastItem)
+ * PHASE 3: GRACEFUL UI DEGRADATION for Netatmo-independent operation
+ *
+ * 🎯 REFACTORING COMPLETE: STEPS 1-12 extracted into separate modules
+ * 📊 THIS FILE: Only global state, initialization and coordination
+ *
+ * IMPORTED MODULES:
+ * - STEP 1: formatters-dashboard.js (formatTemperature, getWeatherDescription, etc.)
+ * - STEP 2: wind-calculations.js (WIND_SCALES, convertWindSpeed, formatWindTextForTwoLines)
+ * - STEP 3: dom-helpers.js (updateElement, updateElementHTML, updateSunTimeOptimized, isDaytime)
+ * - STEP 4: weather-icon-renderer.js (WeatherIconRenderer)
+ * - STEP 5: fontawesome-renderer.js (FontAwesomeRenderer)
+ * - STEP 6: circular-clock.js (CircularClock)
+ * - STEP 7: barometer-display.js (BarometerDisplay)
+ * - STEP 8: intelligent-data-source.js (getDataSource, formatDataWithSource, etc.)
+ * - STEP 9: ui-adaptation-engine.js (applyUIAdaptations, adaptHumiditySection, etc.)
+ * - STEP 10: fetch-api-client.js (fetchWithTimeout, updateAllData, checkThemeUpdate)
+ * - STEP 11: current-weather-view.js (updateCurrentWeather, updateWindUnderFaktisk, etc.)
+ * - STEP 12: forecast-view.js (updateHourlyForecast, createForecastCard, updateDailyForecast, createDailyForecastItem)
  */
 
 // === GLOBAL STATE ===
@@ -31,9 +31,9 @@ let dashboardState = {
     pressureDisplay: 'numeric',
     config: null,
     
-    // FAS 2: Netatmo-intelligens state
-    useNetatmo: true,           // Detekteras från API
-    dataAvailability: {         // Spårar tillgänglig data
+    // PHASE 2: Netatmo intelligence state
+    useNetatmo: true,           // Detected from the API
+    dataAvailability: {         // Tracks which data is available
         netatmoTemperature: false,
         netatmoHumidity: false,
         netatmoPressure: false,
@@ -46,8 +46,8 @@ let dashboardState = {
 };
 
 // === CONSTANTS ===
-const UPDATE_INTERVAL = 30000; // 30 sekunder
-const THEME_CHECK_INTERVAL = 60000; // 1 minut
+const UPDATE_INTERVAL = 30000; // 30 seconds
+const THEME_CHECK_INTERVAL = 60000; // 1 minute
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', function() {
@@ -63,13 +63,13 @@ async function initializeDashboard() {
     try {
         console.log('📊 FAS 3: Initialiserar graciös dashboard med HUMIDITY FIX...');
         
-        // STEG 11: Initialisera ikoner från current-weather-view.js
+        // STEP 11: Initialize icons from current-weather-view.js
         initializeRobustIcons();
-        
-        // STEG 6: Initialisera cirkulär klocka från circular-clock.js  
+
+        // STEP 6: Initialize circular clock from circular-clock.js
         CircularClock.initializeCircularClock(dashboardState);
-        
-        // STEG 10: Uppdatera data från fetch-api-client.js
+
+        // STEP 10: Update data via fetch-api-client.js
         await updateAllData();
         
         hideLoadingOverlay();
@@ -91,7 +91,7 @@ async function initializeDashboard() {
 function startDataUpdates() {
     dashboardState.updateInterval = setInterval(async () => {
         try {
-            // STEG 10: Använd updateAllData från fetch-api-client.js
+            // STEP 10: Use updateAllData from fetch-api-client.js
             await updateAllData();
         } catch (error) {
             console.error('❌ Fel vid data-uppdatering:', error);
@@ -104,7 +104,7 @@ function startDataUpdates() {
 function startThemeCheck() {
     dashboardState.themeInterval = setInterval(async () => {
         try {
-            // STEG 10: Använd checkThemeUpdate från fetch-api-client.js
+            // STEP 10: Use checkThemeUpdate from fetch-api-client.js
             await checkThemeUpdate();
         } catch (error) {
             console.error('❌ Fel vid tema-kontroll:', error);
@@ -122,7 +122,7 @@ function updateTheme(newTheme) {
 }
 
 function updateStatus(statusText) {
-    // STEG 3: Använd updateElement från dom-helpers.js
+    // STEP 3: Use updateElement from dom-helpers.js
     updateElement('status-text', statusText || t('STATUS_UPDATED'));
 }
 
@@ -168,5 +168,5 @@ window.addEventListener('beforeunload', function() {
     }
 });
 
-// === 🎉 REFAKTORERING SLUTFÖRD ===
+// === 🎉 REFACTORING COMPLETE ===
 console.log('✅ FAS 3: Weather Dashboard REFAKTORERING SLUTFÖRD! 💧🎨🚀 | STEG 1-13: Alla funktioner uppdelade i 12 modulära komponenter - Dashboard.js reducerat från ~1400 till ~200 rader!');

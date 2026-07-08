@@ -193,3 +193,6 @@ backup/**
 start_flask_weather.sh
 cache/
 .cdsapirc
+
+# Playwright test artifacts (local smoke tests)
+.playwright-mcp/

@@ -1,16 +1,16 @@
 /**
- * Circular Clock - STEG 6 REFAKTORERING
- * Klocksystem med LED-prickar och digital visning
- * Extraherat från dashboard.js för modulär struktur
+ * Circular Clock - STEP 6 REFACTORING
+ * Clock system with LED dots and digital display
+ * Extracted from dashboard.js for modular structure
  */
 
 // === CONSTANTS ===
-const CLOCK_UPDATE_INTERVAL = 1000; // 1 sekund för klocka
+const CLOCK_UPDATE_INTERVAL = 1000; // 1 second for the clock
 
-// === CIRKULÄR KLOCKA SYSTEM ===
+// === CIRCULAR CLOCK SYSTEM ===
 
 /**
- * Skapa 60 LED-prickar arrangerade i en perfekt cirkel
+ * Create 60 LED dots arranged in a perfect circle
  */
 function createClockDots() {
     const container = document.querySelector('.clock-dots-container');
@@ -18,86 +18,86 @@ function createClockDots() {
         console.warn('⚠️ Clock dots container not found');
         return;
     }
-    
-    // Rensa befintliga prickar
+
+    // Clear existing dots
     container.innerHTML = '';
-    
-    // Skapa 60 prickar (en för varje sekund)
+
+    // Create 60 dots (one for each second)
     for (let i = 0; i < 60; i++) {
         const dot = document.createElement('div');
         dot.className = 'clock-dot';
         dot.setAttribute('data-second', i);
-        
-        // Beräkna position (motsols från toppen, 12-position = 0 grader)
-        const angle = (i * 6) - 90; // 6 grader per sekund, -90 för att börja från toppen
+
+        // Compute position (clockwise from the top, 12 o'clock = 0 degrees)
+        const angle = (i * 6) - 90; // 6 degrees per second, -90 to start from the top
         const angleRad = (angle * Math.PI) / 180;
-        
-        // Position på cirkelns kant (45% av containerbredden från centrum)
-        const radius = 45; // procent
+
+        // Position on the circle's edge (45% of container width from center)
+        const radius = 45; // percent
         const x = 50 + radius * Math.cos(angleRad);
         const y = 50 + radius * Math.sin(angleRad);
-        
+
         dot.style.left = `${x}%`;
         dot.style.top = `${y}%`;
         dot.style.transform = 'translate(-50%, -50%)';
-        
+
         container.appendChild(dot);
     }
-    
+
     console.log('🕐 60 klock-prickar skapade i cirkel');
 }
 
 /**
- * Uppdatera cirkulär klocka med tid, datum och sekundprickar
+ * Update the circular clock with time, date and second dots
  */
 function updateCircularClock() {
     const now = new Date();
-    
-    // Uppdatera digital tid (HH:MM)
+
+    // Update digital time (HH:MM)
     const timeString = now.toLocaleTimeString('sv-SE', {
         hour: '2-digit',
         minute: '2-digit'
     });
-    
+
     const clockTimeElement = document.querySelector('.clock-time');
     if (clockTimeElement) {
         clockTimeElement.textContent = timeString;
     }
-    
-    // Uppdatera datum - SPRÅK: veckodag/månad via Intl med aktivt språks locale
+
+    // Update date - LANGUAGE: weekday/month via Intl with the active language's locale
     const locale = I18n.locale();
     const weekday = now.toLocaleDateString(locale, { weekday: 'long' });
     const day = now.getDate();
     const month = now.toLocaleDateString(locale, { month: 'long' });
 
     const dateString = `${weekday}, ${day} ${month}`;
-    
+
     const clockDateElement = document.querySelector('.clock-date');
     if (clockDateElement) {
         clockDateElement.textContent = dateString;
     }
-    
-    // Uppdatera sekundprickar
+
+    // Update second dots
     updateClockDots(now.getSeconds());
 }
 
 /**
- * Uppdatera sekundprickar baserat på aktuell sekund
+ * Update second dots based on the current second
  */
 function updateClockDots(currentSeconds) {
     const dots = document.querySelectorAll('.clock-dot');
-    
+
     dots.forEach((dot, index) => {
         const secondValue = parseInt(dot.getAttribute('data-second'));
-        
+
         if (secondValue <= currentSeconds) {
             dot.classList.add('active');
         } else {
             dot.classList.remove('active');
         }
     });
-    
-    // Vid sekund 0, rensa alla prickar första
+
+    // At second 0, clear all dots first
     if (currentSeconds === 0) {
         setTimeout(() => {
             dots.forEach(dot => dot.classList.remove('active'));
@@ -112,21 +112,21 @@ function updateClockDots(currentSeconds) {
 }
 
 /**
- * Initiera cirkulär klocka
- * @param {object} dashboardState - Dashboard state objekt för att spara interval
- * @returns {number} Interval ID för klockan
+ * Initialize the circular clock
+ * @param {object} dashboardState - Dashboard state object for storing the interval
+ * @returns {number} Interval ID for the clock
  */
 function initializeCircularClock(dashboardState) {
     console.log('🕐 Initialiserar cirkulär klocka...');
     createClockDots();
     updateCircularClock();
     const clockInterval = setInterval(updateCircularClock, CLOCK_UPDATE_INTERVAL);
-    
-    // Spara interval i dashboard state om tillgängligt
+
+    // Store the interval in dashboard state if available
     if (dashboardState) {
         dashboardState.clockInterval = clockInterval;
     }
-    
+
     console.log('✅ Cirkulär klocka initialiserad med sekundprickar');
     return clockInterval;
 }

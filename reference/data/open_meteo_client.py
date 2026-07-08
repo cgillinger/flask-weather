@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """
-Open-Meteo Client - global vaderdata fran open-meteo.com
+Open-Meteo Client - global weather data from open-meteo.com
 
-PROJEKT WEATHERPROVIDER: andra alternativa leverantoren (efter YR).
-Valjs med 'weather_provider': 'open-meteo' i reference/config.py.
+PROJECT WEATHERPROVIDER: second alternative provider (after YR).
+Selected with 'weather_provider': 'open-meteo' in reference/config.py.
 
-Open-Meteo ar gratis for icke-kommersiellt bruk, kraver ingen API-nyckel
-och har global tackning med data fran flera nationella vaderinstitut
-(DWD, NOAA, Meteo-France, ECMWF m.fl. - basta modellen valjs per plats).
+Open-Meteo is free for non-commercial use, requires no API key and has
+global coverage with data from several national weather institutes
+(DWD, NOAA, Meteo-France, ECMWF etc. - the best model is chosen per location).
 
-Designen foljer samma vag A som YRClient: svaret oversatts till SMHI:s
-timeSeries-struktur och WMO-vaderkoderna mappas till SMHI-skalan 1-27,
-sa all arvd logik och hela API-kontraktet mot frontend ar oforandrat.
-Arver YRClient (inte SMHIClient direkt) for att aterbruka beteendet
-att luftfuktighet tas ur prognosen istallet for observationsstationer.
+The design follows the same approach A as YRClient: the response is
+translated into SMHI's timeSeries structure and the WMO weather codes are
+mapped onto the SMHI scale 1-27, so all inherited logic and the entire API
+contract towards the frontend are unchanged.
+Inherits YRClient (not SMHIClient directly) to reuse the behavior of
+taking humidity from the forecast instead of observation stations.
 
-API-dokumentation: https://open-meteo.com/en/docs
+API documentation: https://open-meteo.com/en/docs
 """
 
 import requests
@@ -25,13 +26,13 @@ from yr_client import YRClient
 
 
 class OpenMeteoClient(YRClient):
-    """Open-Meteo-leverantor med SMHIClients publika granssnitt."""
+    """Open-Meteo provider exposing SMHIClient's public interface."""
 
     BASE_URL = "https://api.open-meteo.com/v1/forecast"
     DATA_SOURCE = "Open-Meteo"
 
-    # Timserieparametrar vi behover (m/s for vind sa enheterna matchar
-    # SMHI/YR; tider i UTC sa det arvda tidpunktsurvalet fungerar)
+    # Hourly parameters we need (m/s for wind so the units match SMHI/YR;
+    # times in UTC so the inherited time-point selection works)
     HOURLY_PARAMS = ",".join([
         "temperature_2m",
         "relative_humidity_2m",
@@ -42,38 +43,39 @@ class OpenMeteoClient(YRClient):
         "weather_code",
     ])
 
-    # WMO weather interpretation codes (WW) -> SMHI-symbol 1-27.
-    # Skurkoder (80-86) skiljs fran kontinuerlig nederbord precis som
-    # i SMHI-skalan; dagg/underkylt mappas till narmaste snoblandat.
+    # WMO weather interpretation codes (WW) -> SMHI symbol 1-27.
+    # Shower codes (80-86) are kept distinct from continuous precipitation,
+    # just like in the SMHI scale; drizzle/freezing precipitation is mapped
+    # to the nearest sleet symbol.
     WMO_SYMBOL_MAP = {
-        0: 1,    # Klart
-        1: 2,    # Mestadels klart
-        2: 4,    # Halvklart
-        3: 6,    # Mulet
-        45: 7,   # Dimma
-        48: 7,   # Underkyld dimma
-        51: 18,  # Duggregn (latt)
-        53: 18,  # Duggregn (mattligt)
-        55: 19,  # Duggregn (tatt)
-        56: 22,  # Underkylt duggregn (latt) -> latt snoblandat
-        57: 23,  # Underkylt duggregn (tatt) -> snoblandat
-        61: 18,  # Regn (latt)
-        63: 19,  # Regn (mattligt)
-        65: 20,  # Regn (kraftigt)
-        66: 22,  # Underkylt regn (latt) -> latt snoblandat
-        67: 24,  # Underkylt regn (kraftigt) -> kraftigt snoblandat
-        71: 25,  # Snofall (latt)
-        73: 26,  # Snofall (mattligt)
-        75: 27,  # Snofall (kraftigt)
-        77: 26,  # Snokorn
-        80: 8,   # Regnskurar (latta)
-        81: 9,   # Regnskurar (mattliga)
-        82: 10,  # Regnskurar (kraftiga)
-        85: 15,  # Snobyar (latta)
-        86: 17,  # Snobyar (kraftiga)
-        95: 21,  # Aska
-        96: 21,  # Aska med hagel (latt)
-        99: 21,  # Aska med hagel (kraftigt)
+        0: 1,    # Clear sky
+        1: 2,    # Mainly clear
+        2: 4,    # Partly cloudy
+        3: 6,    # Overcast
+        45: 7,   # Fog
+        48: 7,   # Depositing rime fog
+        51: 18,  # Drizzle (light)
+        53: 18,  # Drizzle (moderate)
+        55: 19,  # Drizzle (dense)
+        56: 22,  # Freezing drizzle (light) -> light sleet
+        57: 23,  # Freezing drizzle (dense) -> sleet
+        61: 18,  # Rain (light)
+        63: 19,  # Rain (moderate)
+        65: 20,  # Rain (heavy)
+        66: 22,  # Freezing rain (light) -> light sleet
+        67: 24,  # Freezing rain (heavy) -> heavy sleet
+        71: 25,  # Snowfall (light)
+        73: 26,  # Snowfall (moderate)
+        75: 27,  # Snowfall (heavy)
+        77: 26,  # Snow grains
+        80: 8,   # Rain showers (light)
+        81: 9,   # Rain showers (moderate)
+        82: 10,  # Rain showers (heavy)
+        85: 15,  # Snow showers (light)
+        86: 17,  # Snow showers (heavy)
+        95: 21,  # Thunderstorm
+        96: 21,  # Thunderstorm with hail (light)
+        99: 21,  # Thunderstorm with hail (heavy)
     }
 
     def get_forecast_url(self) -> str:
@@ -83,7 +85,7 @@ class OpenMeteoClient(YRClient):
                 f"&wind_speed_unit=ms&timezone=UTC&forecast_days=7")
 
     def fetch_raw_data(self) -> Optional[Dict]:
-        """Hamta Open-Meteo-prognos och oversatt till SMHI-formad timeSeries."""
+        """Fetch the Open-Meteo forecast and translate it to an SMHI-shaped timeSeries."""
         import time as _time
         url = self.get_forecast_url()
 
@@ -111,7 +113,7 @@ class OpenMeteoClient(YRClient):
         return data
 
     def _transform_to_smhi_format(self, raw: Dict) -> Optional[Dict]:
-        """Oversatt Open-Meteos kolumnformat till SNOW1gv1-struktur."""
+        """Translate Open-Meteo's columnar format into the SNOW1gv1 structure."""
         hourly = raw.get('hourly')
         if not hourly or 'time' not in hourly:
             print("❌ Oväntat Open-Meteo-svarsformat (saknar hourly.time)")
@@ -148,15 +150,15 @@ class OpenMeteoClient(YRClient):
 
             prec = pick(precs, i)
             if prec is not None:
-                # Timupplost -> redan mm/h
+                # Hourly resolution -> already mm/h
                 entry_data['precipitation_amount_mean'] = prec
                 entry_data['precipitation_amount_max'] = prec
 
             entry_data = {k: v for k, v in entry_data.items() if v is not None}
 
             entries.append({
-                # timezone=UTC ger tider utan Z-suffix - lagg pa det sa
-                # att det arvda tidpunktsurvalet (tz-medvetet) fungerar
+                # timezone=UTC yields times without a Z suffix - append it
+                # so the inherited (tz-aware) time-point selection works
                 'time': f"{t}Z" if t and not t.endswith('Z') else t,
                 'data': entry_data
             })
@@ -171,7 +173,7 @@ class OpenMeteoClient(YRClient):
         return result
 
     def _map_wmo_symbol(self, code: int) -> int:
-        """Mappa WMO-vaderkod -> SMHI-symbol 1-27."""
+        """Map a WMO weather code -> SMHI symbol 1-27."""
         symbol = self.WMO_SYMBOL_MAP.get(code)
         if symbol is None:
             print(f"⚠️ Okänd WMO-kod {code} - använder molnigt (5)")

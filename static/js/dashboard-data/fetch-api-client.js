@@ -1,25 +1,25 @@
 /**
- * Fetch API Client - STEG 10 REFAKTORERING + FAS 4 UV-integration
- * API-hantering extraherat från dashboard.js
- * Hanterar datahämtning, timeout och tema-kontroll
+ * Fetch API Client - STEP 10 REFACTORING + PHASE 4 UV integration
+ * API handling extracted from dashboard.js
+ * Handles data fetching, timeout and theme control
  */
 
 // === API CONSTANTS ===
 const API_TIMEOUT = 10000; // 10 sekunder
 const STALE_AFTER_FAILURES = 3; // Visa varning efter 3 misslyckade uppdateringar i rad
 
-// Re-entransvakt: setInterval fortsätter ticka var 30:e sekund även om en
-// tidigare uppdatering hängt sig - utan vakten staplas anrop på varandra
+// Re-entrance guard: setInterval keeps ticking every 30 seconds even if a
+// previous update has hung - without the guard, calls stack up on each other
 let updateInFlight = false;
 let consecutiveFailures = 0;
 
 // === CORE API FUNCTIONS ===
 
 /**
- * Fetch med timeout och error handling
+ * Fetch with timeout and error handling
  * @param {string} url - API endpoint URL
- * @param {number} timeout - Timeout i millisekunder (default: 10000)
- * @returns {Promise<object>} JSON-respons från API
+ * @param {number} timeout - Timeout in milliseconds (default: 10000)
+ * @returns {Promise<object>} JSON response from API
  */
 async function fetchWithTimeout(url, timeout = API_TIMEOUT) {
     const controller = new AbortController();
@@ -45,7 +45,7 @@ async function fetchWithTimeout(url, timeout = API_TIMEOUT) {
 }
 
 /**
- * Uppdatera all väderdata från API:er + FAS 4: UV-data
+ * Update all weather data from APIs + PHASE 4: UV data
  * @returns {Promise<void>}
  */
 async function updateAllData() {
@@ -62,9 +62,9 @@ async function updateAllData() {
             fetchWithTimeout('/api/daily')
         ]);
         
-        // FAS 2: Uppdatera Netatmo-intelligence state
+        // PHASE 2: Update Netatmo-intelligence state
         if (currentData.config) {
-            // SPRÅK: sätt aktivt språk INNAN vyerna renderar (ui.language)
+            // LANGUAGE: set active language BEFORE views render (ui.language)
             if (window.I18n && currentData.config.language) {
                 I18n.setLanguage(currentData.config.language);
             }
@@ -80,10 +80,10 @@ async function updateAllData() {
                 dashboardState.pressureDisplay = currentData.config.pressure_display;
             }
 
-            // IKONPAKET: Aktivera valt paket innan vyerna renderar ikoner.
-            // Med rotation aktiv (ui.icon_pack_rotation) väljs paketet
-            // deterministiskt ur datumet - omvärderas varje pollcykel så
-            // bytet sker automatiskt vid dygns-/vecko-/månadsskifte.
+            // ICON PACKAGE: Activate selected package before views render icons.
+            // With rotation active (ui.icon_pack_rotation) the package is selected
+            // deterministically from the date - re-evaluated each poll cycle so
+            // the switch happens automatically at day/week/month boundaries.
             if (window.IconRegistry) {
                 const rotation = currentData.config.icon_pack_rotation;
                 const rotated = (rotation && rotation.enabled)
@@ -95,19 +95,19 @@ async function updateAllData() {
                 }
             }
 
-            // IKONANIMERINGAR: Sätt animeringsläge (ui.icon_animations) -
-            // 'auto' ger Safari/iPad hero-only pga WebKit-prestanda
+            // ICON ANIMATIONS: Set animation mode (ui.icon_animations) -
+            // 'auto' gives Safari/iPad hero-only due to WebKit performance
             if (window.IconRegistry && currentData.config.icon_animations) {
                 IconRegistry.setAnimationMode(currentData.config.icon_animations);
             }
 
-            console.log(`🧠 FAS 2: Netatmo-läge: ${dashboardState.useNetatmo ? 'AKTIVT' : 'INAKTIVT'}`);
+            console.log(`🧠 PHASE 2: Netatmo mode: ${dashboardState.useNetatmo ? 'ACTIVE' : 'INACTIVE'}`);
         }
-        
-        // STEG 8: Använd Intelligent Data Source istället för lokal funktion
+
+        // STEP 8: Use Intelligent Data Source instead of local function
         updateDataAvailability(currentData);
-        
-        // STEG 9: Använd UI Adaptation Engine istället för lokala funktioner
+
+        // STEP 9: Use UI Adaptation Engine instead of local functions
         applyUIAdaptations();
         
         updateCurrentWeather(currentData);
@@ -118,11 +118,11 @@ async function updateAllData() {
         if (currentData.theme !== dashboardState.currentTheme) {
             updateTheme(currentData.theme);
         }
-        
-        // STEG 9: Använd UI Adaptation Engine istället för lokal funktion
+
+        // STEP 9: Use UI Adaptation Engine instead of local function
         adaptElementVisibility();
-        
-        // FAS 4: Uppdatera UV-data (om UVDisplay är tillgängligt)
+
+        // PHASE 4: Update UV data (if UVDisplay is available)
         if (typeof UVDisplay !== 'undefined' && UVDisplay.fetchAndUpdateUV) {
             await UVDisplay.fetchAndUpdateUV();
         }
@@ -142,10 +142,10 @@ async function updateAllData() {
 }
 
 /**
- * Synlig staleness-indikator: kioskskärmen ska inte kunna visa timmar
- * gammal data utan att det syns. Visas efter upprepade fetch-fel eller
- * när backend själv rapporterar uppdateringsfel.
- * @param {string|null} backendStatus - Status från /api/current, null vid fetch-fel
+ * Visible staleness indicator: the kiosk screen should not be able to show hours
+ * old data without it being visible. Shown after repeated fetch errors or
+ * when backend itself reports update errors.
+ * @param {string|null} backendStatus - Status from /api/current, null on fetch error
  */
 function updateStaleIndicator(backendStatus) {
     const indicator = document.getElementById('stale-indicator');
@@ -168,7 +168,7 @@ function updateStaleIndicator(backendStatus) {
 }
 
 /**
- * Kontrollera tema-uppdateringar från API
+ * Check theme updates from API
  * @returns {Promise<void>}
  */
 async function checkThemeUpdate() {

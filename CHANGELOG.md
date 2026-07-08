@@ -3,6 +3,14 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.10.5] - 2026-07-08
+
+### Ändrat
+- **Kodbas-städning för förvaltning**: samtliga kommentarer och docstrings i den levande koden översatta till engelska (loggmeddelanden och UI-texter förblir svenska). Ny `CLAUDE.md` i repo-roten med kodkarta, konventioner och varning för `backup/`-katalogen. `get_intelligent_weather_effect_type` i app.py annoterad: resultatet exponeras via API men konsumeras inte av frontenden — effektbesluten fattas klientsidigt.
+
+### Borttaget
+- **Verifierat död kod (~640 rader)**: elva oanvända hjälpfunktioner och tre ikonkonstanter från Tkinter-eran i `utils.py`, legacy-metoden `get_hourly_forecast` i SMHI-klienten, `setBarometerDetailFallback` + `BarometerManager`-aliaset, `FontAwesomeRenderer.createIcon`/`createVolumeIcon` samt `RainDisplay.logDetailedStats`. Varje borttagning referensverifierad; hela diffen maskinellt kontrollerad (AST-jämförelse för Python, kommentarstrippad jämförelse för JS) — inga oavsiktliga logikändringar.
+
 ## [3.10.4] - 2026-07-08
 
 ### Fixat

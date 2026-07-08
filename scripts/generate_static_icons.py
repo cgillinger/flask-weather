@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-Generera statiska (icke-animerade) varianter av amCharts väder-SVG:er.
+Generate static (non-animated) variants of amCharts weather SVG icons.
 
-amCharts-ikonernas animationer ligger i ett <style>-block inuti varje SVG.
-Eftersom ikonerna renderas som <img> är SVG:n ett isolerat dokument som
-sidans CSS inte kan nå - "pausade" ikoner kräver därför separata filer.
-Detta skript strippar <style>-blocket ur varje ikon och skriver resultatet
-till en parallell mapp (amcharts-svg-static/) med samma filstruktur.
+The animations in amCharts icons are located in a <style> block within each SVG.
+Since the icons are rendered as <img>, the SVG is an isolated document that
+the page's CSS cannot reach - "paused" icons therefore require separate files.
+This script strips the <style> block from each icon and writes the result
+to a parallel folder (amcharts-svg-static/) with the same file structure.
 
-Ikonerna fryser i sitt grundläge (attributpositioner), vilket är visuellt
-korrekt för hela paketet: droppar/flingor ritas på sina basplatser och
-åskikonens blixt har fill="orange" som attribut.
+The icons freeze in their base state (attribute positions), which is visually
+correct for the entire package: drops/flakes are drawn at their base positions and
+the lightning icon's bolt has fill="orange" as an attribute.
 
-Körs om ikonpaketet uppdateras:
+Run when the icon package is updated:
     python3 scripts/generate_static_icons.py
 
-Resultatet checkas in i git - skriptet behöver inte köras vid deploy.
+The result is checked in to git - the script does not need to be run at deploy time.
 """
 
 import re
@@ -26,16 +26,16 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIR = REPO_ROOT / 'static' / 'assets' / 'icons' / 'amcharts-svg'
 TARGET_DIR = REPO_ROOT / 'static' / 'assets' / 'icons' / 'amcharts-svg-static'
 
-# Endast filer som ikonpaketet refererar (se ICON_PACKS i
-# static/js/utils/icon-packs.js): day/, night/ samt animated/thunder.svg.
-# Övriga filer i animated/ (sprites m.m.) används inte av dashboarden.
+# Only files that the icon package references (see ICON_PACKS in
+# static/js/utils/icon-packs.js): day/, night/ and animated/thunder.svg.
+# Other files in animated/ (sprites etc.) are not used by the dashboard.
 SOURCE_GLOBS = ['day/*.svg', 'night/*.svg', 'animated/thunder.svg']
 
 STYLE_BLOCK = re.compile(r'\s*<style[^>]*>.*?</style>', re.DOTALL)
 
 
 def make_static(svg_text: str) -> str:
-    """Ta bort alla <style>-block (där animationerna bor) ur en SVG."""
+    """Remove all <style> blocks (where the animations live) from an SVG."""
     return STYLE_BLOCK.sub('', svg_text)
 
 

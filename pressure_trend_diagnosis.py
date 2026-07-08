@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Trycktrend Diagnos-skript
-Analyserar faktisk tryckdata och trend-beräkningar för felsökning
+Pressure Trend Diagnosis Script
+Analyzes actual pressure data and trend calculations for troubleshooting
 """
 
 import json
@@ -18,14 +18,14 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 class PressureTrendDiagnosis:
-    """Diagnostisera trycktrend-beräkningar"""
+    """Diagnose pressure trend calculations"""
     
     def __init__(self, pressure_history_file="pressure_history.json"):
         self.pressure_history_file = pressure_history_file
         self.history = self._load_pressure_history()
     
     def _load_pressure_history(self):
-        """Ladda tryckhistorik från fil"""
+        """Load pressure history from file"""
         if os.path.exists(self.pressure_history_file):
             try:
                 with open(self.pressure_history_file, 'r', encoding='utf-8') as f:
@@ -38,7 +38,7 @@ class PressureTrendDiagnosis:
             return {"timestamps": [], "pressures": []}
     
     def print_raw_data(self):
-        """Visa rådata för manuell kontroll"""
+        """Display raw data for manual inspection"""
         if not self.history['timestamps']:
             print("❌ Ingen tryckdata tillgänglig")
             return
@@ -48,8 +48,8 @@ class PressureTrendDiagnosis:
         print(f"Antal mätpunkter: {len(self.history['timestamps'])}")
         print(f"Tidsspan: {len(self.history['timestamps'])} mätningar")
         print()
-        
-        # Visa första 10 och sista 10 mätningar
+
+        # Show first 10 and last 10 measurements
         for i in range(min(10, len(self.history['timestamps']))):
             ts = self.history['timestamps'][i]
             pressure = self.history['pressures'][i]
@@ -65,7 +65,7 @@ class PressureTrendDiagnosis:
                 print(f"{i:2d}: {dt.strftime('%Y-%m-%d %H:%M:%S')} - {pressure:7.1f} hPa")
     
     def check_data_integrity(self):
-        """Kontrollera data-integritet"""
+        """Check data integrity"""
         print("\n🔍 DATA-INTEGRITET")
         print("=" * 60)
         
@@ -86,7 +86,7 @@ class PressureTrendDiagnosis:
         
         if not is_sorted:
             print("⚠️ Timestamps är inte sorterade kronologiskt!")
-            # Visa de första osorterade paren
+            # Show the first unsorted pairs
             for i in range(len(timestamps)-1):
                 if timestamps[i] > timestamps[i+1]:
                     dt1 = datetime.fromtimestamp(timestamps[i])
@@ -94,16 +94,16 @@ class PressureTrendDiagnosis:
                     print(f"   {i}: {dt1} > {dt2}")
                     if i > 5:  # Begränsa utskrift
                         break
-        
-        # Kontrollera rimliga tryckvärdendoor
+
+        # Check reasonable pressure values
         min_pressure = min(pressures)
         max_pressure = max(pressures)
         print(f"📊 Tryckintervall: {min_pressure:.1f} - {max_pressure:.1f} hPa")
         
         if min_pressure < 950 or max_pressure > 1050:
             print("⚠️ Ovanliga tryckvärden detekterade!")
-        
-        # Kontrollera extrema förändringar
+
+        # Check for extreme changes
         extreme_changes = []
         for i in range(len(pressures)-1):
             change = abs(pressures[i+1] - pressures[i])
@@ -119,7 +119,7 @@ class PressureTrendDiagnosis:
         return is_sorted
     
     def analyze_current_trend(self):
-        """Utför samma trendanalys som huvudsystemet"""
+        """Perform the same trend analysis as the main system"""
         print("\n📈 TRENDANALYS")
         print("=" * 60)
         
@@ -136,8 +136,8 @@ class PressureTrendDiagnosis:
         
         print(f"📊 Datahistorik: {data_hours:.1f} timmar")
         print(f"📊 Antal mätningar: {len(pressures)}")
-        
-        # Grundläggande analys (samma som systemet)
+
+        # Basic analysis (same as the system)
         first_pressure = pressures[0]
         last_pressure = pressures[-1]
         pressure_change = last_pressure - first_pressure
@@ -145,8 +145,8 @@ class PressureTrendDiagnosis:
         print(f"📊 Första mätning: {first_pressure:.1f} hPa ({datetime.fromtimestamp(timestamps[0]).strftime('%Y-%m-%d %H:%M')})")
         print(f"📊 Senaste mätning: {last_pressure:.1f} hPa ({datetime.fromtimestamp(timestamps[-1]).strftime('%Y-%m-%d %H:%M')})")
         print(f"📊 Total förändring: {pressure_change:+.1f} hPa")
-        
-        # Tröskelvärden
+
+        # Thresholds
         rising_threshold = 1.0
         falling_threshold = -1.0
         
@@ -180,7 +180,7 @@ class PressureTrendDiagnosis:
         return trend, pressure_change
     
     def plot_pressure_history(self, save_plot=False):
-        """Plotta tryckhistorik visuellt"""
+        """Plot pressure history visually"""
         if not HAS_MATPLOTLIB:
             print("📊 Matplotlib inte installerat - hoppar över visuell plot")
             print("   För att installera: pip install matplotlib")
@@ -199,12 +199,12 @@ class PressureTrendDiagnosis:
         plt.figure(figsize=(12, 6))
         plt.plot(datetimes, pressures, 'b-', linewidth=2, label='Lufttryck')
         plt.plot(datetimes, pressures, 'ro', markersize=3, alpha=0.7)
-        
-        # Markera första och sista punkt
+
+        # Mark first and last point
         plt.plot(datetimes[0], pressures[0], 'go', markersize=8, label=f'Start: {pressures[0]:.1f} hPa')
         plt.plot(datetimes[-1], pressures[-1], 'ro', markersize=8, label=f'Nu: {pressures[-1]:.1f} hPa')
-        
-        # Lägg till trendlinje
+
+        # Add trend line
         if len(pressures) > 1:
             z = np.polyfit(timestamps, pressures, 1)
             p = np.poly1d(z)
@@ -226,7 +226,7 @@ class PressureTrendDiagnosis:
         plt.show()
     
     def run_full_diagnosis(self):
-        """Kör fullständig diagnos"""
+        """Run complete diagnosis"""
         print("🔧 TRYCKTREND DIAGNOS")
         print("=" * 60)
         
@@ -235,8 +235,8 @@ class PressureTrendDiagnosis:
         
         if data_ok:
             self.analyze_current_trend()
-        
-        # Försök plotta (kräver matplotlib)
+
+        # Try plotting (requires matplotlib)
         if HAS_MATPLOTLIB:
             self.plot_pressure_history()
         else:
@@ -245,10 +245,10 @@ class PressureTrendDiagnosis:
 
 
 def main():
-    """Huvudfunktion"""
+    """Main function"""
     print("🔧 Startar trycktrend-diagnos...")
-    
-    # Kör diagnos
+
+    # Run diagnosis
     diagnosis = PressureTrendDiagnosis()
     diagnosis.run_full_diagnosis()
     

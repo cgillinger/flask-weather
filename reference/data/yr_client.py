@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-YR Client - vaderdata fran YR/met.no (Meteorologisk institutt, Norge)
+YR Client - weather data from YR/met.no (Norwegian Meteorological Institute)
 
-PROJEKT WEATHERPROVIDER: forsta alternativa leverantoren till SMHI.
-Valjs med 'weather_provider': 'yr' i reference/config.py.
+PROJECT WEATHERPROVIDER: first alternative provider besides SMHI.
+Selected with 'weather_provider': 'yr' in reference/config.py.
 
-Designprincip (vag A): YRClient arver SMHIClient och oversatter
-locationforecast-svaret till samma timeSeries-struktur som SMHI:s
-SNOW1gv1-format, med symbol_code mappad till SMHI:s symbolskala 1-27.
-Darmed arvs ALL befintlig logik ororda: cache, tidpunktsurval,
-12h/femdygnsprognoser, animation triggers och femdygnsvagning - och
-API-kontraktet mot frontend (weather_symbol 1-27) ar oforandrat, sa
-ikonpaket, rotation och WeatherEffects fungerar utan andringar.
+Design principle (approach A): YRClient inherits SMHIClient and translates
+the locationforecast response into the same timeSeries structure as SMHI's
+SNOW1gv1 format, with symbol_code mapped onto SMHI's symbol scale 1-27.
+This leaves ALL inherited logic untouched: caching, time-point selection,
+12h/five-day forecasts, animation triggers and five-day weighting - and the
+API contract towards the frontend (weather_symbol 1-27) is unchanged, so
+icon packs, rotation and WeatherEffects work without modification.
 
-API-dokumentation: https://api.met.no/weatherapi/locationforecast/2.0/documentation
-Anvandarvillkor:   https://developer.yr.no/doc/TermsOfService/
-- Kraver identifierande User-Agent (sajt/repo + kontakt)
-- Max en uppdatering per 10 min for samma position (var cache ar 5 min,
-  men appens pollcykel ar 15 min sa villkoret halls i praktiken;
-  cache_duration hojs anda till 10 min har for att vara artig)
+API documentation: https://api.met.no/weatherapi/locationforecast/2.0/documentation
+Terms of service:  https://developer.yr.no/doc/TermsOfService/
+- Requires an identifying User-Agent (site/repo + contact)
+- Max one update per 10 min for the same position (the inherited SMHI cache
+  is 5 min, but the app's poll cycle is 15 min so the limit holds in
+  practice; cache_duration is still raised to 10 min here to be polite)
 """
 
 import requests
@@ -28,24 +28,24 @@ from smhi_client import SMHIClient
 
 
 class YRClient(SMHIClient):
-    """YR/met.no-leverantor med SMHIClients publika granssnitt."""
+    """YR/met.no provider exposing SMHIClient's public interface."""
 
     BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0"
     DATA_SOURCE = "YR"
 
-    # met.no:s villkor kraver identifierande User-Agent
+    # met.no's terms require an identifying User-Agent
     USER_AGENT = "flask-weather/3.x https://github.com/cgillinger/flask-weather"
 
-    # YR har relativ luftfuktighet direkt i prognosen (SMHI hamtar den
-    # fran observationsstationer) - lagg till i parametertolkningen
+    # YR provides relative humidity directly in the forecast (SMHI fetches
+    # it from observation stations) - add it to the parameter parsing
     PARAMETERS = {
         **SMHIClient.PARAMETERS,
         'relative_humidity': 'humidity',
     }
 
-    # YR symbol_code (basnamn utan _day/_night/_polartwilight) -> SMHI 1-27.
-    # Bada instituten anvander snarlika vokabularer; skurvarianter skiljs
-    # fran kontinuerlig nederbord precis som i SMHI-skalan.
+    # YR symbol_code (base name without _day/_night/_polartwilight) -> SMHI 1-27.
+    # Both institutes use similar vocabularies; shower variants are kept
+    # distinct from continuous precipitation, just like in the SMHI scale.
     SYMBOL_MAP = {
         'clearsky': 1,
         'fair': 2,
@@ -61,7 +61,7 @@ class YRClient(SMHIClient):
         'lightsleetshowersandthunder': 11,
         'sleetshowersandthunder': 11,
         'heavysleetshowersandthunder': 11,
-        'lightssnowshowersandthunder': 11,  # (sic - stavning fran met.no)
+        'lightssnowshowersandthunder': 11,  # (sic - spelling as published by met.no)
         'snowshowersandthunder': 11,
         'heavysnowshowersandthunder': 11,
         'lightsleetshowers': 12,
@@ -92,17 +92,17 @@ class YRClient(SMHIClient):
 
     def __init__(self, latitude: float, longitude: float):
         super().__init__(latitude, longitude)
-        # Artighet mot met.no: forlang cachen till deras 10-minutersgrans
+        # Courtesy towards met.no: extend the cache to their 10-minute limit
         self.cache_duration = 600
         print(f"🌍 YR-klient (met.no) initierad för position: {latitude}, {longitude}")
 
     def get_forecast_url(self) -> str:
-        # met.no vill ha max 4 decimaler i koordinater
+        # met.no wants at most 4 decimals in coordinates
         return (f"{self.BASE_URL}/compact"
                 f"?lat={round(self.latitude, 4)}&lon={round(self.longitude, 4)}")
 
     def fetch_raw_data(self) -> Optional[Dict]:
-        """Hamta YR-prognos och oversatt till SMHI-formad timeSeries."""
+        """Fetch the YR forecast and translate it to an SMHI-shaped timeSeries."""
         import time as _time
         url = self.get_forecast_url()
 
@@ -130,7 +130,7 @@ class YRClient(SMHIClient):
         return data
 
     def _transform_to_smhi_format(self, raw: Dict) -> Optional[Dict]:
-        """Oversatt met.no locationforecast-JSON till SNOW1gv1-struktur."""
+        """Translate met.no locationforecast JSON into the SNOW1gv1 structure."""
         try:
             timeseries = raw['properties']['timeseries']
         except (KeyError, TypeError):
@@ -143,8 +143,9 @@ class YRClient(SMHIClient):
             if not details:
                 continue
 
-            # Narmast kommande period bar symbol och nederbord: 1h-blocket
-            # finns de forsta ~2 dygnen, darefter 6h - ta det forsta som finns
+            # The nearest upcoming period carries symbol and precipitation:
+            # the 1h block exists for the first ~2 days, then 6h - take the
+            # first one available
             period = (point['data'].get('next_1_hours')
                       or point['data'].get('next_6_hours')
                       or point['data'].get('next_12_hours'))
@@ -163,16 +164,16 @@ class YRClient(SMHIClient):
 
                 amount = period.get('details', {}).get('precipitation_amount')
                 if amount is not None:
-                    # Normalisera till mm/h sa intensiteten ar jamforbar
-                    # med SMHI oavsett periodlangd
+                    # Normalize to mm/h so intensity is comparable with
+                    # SMHI regardless of period length
                     hours = 6 if 'next_6_hours' in point['data'] and not point['data'].get('next_1_hours') else 1
                     if 'next_12_hours' in point['data'] and not point['data'].get('next_1_hours') and not point['data'].get('next_6_hours'):
                         hours = 12
                     entry_data['precipitation_amount_mean'] = round(amount / hours, 2)
                     entry_data['precipitation_amount_max'] = round(amount / hours, 2)
 
-            # Rensa None-varden (SMHI-vagen filtrerar pa 9999; har racker
-            # att utelamna nyckeln sa hoppar parse_parameters over den)
+            # Strip None values (the SMHI path filters on 9999; here it is
+            # enough to omit the key so parse_parameters skips it)
             entry_data = {k: v for k, v in entry_data.items() if v is not None}
 
             entries.append({
@@ -186,7 +187,7 @@ class YRClient(SMHIClient):
 
         result = {'timeSeries': entries}
 
-        # Grid-koordinater (geometry ar [lon, lat, alt] hos met.no)
+        # Grid coordinates (geometry is [lon, lat, alt] at met.no)
         try:
             coords = raw['geometry']['coordinates']
             result['geometry'] = {'coordinates': [coords[0], coords[1]]}
@@ -196,7 +197,7 @@ class YRClient(SMHIClient):
         return result
 
     def _map_symbol(self, symbol_code: str) -> int:
-        """Mappa YR symbol_code -> SMHI-symbol 1-27."""
+        """Map a YR symbol_code -> SMHI symbol 1-27."""
         base = symbol_code.split('_')[0] if symbol_code else ''
         symbol = self.SYMBOL_MAP.get(base)
         if symbol is None:
@@ -206,8 +207,8 @@ class YRClient(SMHIClient):
 
     def get_current_weather_with_humidity(self) -> Optional[Dict]:
         """
-        YR har luftfuktighet direkt i prognosen - ingen observations-
-        station behovs (SMHI-vagen hamtar den fran metobs-API:t).
+        YR includes humidity directly in the forecast - no observation
+        station is needed (the SMHI path fetches it from the metobs API).
         """
         weather_data = self.get_current_weather()
         if not weather_data:
@@ -217,7 +218,7 @@ class YRClient(SMHIClient):
         humidity = weather_data.get('humidity')
         weather_data['humidity'] = humidity
         weather_data['humidity_timestamp'] = weather_data.get('valid_time')
-        # DATA_SOURCE-etiketten gör raden rätt även för subklasser (Open-Meteo)
+        # The DATA_SOURCE label keeps this line correct for subclasses too (Open-Meteo)
         weather_data['humidity_station'] = f'{self.DATA_SOURCE}-prognos' if humidity is not None else None
         weather_data['humidity_age_minutes'] = 0 if humidity is not None else None
         if humidity is not None:

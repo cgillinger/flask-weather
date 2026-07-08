@@ -1,7 +1,7 @@
 /**
- * Dashboard Formatters - STEG 1 REFAKTORERING
- * Grundläggande formatering och beskrivningsfunktioner
- * Extraherat från dashboard.js för modulär struktur
+ * Dashboard Formatters - STEP 1 REFACTORING
+ * Basic formatting and description functions
+ * Extracted from dashboard.js for modular structure
  */
 
 // === TEMPERATURSYMBOL FORMATTING (ENDAST GRADSYMBOL) ===
@@ -39,10 +39,10 @@ function getTemperatureColorClass(temperature) {
     return '';
 }
 
-// === VÄDER- OCH VINDBESKRIVNINGAR ===
+// === WEATHER AND WIND DESCRIPTIONS ===
 
 function getWeatherDescription(symbol) {
-    // SPRÅK: texterna bor i static/translations/<språk>.js (WEATHER_1-27)
+    // LANGUAGE: texts live in static/translations/<language>.js (WEATHER_1-27)
     const numSymbol = parseInt(symbol);
     if (isNaN(numSymbol) || numSymbol < 1 || numSymbol > 27) return t('UNKNOWN');
     return t(`WEATHER_${numSymbol}`);
@@ -53,7 +53,7 @@ function getWindDirection(degrees) {
         return "N/A";
     }
     
-    // SPRÅK: kompassbokstäver skiljer sig per språk (sv V/O, en W/E, ...)
+    // LANGUAGE: compass letters differ per language (sv V/O, en W/E, ...)
     const directions = t('COMPASS').split(',');
     
     const index = Math.round(degrees / 22.5) % 16;

@@ -1,61 +1,61 @@
 /**
  * WeatherEffects for Flask Weather Dashboard
- * FAS 6: Optimerad för N156HCA-E5B (1920×1080 IPS)
+ * PHASE 6: Optimized for N156HCA-E5B (1920×1080 IPS)
  *
- * OPTIMERAD FÖR: N156HCA-E5B (1920×1080 IPS) + Pi5 + Chromium kiosk-läge
- * BASERAD PÅ: MagicMirror MMM-WeatherEffects modul
- * ARKITEKTUR: Modulär klass-baserad struktur med robust error handling
+ * OPTIMIZED FOR: N156HCA-E5B (1920×1080 IPS) + Pi5 + Chromium kiosk mode
+ * BASED ON: MagicMirror MMM-WeatherEffects module
+ * ARCHITECTURE: Modular class-based structure with robust error handling
  *
- * 🛠️ KRITISK FIX: clearEffects() metoden helt omskriven för att stoppa effekt-staplingar
- * ❄️ NY: Utökad Unicode-snöflingskollektion för bättre visuell variation
+ * 🛠️ CRITICAL FIX: clearEffects() completely rewritten to stop effect stacking
+ * ❄️ NEW: Extended Unicode snowflake collection for better visual variation
  */
 
 // === SMHI WEATHER SYMBOL MAPPING ===
 const SMHI_WEATHER_MAPPING = {
-    // Regn och regnskurar
+    // Rain and rain showers
     rain: [8, 9, 10, 18, 19, 20],
-    // Snö och snöbyar
+    // Snow and snow showers
     snow: [15, 16, 17, 25, 26, 27],
-    // Snöblandat regn (behandlas som snö med regn-hastighet)
+    // Sleet (treated as snow at rain speed)
     sleet: [12, 13, 14, 22, 23, 24],
-    // Åska (behandlas som intensivt regn)
+    // Thunder (treated as intense rain)
     thunder: [11, 21],
-    // Klart väder (ingen animation)
+    // Clear weather (no animation)
     clear: [1, 2, 3, 4, 5, 6, 7]
 };
 
-// === DEFAULT KONFIGURATION (Optimerad för 1920×1080) ===
+// === DEFAULT CONFIGURATION (Optimized for 1920×1080) ===
 const DEFAULT_CONFIG = {
     enabled: true,
     intensity: 'auto',  // auto, light, medium, heavy
 
-    // Rain configuration - Optimerad för 1920×1080 IPS
+    // Rain configuration - Optimized for 1920×1080 IPS
     rain_config: {
-        droplet_count: 100,       // +100% från 768p (70→100) för FullHD
-        droplet_speed: 2.0,       // Standard hastighet
+        droplet_count: 100,       // +100% vs 768p (70→100) for FullHD
+        droplet_speed: 2.0,       // Standard speed
         wind_direction: 'none',   // none, left-to-right, right-to-left
         enable_splashes: false    // Standard setting
     },
 
-    // Snow configuration - Optimerad för 1920×1080 IPS med Unicode
+    // Snow configuration - Optimized for 1920×1080 IPS with Unicode
     snow_config: {
-        flake_count: 50,          // +100% från 768p (35→50) för FullHD
-        characters: ['❄', '❆', '❇', '❈', '❄', '✱'],  // Kuraterad snöflingskollektion (utan ✨)
-        sparkle_enabled: false,   // IPS kräver mindre effekter
-        min_size: 1.2,            // +50% från 768p (0.8→1.2) för bättre synlighet
-        max_size: 2.4,            // +50% från 768p (1.6→2.4) för bättre synlighet
-        speed: 0.9                // Lite långsammare för IPS smoothness
+        flake_count: 50,          // +100% vs 768p (35→50) for FullHD
+        characters: ['❄', '❆', '❇', '❈', '❄', '✱'],  // Curated snowflake collection (without ✨)
+        sparkle_enabled: false,   // IPS needs fewer effects
+        min_size: 1.2,            // +50% vs 768p (0.8→1.2) for better visibility
+        max_size: 2.4,            // +50% vs 768p (1.6→2.4) for better visibility
+        speed: 0.9                // Slightly slower for IPS smoothness
     },
 
     // Transition settings
     transition_duration: 1000,   // Standard timing
 
     // Error handling & logging
-    debug_logging: false,        // För felsökning
+    debug_logging: false,        // For troubleshooting
     fallback_enabled: true       // Graceful fallbacks
 };
 
-// === HUVUDKLASS: WEATHEREFFECTSMANAGER ===
+// === MAIN CLASS: WEATHEREFFECTSMANAGER ===
 class WeatherEffectsManager {
     constructor() {
         this.config = { ...DEFAULT_CONFIG };
@@ -63,15 +63,15 @@ class WeatherEffectsManager {
         this.effectContainer = null;
         this.initialized = false;
 
-        // 🛠️ FIX: Global timeout tracking för fullständig rensning
+        // 🛠️ FIX: Global timeout tracking for complete cleanup
         this.globalTimeouts = new Set();
-        // Spårade övergångs-timeouts: en snabb clear→start-växling får inte
-        // låta en gammal fade/rensnings-callback slå mot den nya effekten
+        // Tracked transition timeouts: a rapid clear→start switch must not
+        // let an old fade/cleanup callback hit the new effect
         this.pendingClearTimeout = null;
         this.fadeInTimeout = null;
         this.globalIntervals = new Set();
 
-        // Bind methods för event handling
+        // Bind methods for event handling
         this.updateFromSMHI = this.updateFromSMHI.bind(this);
         this.handleWeatherChange = this.handleWeatherChange.bind(this);
 
@@ -102,22 +102,22 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Initialisera WeatherEffects-systemet
+     * Initialize the WeatherEffects system
      */
     async initialize() {
         try {
             this.log('Initialiserar WeatherEffects...');
 
-            // Ladda konfiguration från Flask API
+            // Load configuration from the Flask API
             await this.loadConfig();
 
-            // Kontrollera om effects är aktiverade
+            // Check whether effects are enabled
             if (!this.config.enabled) {
                 this.log('WeatherEffects är inaktiverade i config');
                 return false;
             }
 
-            // Skapa bas-container för effekter
+            // Create the base container for effects
             this.createEffectContainer();
 
             this.initialized = true;
@@ -139,7 +139,7 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Ladda konfiguration från Flask API
+     * Load configuration from the Flask API
      */
     async loadConfig() {
         try {
@@ -157,7 +157,7 @@ class WeatherEffectsManager {
 
             const configData = await response.json();
 
-            // Validera och merga config
+            // Validate and merge config
             this.config = this.validateConfig(configData);
             this.log('Konfiguration laddad från Flask API');
 
@@ -173,7 +173,7 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Validera och merga konfigurationsdata
+     * Validate and merge configuration data
      */
     validateConfig(configData) {
         if (!configData || typeof configData !== 'object') {
@@ -181,14 +181,14 @@ class WeatherEffectsManager {
             return { ...DEFAULT_CONFIG };
         }
 
-        // Deep merge med default config
+        // Deep merge with default config
         const mergedConfig = { ...DEFAULT_CONFIG };
 
-        // Kopiera top-level properties
+        // Copy top-level properties
         Object.keys(DEFAULT_CONFIG).forEach(key => {
             if (configData.hasOwnProperty(key)) {
                 if (typeof DEFAULT_CONFIG[key] === 'object' && !Array.isArray(DEFAULT_CONFIG[key])) {
-                    // Deep merge för nested objects
+                    // Deep merge for nested objects
                     mergedConfig[key] = { ...DEFAULT_CONFIG[key], ...configData[key] };
                 } else {
                     mergedConfig[key] = configData[key];
@@ -201,15 +201,15 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Skapa bas-container för alla vädereffekter
+     * Create the base container for all weather effects
      */
     createEffectContainer() {
-        // Ta bort befintlig container om den finns
+        // Remove any existing container
         if (this.effectContainer) {
             this.effectContainer.remove();
         }
 
-        // Skapa ny container med MM-kompatibel styling
+        // Create a new container with MM-compatible styling
         this.effectContainer = document.createElement('div');
         this.effectContainer.className = 'weather-effect-wrapper';
         this.effectContainer.style.cssText = `
@@ -229,7 +229,7 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Huvudmetod: Uppdatera effekter baserat på SMHI-data
+     * Main method: update effects based on SMHI data
      */
     updateFromSMHI(weatherSymbol, precipitation = 0, windDirection = 0) {
         if (!this.initialized) {
@@ -238,15 +238,15 @@ class WeatherEffectsManager {
         }
 
         try {
-            // Bestäm vädertyp från SMHI symbol
+            // Determine weather type from SMHI symbol
             const weatherType = this.getWeatherTypeFromSMHI(weatherSymbol);
             this.log(`SMHI Symbol ${weatherSymbol} → ${weatherType}`);
 
-            // Beräkna intensitet baserat på precipitation
+            // Calculate intensity based on precipitation
             const intensity = this.calculateIntensity(precipitation, weatherType);
             this.log(`Beräknad intensitet: ${intensity} (precipitation: ${precipitation}mm)`);
 
-            // Uppdatera aktuell effekt
+            // Update the current effect
             this.handleWeatherChange(weatherType, intensity, windDirection);
 
         } catch (error) {
@@ -255,9 +255,9 @@ class WeatherEffectsManager {
     }
 
     /**
-     * NETATMO RAIN PRIORITY: Uppdatera regn-effekt från Netatmos regnmätare.
-     * Anropas från current-weather-view.js när Netatmo faktiskt mäter nederbörd
-     * (ground truth) - då visas regn oavsett vad SMHI-prognosen säger.
+     * NETATMO RAIN PRIORITY: Update rain effect from Netatmo's rain gauge.
+     * Called from current-weather-view.js when Netatmo actually measures precipitation
+     * (ground truth) - then rain is shown regardless of what the SMHI forecast says.
      */
     updateFromNetatmoRain(rainMm = 0, windDirection = 0) {
         if (!this.initialized) {
@@ -268,7 +268,7 @@ class WeatherEffectsManager {
         try {
             let intensity = this.calculateIntensity(rainMm, 'rain');
             if (intensity === 'none') {
-                intensity = 'light'; // Netatmo mäter regn - visa åtminstone lätt effekt
+                intensity = 'light'; // Netatmo measures rain - show at least a light effect
             }
             this.log(`Netatmo-regn ${rainMm} mm → intensitet ${intensity}`);
             this.handleWeatherChange('rain', intensity, windDirection);
@@ -279,7 +279,7 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Bestäm vädertyp från SMHI symbol
+     * Determine weather type from SMHI symbol
      */
     getWeatherTypeFromSMHI(symbol) {
         const symbolNum = parseInt(symbol);
@@ -294,23 +294,23 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Beräkna intensitet baserat på nederbörd och vädertyp
+     * Calculate intensity based on precipitation and weather type
      */
     calculateIntensity(precipitation, weatherType) {
         if (this.config.intensity !== 'auto') {
-            return this.config.intensity; // Använd manuell setting
+            return this.config.intensity; // Use manual setting
         }
 
-        // Auto-beräkning baserat på SMHI-data
+        // Auto calculation based on SMHI data
         if (weatherType === 'clear') {
             return 'none';
         }
 
         if (weatherType === 'thunder') {
-            return 'heavy'; // Åska är alltid heavy
+            return 'heavy'; // Thunder is always heavy
         }
 
-        // Beräkna för regn/snö/sleet baserat på precipitation
+        // Calculate for rain/snow/sleet based on precipitation
         if (precipitation < 0.5) {
             return 'light';
         } else if (precipitation < 2.0) {
@@ -321,16 +321,16 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Hantera väderförändring och effektbyte
+     * Handle weather change and effect switching
      */
     handleWeatherChange(weatherType, intensity, windDirection = 0) {
-        // Om intensitet är 'none', rensa alla effekter
+        // If intensity is 'none', clear all effects
         if (intensity === 'none' || weatherType === 'clear') {
             this.clearEffects();
             return;
         }
 
-        // Om samma effekt redan körs, uppdatera bara intensitet
+        // If the same effect is already running, just update intensity
         if (this.currentEffect && this.currentEffect.weatherType === weatherType) {
             if (this.currentEffect.effect.updateIntensity) {
                 this.currentEffect.effect.updateIntensity(intensity);
@@ -338,18 +338,18 @@ class WeatherEffectsManager {
             return;
         }
 
-        // Annars, rensa gamla effekter och starta nya
+        // Otherwise, clear old effects and start a new one
         this.clearEffects();
         this.startEffect(weatherType, intensity, windDirection);
     }
 
     /**
-     * Starta ny vädereffekt
+     * Start a new weather effect
      */
     startEffect(weatherType, intensity, windDirection) {
         try {
-            // Avbryt ev. väntande DOM-rensning från en tidigare clearEffects()
-            // så att den inte raderar den nya effektens partiklar
+            // Cancel any pending DOM cleanup from a previous clearEffects()
+            // so it does not delete the new effect's particles
             if (this.pendingClearTimeout) {
                 clearTimeout(this.pendingClearTimeout);
                 this.pendingClearTimeout = null;
@@ -384,17 +384,17 @@ class WeatherEffectsManager {
             }
 
             if (effect) {
-                // Starta effekt
+                // Start effect
                 effect.start();
 
-                // Spara referens
+                // Save reference
                 this.currentEffect = {
                     weatherType: weatherType,
                     intensity: intensity,
                     effect: effect
                 };
 
-                // Fade in container (spårad så clearEffects kan avbryta den)
+                // Fade in container (tracked so clearEffects can cancel it)
                 this.fadeInTimeout = setTimeout(() => {
                     this.fadeInTimeout = null;
                     if (this.effectContainer) {
@@ -411,14 +411,14 @@ class WeatherEffectsManager {
     }
 
     /**
-     * 🛠️ FÖRBÄTTRAD: Rensa alla aktiva effekter
+     * 🛠️ IMPROVED: Clear all active effects
      */
     clearEffects() {
         this.log('🧹 clearEffects() körs - FÖRBÄTTRAD VERSION');
 
         try {
-            // 1. Fade ut container (och avbryt ev. väntande fade-in så den
-            // inte sätter opacity till 1 igen efter rensningen)
+            // 1. Fade out container (and cancel any pending fade-in so it
+            // does not set opacity back to 1 after the cleanup)
             if (this.fadeInTimeout) {
                 clearTimeout(this.fadeInTimeout);
                 this.fadeInTimeout = null;
@@ -427,7 +427,7 @@ class WeatherEffectsManager {
                 this.effectContainer.style.opacity = '0';
             }
 
-            // 2. Stoppa nuvarande effekt om den finns
+            // 2. Stop the current effect if there is one
             if (this.currentEffect && this.currentEffect.effect) {
                 this.log(`Stoppar ${this.currentEffect.weatherType} effekt...`);
                 
@@ -438,7 +438,7 @@ class WeatherEffectsManager {
                 this.currentEffect = null;
             }
 
-            // 3. Rensa alla globala timeouts och intervals
+            // 3. Clear all global timeouts and intervals
             this.log(`Rensar ${this.globalTimeouts.size} timeouts och ${this.globalIntervals.size} intervals...`);
             
             this.globalTimeouts.forEach(timeoutId => {
@@ -451,8 +451,8 @@ class WeatherEffectsManager {
             });
             this.globalIntervals.clear();
 
-            // 4. Rensa DOM-innehåll efter en kort delay för fade-out
-            // (spårad så att startEffect kan avbryta om ny effekt hinner starta)
+            // 4. Clear DOM content after a short delay for the fade-out
+            // (tracked so startEffect can cancel it if a new effect starts first)
             if (this.pendingClearTimeout) {
                 clearTimeout(this.pendingClearTimeout);
             }
@@ -472,7 +472,7 @@ class WeatherEffectsManager {
     }
 
     /**
-     * Förstör hela WeatherEffects-systemet
+     * Destroy the entire WeatherEffects system
      */
     destroy() {
         this.log('Förstör WeatherEffectsManager...');
@@ -502,7 +502,7 @@ class WeatherEffectsManager {
     }
 }
 
-// === REGNEFFEKT-KLASS (FÖRBÄTTRAD) ===
+// === RAIN EFFECT CLASS (IMPROVED) ===
 class RainEffect {
     constructor(container, config, intensity, manager) {
         this.container = container;
@@ -512,7 +512,7 @@ class RainEffect {
         this.particles = [];
         this.isActive = false;
 
-        // Intensitetsmultiplikatorer optimerade för 1920×1080
+        // Intensity multipliers optimized for 1920×1080
         this.intensityMultipliers = {
             light: 0.5,
             medium: 1.0,
@@ -529,7 +529,7 @@ class RainEffect {
         this.manager.log('🛑 RainEffect.stop() kallas...');
         this.isActive = false;
 
-        // Robust particle-rensning
+        // Robust particle cleanup
         this.particles.forEach((particle, index) => {
             try {
                 if (particle.element && particle.element.parentNode) {
@@ -574,7 +574,7 @@ class RainEffect {
         const droplet = document.createElement('div');
         droplet.className = 'rain-particle';
 
-        // Optimerad styling för 1920×1080 IPS
+        // Optimized styling for 1920×1080 IPS
         const height = 15 + Math.random() * 15;
         const windOffset = this.getWindOffset();
 
@@ -633,7 +633,7 @@ class RainEffect {
     }
 }
 
-// === SNÖEFFEKT-KLASS (FÖRBÄTTRAD MED UNICODE) ===
+// === SNOW EFFECT CLASS (IMPROVED WITH UNICODE) ===
 class SnowEffect {
     constructor(container, config, intensity, manager) {
         this.container = container;
@@ -643,7 +643,7 @@ class SnowEffect {
         this.particles = [];
         this.isActive = false;
 
-        // Intensitetsmultiplikatorer optimerade för 1920×1080
+        // Intensity multipliers optimized for 1920×1080
         this.intensityMultipliers = {
             light: 0.5,
             medium: 1.0,
@@ -704,15 +704,15 @@ class SnowEffect {
         const flake = document.createElement('div');
         flake.className = 'snow-particle';
 
-        // Välj random Unicode-tecken från utökad kollektion
+        // Pick a random Unicode character from the extended collection
         const character = this.config.characters[Math.floor(Math.random() * this.config.characters.length)];
         flake.textContent = character;
 
-        // Optimerad styling för 1920×1080 IPS
+        // Optimized styling for 1920×1080 IPS
         const size = this.config.min_size + Math.random() * (this.config.max_size - this.config.min_size);
-        
-        // Randomiserad startposition för att undvika synlig "spawn line"
-        const startTop = -50 - Math.random() * 150;  // -50px till -200px
+
+        // Randomized start position to avoid a visible "spawn line"
+        const startTop = -50 - Math.random() * 150;  // -50px to -200px
         
         flake.style.cssText = `
             position: absolute !important;
@@ -792,7 +792,7 @@ async function initializeWeatherEffects() {
     }
 }
 
-// === EXPORTS FÖR MODULARITY ===
+// === EXPORTS FOR MODULARITY ===
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         WeatherEffectsManager,
