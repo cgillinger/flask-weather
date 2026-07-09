@@ -317,9 +317,14 @@ body {
     color: #ffffff; /* Vit text */
 }
 
-/* Riktningspilen (from-X-deg): 28px i primärposition för kioskskärmens läsbarhet */
+/* Riktningspilen (from-X-deg): stor i primärposition för kioskskärmens läsbarhet */
 .wind-under-temp .wi-wind {
-    font-size: 28px;
+    font-size: 36px;
+}
+
+/* Vindstyrkeikonen före texten */
+.wind-under-temp .wind-speed-icon {
+    font-size: 20px;
 }
 
 /* I PROGNOS-kolumnen: fristående rad - tydligt mer luft än PROGNOS→leverantörsrad
@@ -330,7 +335,11 @@ body {
 }
 
 .prognos-column .wind-under-temp .wi-wind {
-    font-size: 20px;
+    font-size: 28px;
+}
+
+.prognos-column .wind-under-temp .wind-speed-icon {
+    font-size: 17px;
 }
 
 /* ========== SOL-TIDER SUB-UNIT (inuti faktisk-kolumnen sedan v3.13.0) ========== */
