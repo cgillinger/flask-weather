@@ -191,10 +191,9 @@ body {
     align-items: start;
     align-self: center;
     /*
-    Layout:
+    Layout (sun times live inside the faktisk column since v3.13.0):
     [ Location ]  [ Icon ]
-    [ Temp     ]  [ Icon ]
-    [ Sun      ]  [      ]
+    [ Temp+Sun ]  [ Icon ]
     */
 }
 
@@ -307,9 +306,10 @@ body {
     color: var(--accent-secondary);
 }
 
-.wind-under-faktisk {
+.wind-under-temp {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.3rem;
     margin-top: clamp(0.3rem, 0.5vw, 0.7rem);
     font-size: clamp(0.8rem, 1.1vw, 1.3rem);
@@ -317,14 +317,29 @@ body {
     color: #ffffff; /* Vit text */
 }
 
-/* ========== SOL-TIDER SUB-UNIT ========== */
+/* Riktningspilen (from-X-deg): 28px i primärposition för kioskskärmens läsbarhet */
+.wind-under-temp .wi-wind {
+    font-size: 28px;
+}
+
+/* I PROGNOS-kolumnen: fristående rad - tydligt mer luft än PROGNOS→leverantörsrad
+   (0.1-0.2rem) - och nedskalad för den mindre kolumnen */
+.prognos-column .wind-under-temp {
+    margin-top: clamp(0.9rem, 1.4vw, 1.8rem);
+    font-size: clamp(0.75rem, 1vw, 1.2rem);
+}
+
+.prognos-column .wind-under-temp .wi-wind {
+    font-size: 20px;
+}
+
+/* ========== SOL-TIDER SUB-UNIT (inuti faktisk-kolumnen sedan v3.13.0) ========== */
 .sun-times {
-    grid-column: 1 !important;
-    grid-row: 3 !important;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
     gap: clamp(1.2rem, 2vw, 2.5rem);
+    margin-top: clamp(0.5rem, 0.8vw, 1.1rem);
 }
 
 .sun-time {
@@ -866,15 +881,6 @@ body {
 /* Override: i single-temperature-mode ska prognos-kolumnen döljas */
 .temp-unit.single-temperature-mode > .prognos-column {
     display: none !important;
-}
-
-/* FORCE SUN TIMES PLACEMENT */
-.weather-unit > .sun-times {
-    grid-column: 1 / 2 !important;
-    grid-row: 3 / 4 !important;
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: flex-start !important;
 }
 
 /* FORCE ICON UNIT PLACEMENT */
