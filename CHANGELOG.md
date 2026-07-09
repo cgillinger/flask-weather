@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.12.0] - 2026-07-09
+
+### Tillagt
+- **Heroikonen följer uppmätt Netatmo-regn**: när regnmätaren registrerar regn (momentanvärdet > 0) och SMHI-symbolen är torr (Wsymb2 1–7) byts heroikon, ikonfärg och beskrivningstext till motsvarande regnsymbol (18/19/20 enligt samma intensitetsgränser som regnanimationen: <0,5 / <2,0 / ≥2,0 mm). Bytet hålls kvar 15 minuter efter senast uppmätta regn så ikonen inte fladdrar mellan Netatmos ~10-minutersuppdateringar, och glider sedan tillbaka till prognossymbolen. Prognostiserad nederbörd (8–27) skrivs aldrig över — åska är viktigare information och mätaren registrerar även smältande snö.
+
 ## [3.11.5] - 2026-07-09
 
 ### Ändrat
