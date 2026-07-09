@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.11.5] - 2026-07-09
+
+### Ändrat
+- **Barometerikonens gröna trendfärg ljusare**: `--barometer-rising` #2d7d32 → #66bb6a — den mörka gröna var svår att urskilja mot den mörka badge-bakgrunden. Gäller både "stiger" och "stiger snabbt" (snabbt-steget markeras även fortsatt med kraftigare badge-fyllning).
+
 ## [3.11.4] - 2026-07-08
 
 ### Ändrat

@@ -56,7 +56,7 @@
     --sun-sunset: #ff6b35;           /* Djupare orange/röd - solnedgång */
     
     /* ========== BAROMETER-TREND (Befintliga) ========== */
-    --barometer-rising: #2d7d32;     /* Grön - stigande (positivt väder) */
+    --barometer-rising: #66bb6a;     /* Grön - stigande (positivt väder) */
     --barometer-falling: #d32f2f;    /* Röd - fallande (försämrat väder) */
     --barometer-stable: #666666;     /* Grå - stabilt (neutral) */
 
