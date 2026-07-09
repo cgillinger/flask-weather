@@ -3,6 +3,12 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.13.0] - 2026-07-09
+
+### Ändrat
+- **Vinden flyttad till PROGNOS-kolumnen**: vindstyrka + riktningspil är prognosdata och ligger nu som en fristående rad under leverantörsraden i PROGNOS-kolumnen (tydligt större avstånd än PROGNOS→leverantörsrad), nedskalad för den mindre kolumnen (pil 28→20px). I SMHI-only-läge (utan Netatmo, oavsett leverantör) följer vinden med temperaturen till primärpositionen — där visades den tidigare **inte alls** (anropet låg enbart i Netatmo-grenen). `updateWindUnderFaktisk`/`.wind-under-faktisk` bytte namn till `updateWindUnderTemp`/`.wind-under-temp`.
+- **Soltiderna flyttade upp under FAKTISK**: soluppgång/solnedgång ligger nu inuti faktisk-kolumnen (där vinden satt), centrerade under etiketten, i stället för på egen grid-rad under hela temperaturblocket.
+
 ## [3.12.0] - 2026-07-09
 
 ### Tillagt

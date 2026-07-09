@@ -16,7 +16,7 @@
  * - STEP 8: intelligent-data-source.js (getDataSource, formatDataWithSource, etc.)
  * - STEP 9: ui-adaptation-engine.js (applyUIAdaptations, adaptHumiditySection, etc.)
  * - STEP 10: fetch-api-client.js (fetchWithTimeout, updateAllData, checkThemeUpdate)
- * - STEP 11: current-weather-view.js (updateCurrentWeather, updateWindUnderFaktisk, etc.)
+ * - STEP 11: current-weather-view.js (updateCurrentWeather, updateWindUnderTemp, etc.)
  * - STEP 12: forecast-view.js (updateHourlyForecast, createForecastCard, updateDailyForecast, createDailyForecastItem)
  */
 

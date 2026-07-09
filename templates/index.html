@@ -81,7 +81,18 @@
                         <div class="faktisk-column" id="netatmo-temperature-section">
                             <div class="main-temperature" id="netatmo-temperature-small">--.-°</div>
                             <div class="netatmo-label" data-i18n="LABEL_ACTUAL">FAKTISK</div>
-                            <!-- Wind data added here by JavaScript -->
+                            <!-- SMHI-only: wind row inserted here by JS, before the sun times -->
+                            <!-- SOL-TIDER SUB-UNIT (inside the column since v3.13.0) -->
+                            <div class="sun-times">
+                                <div class="sun-time" id="sunrise-time">
+                                    <i class="wi wi-sunrise sun-icon" style="color: #ff9500;"></i>
+                                    <span>06:30</span>
+                                </div>
+                                <div class="sun-time" id="sunset-time">
+                                    <i class="wi wi-sunset sun-icon" style="color: #ff6b35;"></i>
+                                    <span>20:15</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- FORECAST COLUMN (SMHI - secondary/small) -->
@@ -89,18 +100,7 @@
                             <div class="smhi-temp-small" id="smhi-temperature">--.-°</div>
                             <div class="smhi-label" id="smhi-label" data-i18n="LABEL_FORECAST">PROGNOS</div>
                             <div class="smhi-provider" id="smhi-provider"></div>
-                        </div>
-                    </div>
-
-                    <!-- SOL-TIDER SUB-UNIT -->
-                    <div class="sun-times">
-                        <div class="sun-time" id="sunrise-time">
-                            <i class="wi wi-sunrise sun-icon" style="color: #ff9500;"></i>
-                            <span>06:30</span>
-                        </div>
-                        <div class="sun-time" id="sunset-time">
-                            <i class="wi wi-sunset sun-icon" style="color: #ff6b35;"></i>
-                            <span>20:15</span>
+                            <!-- Wind row (forecast data) added here by JavaScript -->
                         </div>
                     </div>
 

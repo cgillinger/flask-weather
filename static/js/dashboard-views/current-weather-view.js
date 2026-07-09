@@ -112,11 +112,6 @@ function updateCurrentWeather(data) {
 
         // STEP 7: Use BarometerDisplay instead of BarometerManager
         BarometerDisplay.updateBarometerDetail(pressureTrend, pressureData.value);
-
-        // ENHANCED WIND DATA UNDER FAKTISK (PHASE 3: only if the section is shown)
-        if (data.smhi && data.smhi.wind_speed !== null && data.smhi.wind_speed !== undefined) {
-            updateWindUnderFaktisk(data.smhi);
-        }
     } else {
         // PHASE 3: SMHI-ONLY MODE - fallback handling with UI adaptations
         console.log('📊 FAS 3: SMHI-only mode med UI-degradering + HUMIDITY FIX');
@@ -141,7 +136,12 @@ function updateCurrentWeather(data) {
 
         console.log('🔄 FAS 3: Prognos-kolumn och CO2 dolda via UI-anpassningar');
     }
-    
+
+    // WIND under the provider temperature (both modes - see updateWindUnderTemp)
+    if (data.smhi && data.smhi.wind_speed !== null && data.smhi.wind_speed !== undefined) {
+        updateWindUnderTemp(data.smhi);
+    }
+
     // AIR QUALITY: indoor CO2 (Netatmo) and/or outdoor AQI (SMHI→CAMS) per air_quality.mode.
     // Runs after applyUIAdaptations() so this component owns the panel's visibility.
     try { AirQualityDisplay.update(data); } catch (e) { console.warn('AirQuality update failed:', e); }
@@ -237,40 +237,40 @@ function updateWeatherEffects(data) {
 }
 
 /**
- * Update wind data under the FAKTISK (actual) temperature
+ * Update wind data under the provider temperature.
+ * The wind is forecast data, so with Netatmo it lives in the PROGNOS column as a
+ * freestanding row below the provider line. In SMHI-only mode the PROGNOS column
+ * is hidden and the wind follows the temperature to the primary position,
+ * inserted before the sun times.
  * @param {object} smhiData - SMHI current weather data
  */
-function updateWindUnderFaktisk(smhiData) {
-    const netatmoSection = document.querySelector('#netatmo-temperature-section');
-    if (!netatmoSection) return;
+function updateWindUnderTemp(smhiData) {
+    // Remove existing wind rows from both possible hosts (mode can flip at runtime)
+    document.querySelectorAll('.wind-under-temp').forEach(element => element.remove());
 
-    // Remove existing wind data
-    const existingWindElements = netatmoSection.querySelectorAll('.wind-under-faktisk');
-    existingWindElements.forEach(element => element.remove());
-
-    // PHASE 3: only add wind data if the Netatmo section is shown
-    if (netatmoSection.classList.contains('netatmo-hidden')) {
-        console.log('🙈 FAS 3: Vinddata skippas - FAKTISK sektion är dold');
-        return;
-    }
+    // Host follows the visible column (netatmo-hidden is set by adaptTemperatureSection)
+    const prognosColumn = document.querySelector('.prognos-column');
+    const prognosVisible = prognosColumn && !prognosColumn.classList.contains('netatmo-hidden');
+    const host = prognosVisible ? prognosColumn : document.querySelector('#netatmo-temperature-section');
+    if (!host) return;
 
     // Add new wind data
     if (smhiData.wind_speed !== null && smhiData.wind_speed !== undefined) {
         const windKmh = smhiData.wind_speed * 3.6;
         const windData = convertWindSpeed(windKmh, dashboardState.windUnit);
-        
+
         let windText = windData.value;
         let windArrowHTML = '';
-        
+
         if (smhiData.wind_direction !== null && smhiData.wind_direction !== undefined) {
             const windDir = getWindDirection(smhiData.wind_direction);
             const windDegree = Math.round(smhiData.wind_direction);
-            
-            // ENLARGED WIND DIRECTION ARROW: 12px → 28px for LP156WH4 visibility
+
+            // Arrow size lives in CSS (.wind-under-temp .wi-wind): 28px in the
+            // primary position (LP156WH4 visibility), smaller in the PROGNOS column
             windArrowHTML = ` <i class="wi wi-wind from-${windDegree}-deg" style="
-                color: #4A9EFF; 
-                font-size: 28px; 
-                margin-left: 4px; 
+                color: #4A9EFF;
+                margin-left: 4px;
                 font-family: 'weathericons', 'Weather Icons', sans-serif;
                 display: inline-block;
                 text-shadow: 0 0 1px currentColor;
@@ -278,26 +278,31 @@ function updateWindUnderFaktisk(smhiData) {
             "></i>`;
             windText += ` ${windDir}`;
         }
-        
+
         // Create wind data element
         const windElement = document.createElement('div');
-        windElement.className = 'wind-under-faktisk';
+        windElement.className = 'wind-under-temp';
 
         // STEP 4: Use WeatherIconRenderer instead of WeatherIconManager
         const windIcon = WeatherIconRenderer.createIcon(windData.icon, []);
         windIcon.style.cssText = `
-            color: #4A9EFF; 
+            color: #4A9EFF;
             font-size: 12px;
             margin-right: 4px;
             display: inline-block;
         `;
-        
+
         windElement.appendChild(windIcon);
         windElement.insertAdjacentHTML('beforeend', `${windText}${windArrowHTML}`);
-        
-        netatmoSection.appendChild(windElement);
-        
-        console.log(`💨 FÖRSTÄRKT vinddata under FAKTISK: ${windText} (pil: 28px)`);
+
+        if (prognosVisible) {
+            host.appendChild(windElement);
+        } else {
+            // SMHI-only: keep the wind next to the temperature, above the sun times
+            host.insertBefore(windElement, host.querySelector('.sun-times'));
+        }
+
+        console.log(`💨 Vinddata under ${prognosVisible ? 'PROGNOS' : 'primär temp (SMHI-only)'}: ${windText}`);
     }
 }
 
