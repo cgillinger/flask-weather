@@ -1,7 +1,7 @@
 /**
  * @file current-weather-view.js
- * @version 1.1.1
- * @lastModified 2025-01-10 (v1.1.1)
+ * @version 1.2.0
+ * @lastModified 2026-07-09 (v1.2.0)
  * @description Current-weather functions for main card, temperature, wind and icons
  * @dependencies ColorManager (color-manager.js), WeatherIconRenderer, FontAwesomeRenderer
  * @author Flask Weather Dashboard Team
@@ -9,6 +9,7 @@
  * STEP 11 REFACTORING: Extracted from dashboard.js
  * + NETATMO RAIN PRIORITY: the Netatmo rain gauge is the source of truth for weather effects
  * v1.1.0: Integrated with ColorManager for temperature color coding
+ * v1.2.0: NETATMO RAIN PRIORITY also for the hero icon + description (getEffectiveWeatherSymbol)
  */
 
 // === CURRENT WEATHER FUNCTIONS ===
@@ -33,6 +34,8 @@ function updateCurrentWeather(data) {
 
         // SMHI weather icon
         if (smhi.weather_symbol) {
+            // NETATMO RAIN PRIORITY (hero): measured rain may override a dry forecast symbol
+            const effectiveSymbol = getEffectiveWeatherSymbol(data);
             const iconElement = document.getElementById('smhi-weather-icon');
             const isDay = isDaytime();
 
@@ -41,16 +44,16 @@ function updateCurrentWeather(data) {
                 iconElement.className = 'weather-icon';
 
                 // ICON PACK: rendered with the active pack (ui.icon_pack in config)
-                const weatherIcon = WeatherIconRenderer.createWeatherIcon(smhi.weather_symbol, isDay, ['weather-main-icon']);
+                const weatherIcon = WeatherIconRenderer.createWeatherIcon(effectiveSymbol, isDay, ['weather-main-icon']);
 
                 // CENTRALIZED COLOR CODING v1.1.0: Use ColorManager for the main icon
                 // (only affects font icons; SVG packs have their own colors)
-                const iconColor = ColorManager.getWeatherIconColor(smhi.weather_symbol);
+                const iconColor = ColorManager.getWeatherIconColor(effectiveSymbol);
                 weatherIcon.style.color = iconColor;
 
                 iconElement.appendChild(weatherIcon);
 
-                console.log(`🎨 Main weather icon: symbol ${smhi.weather_symbol} (${isDay ? 'dag' : 'natt'}) - color: ${iconColor}`);
+                console.log(`🎨 Main weather icon: symbol ${effectiveSymbol} (${isDay ? 'dag' : 'natt'}) - color: ${iconColor}`);
                 
                 // NETATMO RAIN PRIORITY: WeatherEffects update with Netatmo priority
                 if (window.weatherEffectsManager) {
@@ -62,7 +65,7 @@ function updateCurrentWeather(data) {
                 }
             }
             
-            updateElement('smhi-description', getWeatherDescription(smhi.weather_symbol));
+            updateElement('smhi-description', getWeatherDescription(effectiveSymbol));
         }
     }
     
@@ -162,6 +165,41 @@ function updateCurrentWeather(data) {
         }
     }
     
+}
+
+// NETATMO RAIN PRIORITY (hero icon): the override lingers this long after the last
+// measured rain, so the icon doesn't flicker between Netatmo's ~10 min updates and
+// glides back to the forecast symbol once the rain has stopped.
+const HERO_RAIN_HOLD_MS = 15 * 60 * 1000;
+let lastHeroRain = null; // { time: epoch ms, mm: latest measured intensity }
+
+/**
+ * NETATMO RAIN PRIORITY (hero icon): effective Wsymb2 symbol for hero icon + description.
+ * When the rain gauge measures rain and the forecast symbol is dry (1-7), a rain
+ * symbol is shown instead. Forecast precipitation (8-27) is never overridden:
+ * thunder is the more important information, and the gauge also registers
+ * melting snow/sleet that SMHI classifies better.
+ * @param {object} data - Complete weather data from the API
+ * @returns {number} SMHI symbol, possibly replaced by a measured-rain symbol
+ */
+function getEffectiveWeatherSymbol(data) {
+    const smhiSymbol = data.smhi?.weather_symbol;
+
+    const rainNow = data.netatmo?.rain;
+    if (typeof rainNow === 'number' && rainNow > 0) {
+        lastHeroRain = { time: Date.now(), mm: rainNow };
+    }
+
+    const holdActive = lastHeroRain && (Date.now() - lastHeroRain.time) <= HERO_RAIN_HOLD_MS;
+    if (!holdActive || smhiSymbol >= 8) {
+        return smhiSymbol;
+    }
+
+    // Same intensity thresholds as the rain animation (calculateIntensity)
+    const mm = lastHeroRain.mm;
+    const rainSymbol = mm < 0.5 ? 18 : mm < 2.0 ? 19 : 20;
+    console.log(`🌧️ NETATMO RAIN PRIORITY: Heroikon ${smhiSymbol} → ${rainSymbol} (${mm.toFixed(2)} mm uppmätt)`);
+    return rainSymbol;
 }
 
 /**
