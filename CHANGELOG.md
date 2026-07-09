@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.13.2] - 2026-07-09
+
+### Ändrat
+- **Vindraden ~20 % större**: texten (PROGNOS-kolumn `clamp 0.75→0.9rem`-skalan, primärposition `0.8→0.95rem`-skalan) med ikonerna proportionellt uppskalade — riktningspil 34/43px, vindstyrkeikon 20/24px (PROGNOS/primär).
+
 ## [3.13.1] - 2026-07-09
 
 ### Ändrat
