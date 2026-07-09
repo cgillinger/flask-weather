@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.13.1] - 2026-07-09
+
+### Ändrat
+- **Vindikon och riktningspil förstorade**: vindstyrkeikonen 12→17px i PROGNOS-kolumnen (20px i primärposition), riktningspilen 20→28px i PROGNOS-kolumnen (36px i primärposition). Ikonstorlekarna flyttade från inline-JS till CSS.
+
 ## [3.13.0] - 2026-07-09
 
 ### Ändrat

@@ -284,10 +284,10 @@ function updateWindUnderTemp(smhiData) {
         windElement.className = 'wind-under-temp';
 
         // STEP 4: Use WeatherIconRenderer instead of WeatherIconManager
-        const windIcon = WeatherIconRenderer.createIcon(windData.icon, []);
+        // Size lives in CSS (.wind-under-temp .wind-speed-icon)
+        const windIcon = WeatherIconRenderer.createIcon(windData.icon, ['wind-speed-icon']);
         windIcon.style.cssText = `
             color: #4A9EFF;
-            font-size: 12px;
             margin-right: 4px;
             display: inline-block;
         `;
