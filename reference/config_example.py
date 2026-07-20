@@ -205,6 +205,29 @@ CONFIG = {
         },
 
         'comment': 'WeatherEffects ger MagicMirror-kompatibla regn/snö-animationer baserade på SMHI-data'
+    },
+
+    # =============================================================================
+    # ☀️ PHASE 3: UV INDEX CONFIGURATION - CAMS integration
+    # =============================================================================
+
+    'cams_uv': {
+        # 🌞 MAIN SETTING: Enable/disable the UV index
+        # NOTE: Requires a free ADS token in ~/.cdsapirc — see UV-PROJECT-PLAN.md.
+        # The token lives in that file, NOT here. Without it, leave disabled.
+        'enabled': False,  # EXAMPLE: False = disabled, change to True when ~/.cdsapirc is set up
+
+        # 📍 COORDINATES: Taken from the smhi section automatically
+        # No separate coordinate configuration needed
+
+        # 💾 CACHE: UV data is cached for 24 hours
+        'cache_dir': 'cache',            # Directory for uv_cache.json
+        'cache_duration_hours': 24,      # How long UV data is cached (recommended: 24h)
+
+        # ⏰ UPDATE: Daily refresh
+        'update_time': '01:00',          # HH:MM - when UV data is refreshed daily
+
+        'comment': 'UV-index från CAMS (Copernicus Atmosphere Monitoring Service) via ADS API. Kräver ~/.cdsapirc-konfiguration, se UV-PROJECT-PLAN.md.'
     }
 }
 
