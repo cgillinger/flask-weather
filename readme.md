@@ -69,6 +69,20 @@ Everything is configured in one commented `config.py` file — no database, no b
 
 ## ⚡ Quick start
 
+### 🐳 Docker (easiest — 2 minutes)
+
+```bash
+mkdir flask-weather && cd flask-weather
+curl -O https://raw.githubusercontent.com/cgillinger/flask-weather/main/docker-compose.yml
+docker compose up -d
+```
+
+The first start creates `config/config.py` from the template and comes up as a
+working forecast dashboard for Stockholm on `http://SERVER-IP:8036`. Edit that
+file for your own location (and your Netatmo station, if you have one), then
+`docker compose restart`. Prebuilt images for amd64 and arm64:
+`ghcr.io/cgillinger/flask-weather:latest` — see [Docker](#-docker-synology-linux-any-docker-host).
+
 ### 🖥️ Server installation (5 minutes)
 
 **Linux/Ubuntu/Raspberry Pi:**
@@ -195,6 +209,61 @@ The server runs the Flask application and handles all weather data. **No screen 
 - **Python 3.8+**
 - **2GB+ RAM**, **1GB storage**
 - **Internet connection** for the weather API, CAMS UV API (optional), ipgeolocation (optional)
+
+### 🐳 Docker (Synology, Linux, any Docker host)
+
+A multi-arch image (amd64 + arm64) is published to GitHub Container Registry on
+every push to `main` and every version tag:
+`ghcr.io/cgillinger/flask-weather`. Nothing is built or pip-installed on the
+host, which also sidesteps the netCDF4/eccodes trouble the UV feature otherwise
+causes on a Synology.
+
+#### Compose file
+
+```yaml
+services:
+  weather:
+    image: ghcr.io/cgillinger/flask-weather:latest
+    container_name: flask-weather
+    ports:
+      - "8036:8036"
+    volumes:
+      - ./config:/config
+      - ./cache:/app/cache
+    environment:
+      TZ: Europe/Stockholm
+    restart: unless-stopped
+```
+
+`docker compose up -d`, then open `http://SERVER-IP:8036`.
+
+#### Volumes
+
+| Path | Purpose |
+|---|---|
+| `/config` | `config.py` — generated from the template on the first start, then yours to edit. `config.json` works too. |
+| `/app/cache` | Netatmo tokens, pressure history, UV cache. **Keep this volume**: Netatmo rotates the refresh token, so losing it means redoing the OAuth flow by hand. |
+
+Prefer to keep your existing `config.py` where it is? Mount it directly
+instead: `- ./config.py:/app/reference/config.py:ro`.
+
+#### Environment variables
+
+| Variable | Meaning |
+|---|---|
+| `TZ` | Time zone, default `Europe/Stockholm`. Sun times and update schedules use local time, so a container left on UTC shifts the whole dashboard. |
+| `CDSAPI_KEY` | Optional. ADS token for UV index — written to `~/.cdsapirc` at start. Also set `cams_uv.enabled = True` in `config.py`. |
+| `CDSAPI_URL` | Optional, defaults to the ADS API endpoint. |
+
+#### Synology (Container Manager)
+
+1. **Container Manager** → **Project** → **Create**
+2. Pick (or create) a folder in a shared folder — `./config` and `./cache` end up there
+3. Paste the compose file above, **Next** → **Done**
+4. First start creates `config/config.py` in that folder. Edit it in File Station or over SSH and restart the project.
+
+Updating: **Action** → **Reset**/pull, or on the command line
+`docker compose pull && docker compose up -d`.
 
 ### 🐧 Linux server (Ubuntu/Debian/Pi OS)
 
