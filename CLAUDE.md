@@ -51,8 +51,19 @@ UV (Copernicus CAMS) and outdoor air quality (SMHI datavärd + CAMS fallback).
 - Version lives in `VERSION` + `CHANGELOG.md`; releases are merge commits tagged like `v3.10.3`.
 - Verify Python with `python3 -m py_compile`, JS with `node --check`.
 
+## Branches
+
+`main` must always equal `origin/main` — verify with `git log origin/main..main`,
+which must be empty. Deployment-specific work lives on separate local branches
+that are never merged into main, so **always branch from `origin/main`** when
+preparing a PR, never from whatever branch happens to be checked out.
+
 ## Deployment
 
-Deployed to a Synology NAS (see memory: bundle workaround, `scp -O`, PATH quirks).
-The Pi at 192.168.50.22 is display-only against the NAS. Don't restart services
-without being asked.
+Deployed to a Synology NAS. The Pi at 192.168.50.22 is display-only against the
+NAS. Don't restart services without being asked.
+
+The deploy procedure, the branch model above and the host specifics are
+documented in the private `server2-docs` repo — the Flask Weather section of
+`server2-05-home-network.md`. Read it before deploying or before creating
+branches here; the memory notes only summarise it.
