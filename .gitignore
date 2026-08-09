@@ -194,5 +194,9 @@ start_flask_weather.sh
 cache/
 .cdsapirc
 
+# Docker: bind-mount directory created by docker-compose.yml on first start
+# (holds the real config.py).
+/config/
+
 # Playwright test artifacts (local smoke tests)
 .playwright-mcp/

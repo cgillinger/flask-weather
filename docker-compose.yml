@@ -1,0 +1,35 @@
+# Flask Weather Dashboard — Docker Compose.
+#
+#   docker compose up -d
+#
+# First run creates ./config/config.py from the template and stops; fill in
+# your location (and Netatmo credentials if you have a station), then start
+# again. The dashboard is then on http://<host>:8036 — point the kiosk browser
+# there.
+#
+# Uses the prebuilt image from GitHub Container Registry. To build from source
+# instead, uncomment `build: .` and run `docker compose up -d --build`.
+
+services:
+  weather:
+    image: ghcr.io/cgillinger/flask-weather:latest
+    # build: .
+    container_name: flask-weather
+    ports:
+      - "8036:8036"
+    volumes:
+      # config.py — created from the template on first run.
+      - ./config:/config
+      # Netatmo tokens, pressure history, UV cache. Must survive rebuilds:
+      # the rotated Netatmo refresh token is stored here and is the only
+      # valid one.
+      - ./cache:/app/cache
+    environment:
+      # The app uses local time for sun times and update schedules — set this
+      # to your own zone.
+      TZ: Europe/Stockholm
+      # Optional: UV-index from CAMS. Token from
+      # https://ads.atmosphere.copernicus.eu/ — also requires
+      # cams_uv.enabled = True in config.py.
+      # CDSAPI_KEY: "your-ads-personal-access-token"
+    restart: unless-stopped

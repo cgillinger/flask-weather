@@ -3,6 +3,18 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.14.0] - 2026-08-09
+
+### Tillagt
+- **Docker-image som bygger sig själv**: `Dockerfile`, `docker-compose.yml`, `docker-entrypoint.sh` och en GitHub Actions-workflow som bygger multi-arch (amd64 + arm64) och publicerar till `ghcr.io/cgillinger/flask-weather` vid varje push till `main` och vid varje `v*.*.*`-tagg. Ingen host behöver längre pip-installera netCDF4/eccodes — särskilt besvärligt på Synology.
+- **Självkonfigurerande första start**: entrypointen skapar `config.py` från `config_example.py` i den monterade `/config`-volymen och startar ändå — en färdig prognospanel för Stockholm som användaren sedan flyttar till sin egen plats. Befintlig `config.py`/`config.json` monteras antingen i `/config` eller direkt i `/app/reference/`. `CDSAPI_KEY` skriver `~/.cdsapirc` vid start så UV-token varken ligger i imagen eller i configfilen.
+- **Docker-avsnitt i readme.md och readme.sv.md**: compose-fil, volymtabell, miljövariabler och Container Manager-steg för Synology.
+
+### Noterat
+- Imagen innehåller ingen konfiguration: `.dockerignore` håller `reference/config.py`, tokens, cache och loggar utanför byggkontexten (`flask.log` är ~300 MB och skulle annars skickas till byggaren varje gång).
+- `TZ` sätts till `Europe/Stockholm` i imagen — appen använder naiv `datetime.now()` för soltider, uppdateringsscheman och den nattliga UV-hämtningen, så en container kvar på UTC förskjuter hela panelen.
+- `/app/cache` måste vara en volym: Netatmo roterar refresh-token och den lagras där.
+
 ## [3.13.2] - 2026-07-09
 
 ### Ändrat

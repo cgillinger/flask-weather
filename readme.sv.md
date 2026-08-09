@@ -60,6 +60,20 @@ Allt ställs in i en enda kommenterad `config.py` — ingen databas, inget byggs
 
 ## ⚡ Snabbstart
 
+### 🐳 Docker (enklast — 2 minuter)
+
+```bash
+mkdir flask-weather && cd flask-weather
+curl -O https://raw.githubusercontent.com/cgillinger/flask-weather/main/docker-compose.yml
+docker compose up -d
+```
+
+Första starten skapar `config/config.py` från mallen och appen går igång som en
+fungerande prognospanel för Stockholm på `http://SERVER-IP:8036`. Ändra filen
+till din egen plats (och din Netatmo-station om du har en) och kör
+`docker compose restart`. Färdiga images för amd64 och arm64:
+`ghcr.io/cgillinger/flask-weather:latest` — se [Docker](#-docker-synology-linux-valfri-dockervärd).
+
 ### 🖥️ Server-installation (5 minuter)
 
 **Linux/Ubuntu/Raspberry Pi:**
@@ -196,6 +210,61 @@ Servern kör Flask-applikationen och hanterar all väderdata. **Ingen skärm ell
 - **2GB+ RAM**
 - **1GB lagringsutrymme**
 - **Internetuppkoppling** för SMHI API, CAMS UV API (valfritt), ipgeolocation (valfritt)
+
+### 🐳 Docker (Synology, Linux, valfri Dockervärd)
+
+En multi-arch-image (amd64 + arm64) publiceras till GitHub Container Registry
+vid varje push till `main` och vid varje versionstagg:
+`ghcr.io/cgillinger/flask-weather`. Ingenting byggs eller pip-installeras på
+värden, vilket också går runt netCDF4/eccodes-krånglet som UV-funktionen annars
+orsakar på en Synology.
+
+#### Compose-fil
+
+```yaml
+services:
+  weather:
+    image: ghcr.io/cgillinger/flask-weather:latest
+    container_name: flask-weather
+    ports:
+      - "8036:8036"
+    volumes:
+      - ./config:/config
+      - ./cache:/app/cache
+    environment:
+      TZ: Europe/Stockholm
+    restart: unless-stopped
+```
+
+`docker compose up -d`, öppna sedan `http://SERVER-IP:8036`.
+
+#### Volymer
+
+| Sökväg | Syfte |
+|---|---|
+| `/config` | `config.py` — skapas från mallen vid första starten, sedan din att redigera. `config.json` fungerar också. |
+| `/app/cache` | Netatmo-token, tryckhistorik, UV-cache. **Behåll volymen**: Netatmo roterar refresh-token, så förlorar du den måste OAuth-flödet göras om för hand. |
+
+Vill du behålla din befintliga `config.py` där den ligger? Montera den direkt
+i stället: `- ./config.py:/app/reference/config.py:ro`.
+
+#### Miljövariabler
+
+| Variabel | Betydelse |
+|---|---|
+| `TZ` | Tidszon, standard `Europe/Stockholm`. Soltider och uppdateringsscheman använder lokal tid — en container kvar på UTC förskjuter hela panelen. |
+| `CDSAPI_KEY` | Valfri. ADS-token för UV-index — skrivs till `~/.cdsapirc` vid start. Kräver även `cams_uv.enabled = True` i `config.py`. |
+| `CDSAPI_URL` | Valfri, standard är ADS API-endpointen. |
+
+#### Synology (Container Manager)
+
+1. **Container Manager** → **Projekt** → **Skapa**
+2. Välj (eller skapa) en mapp i en delad mapp — `./config` och `./cache` hamnar där
+3. Klistra in compose-filen ovan, **Nästa** → **Klar**
+4. Första starten skapar `config/config.py` i mappen. Redigera den i File Station eller över SSH och starta om projektet.
+
+Uppdatering: **Åtgärd** → hämta ny image, eller på kommandoraden
+`docker compose pull && docker compose up -d`.
 
 ### 🐧 Linux Server (Ubuntu/Debian/Pi OS)
 
