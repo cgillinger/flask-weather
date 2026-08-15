@@ -19,6 +19,10 @@
  * @param {object} data - Complete weather data from the API
  */
 function updateCurrentWeather(data) {
+    // Sun times first: the hero icon below and the forecast cards (rendered
+    // right after this function) pick their day/night variant from them.
+    setSunTimes(data.sun);
+
     // SMHI Data
     if (data.smhi) {
         const smhi = data.smhi;

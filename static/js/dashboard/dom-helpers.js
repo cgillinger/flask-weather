@@ -64,13 +64,69 @@ function updateSunTimeOptimized(elementId, timeOnly) {
 
 // === TID/DAG-LOGIK ===
 
+// Sunrise/sunset as minutes since midnight, fed from /api/current by
+// setSunTimes(). Stored as minutes rather than Date objects on purpose: if the
+// sun payload goes stale (the API keeps serving yesterday's date), the times of
+// day are still right to within a couple of minutes, whereas a Date comparison
+// would classify the whole day as night.
+let sunriseMinutes = null;
+let sunsetMinutes = null;
+
+// Used until the first /api/current response arrives, and if it carries no sun times.
+const FALLBACK_SUNRISE_MINUTES = 6 * 60;
+const FALLBACK_SUNSET_MINUTES = 20 * 60;
+
 /**
- * Check if it is daytime (06:00 - 20:00)
+ * Convert an ISO timestamp to minutes since midnight
+ * @param {string} isoString - Local ISO timestamp, e.g. "2026-08-15T05:03:00"
+ * @returns {number|null} Minutes since midnight, or null if unparsable
+ */
+function sunTimeToMinutes(isoString) {
+    if (!isoString) return null;
+
+    const time = new Date(isoString);
+    if (isNaN(time.getTime())) return null;
+
+    return time.getHours() * 60 + time.getMinutes();
+}
+
+/**
+ * Store the sun times the day/night icon logic keys off
+ * @param {object} sunData - The `sun` object from /api/current (may be missing)
+ */
+function setSunTimes(sunData) {
+    sunriseMinutes = sunTimeToMinutes(sunData && sunData.sunrise);
+    sunsetMinutes = sunTimeToMinutes(sunData && sunData.sunset);
+}
+
+/**
+ * Check whether a given time of day falls between sunrise and sunset
+ * @param {number} minutes - Minutes since midnight
+ * @returns {boolean} True if it is daytime
+ */
+function isDaytimeAtMinutes(minutes) {
+    const sunrise = sunriseMinutes !== null ? sunriseMinutes : FALLBACK_SUNRISE_MINUTES;
+    const sunset = sunsetMinutes !== null ? sunsetMinutes : FALLBACK_SUNSET_MINUTES;
+
+    return minutes >= sunrise && minutes < sunset;
+}
+
+/**
+ * Check if it is daytime right now
  * @returns {boolean} True if it is daytime
  */
 function isDaytime() {
-    const hour = new Date().getHours();
-    return hour >= 6 && hour <= 20;
+    const now = new Date();
+    return isDaytimeAtMinutes(now.getHours() * 60 + now.getMinutes());
+}
+
+/**
+ * Check if a whole hour falls in daytime (used by the hourly forecast cards)
+ * @param {number} hour - Hour of day, 0-23
+ * @returns {boolean} True if it is daytime
+ */
+function isDaytimeAtHour(hour) {
+    return isDaytimeAtMinutes(hour * 60);
 }
 
 console.log('✅ STEP 3: DOM Helpers loaded - 4 functions extracted!');

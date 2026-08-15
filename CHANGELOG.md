@@ -3,6 +3,12 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.14.1] - 2026-08-15
+
+### Fixat
+- **Dag-/nattikoner följer soltiderna i stället för klockan**: `isDaytime()` avgjorde dygnsfasen med ett hårdkodat fönster 06:00–20:00, trots att appen redan hämtar exakta soltider från `/api/current`. Följden var månikoner i fullt dagsljus på sommarmorgnarna (soluppgång 03:30 i juni, 05:03 mitt i augusti) och solikoner i kolmörker på vintern (soluppgång ~08:45, solnedgång ~14:50 i december). Både heroikonen och timprognosens kort väljer nu variant utifrån `sunrise`/`sunset`.
+- Soltiderna lagras som minuter efter midnatt i stället för `Date`-objekt: fastnar soldatan på gårdagens datum ger den fortfarande rätt dygnsfas, i stället för att klassa hela dagen som natt.
+
 ## [3.14.0] - 2026-08-09
 
 ### Tillagt
