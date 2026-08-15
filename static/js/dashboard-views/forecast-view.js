@@ -55,7 +55,7 @@ function createForecastCard(forecast) {
     
     card.className = `forecast-card ${timeClass}`;
     
-    const isDay = hour >= 6 && hour <= 20;
+    const isDay = isDaytimeAtHour(hour);
 
     // POSITION 4+5 LOGIC: Show wind ALWAYS, and precipitation BELOW if >2mm
     let windContent = '';
