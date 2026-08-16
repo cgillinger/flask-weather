@@ -231,6 +231,22 @@ function updateWeatherEffects(data) {
     } else {
         // Fall back to SMHI for all weather types (rain, snow, sleet)
         if (data.smhi && data.smhi.weather_symbol) {
+            // NETATMO RAIN VETO: the gauge is source of truth in both directions.
+            // A reporting gauge at 0 mm overrides a rain forecast — no rain effect.
+            // Snow/sleet/thunder still follow the forecast (the gauge cannot
+            // measure those), as does SMHI-only mode (netatmo: null).
+            const gaugeReporting = data.netatmo && (
+                (data.netatmo.rain_sum_1 !== null && data.netatmo.rain_sum_1 !== undefined) ||
+                (data.netatmo.rain !== null && data.netatmo.rain !== undefined)
+            );
+            const forecastType = weatherEffectsManager.getWeatherTypeFromSMHI(data.smhi.weather_symbol);
+
+            if (gaugeReporting && forecastType === 'rain') {
+                console.log(`⛅ NETATMO RAIN VETO: Prognosen säger regn (symbol ${data.smhi.weather_symbol}) men regnmätaren mäter 0 mm - ingen regneffekt`);
+                weatherEffectsManager.clearEffects();
+                return;
+            }
+
             weatherEffectsManager.updateFromSMHI(
                 data.smhi.weather_symbol,
                 data.smhi.precipitation || 0,

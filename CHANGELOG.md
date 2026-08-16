@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.14.2] - 2026-08-16
+
+### Fixat
+- **Torr regnmätare stoppar nu regnanimationen**: Netatmo-regnmätaren är source of truth åt båda hållen. Tidigare gällde prioriteten bara när mätaren mätte regn — sa prognosen regnskurar (Wsymb2 8–10, 18–20) medan mätaren stod på 0 mm rullade regneffekten ändå. Nu vetoar en rapporterande mätare på 0 mm prognosens regn och effekten rensas. Snö, snöblandat och åska följer fortfarande prognosen (mätaren kan inte mäta dem), liksom SMHI-only-läget utan Netatmo. Frontend gör därmed samma bedömning som backend (`get_intelligent_weather_effect_type`) redan gjorde.
+
 ## [3.14.1] - 2026-08-15
 
 ### Fixat
