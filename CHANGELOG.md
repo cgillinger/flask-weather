@@ -3,6 +3,11 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.15.0] - 2026-08-19
+
+### Tillagt
+- **Nytt API `/api/hourly`**: timprognos för en hel kalenderdag, default imorgon (`?day=N`, 0 = idag, max 9). Punkterna läses direkt ur leverantörens redan cachade tidsserie, så upplösningen är vad leverantören erbjuder — timvis de närmaste dygnen — och endpointen fungerar för alla providers (SMHI/YR/Open-Meteo delar timeSeries-format). Varje punkt innehåller `local_time`, `date_time`, temperatur, vädersymbol, nederbörd m.m. — samma fält som `/api/forecast`.
+
 ## [3.14.2] - 2026-08-16
 
 ### Fixat
