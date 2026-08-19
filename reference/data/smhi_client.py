@@ -11,7 +11,7 @@ Observations API: https://opendata.smhi.se/apidocs/metobs/index.html
 
 import requests
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
 import time
 import math
@@ -763,7 +763,56 @@ class SMHIClient:
         
         print(f"📈 12h-prognos klar: {len(forecast_points)} prognoser med animation triggers")
         return forecast_points
-    
+
+    def get_hourly_forecast(self, day_offset: int = 1) -> List[Dict]:
+        """
+        Fetch an hour-by-hour forecast for one calendar day (local time).
+
+        Reads straight from the provider's cached time series, so the
+        granularity is whatever the provider offers — hourly for the nearest
+        days, sparser further out. Works for every provider since YR and
+        Open-Meteo normalise their responses to the same timeSeries shape.
+
+        Args:
+            day_offset: Days from today (0 = today, 1 = tomorrow, ...)
+
+        Returns:
+            List of forecast points for that day, sorted by time, each with
+            local_time ('HH:MM'), date_time (local ISO), valid_time plus the
+            parsed weather parameters (temperature, weather_symbol,
+            precipitation, wind_speed, ...).
+        """
+        data = self.get_data()
+
+        if not data or 'timeSeries' not in data:
+            print("❌ Ingen data tillgänglig för timprognos")
+            return []
+
+        target_date = (datetime.now().astimezone() + timedelta(days=day_offset)).date()
+        points = []
+
+        for entry in data['timeSeries']:
+            valid_time_str = entry.get('time')
+            if not valid_time_str:
+                continue
+            try:
+                valid_time = datetime.fromisoformat(valid_time_str.replace('Z', '+00:00'))
+            except (ValueError, TypeError):
+                continue
+            local_time = valid_time.astimezone()
+            if local_time.date() != target_date:
+                continue
+
+            weather = self.parse_parameters(entry)
+            weather['valid_time'] = valid_time_str
+            weather['date_time'] = local_time.isoformat()
+            weather['local_time'] = local_time.strftime('%H:%M')
+            points.append(weather)
+
+        points.sort(key=lambda p: p['date_time'])
+        print(f"🕐 Timprognos dag +{day_offset} ({target_date}): {len(points)} punkter")
+        return points
+
     def get_daily_forecast(self, days: int = 5) -> List[Dict]:
         """
         Fetch a daily forecast for the coming days with weighted symbol calculation.

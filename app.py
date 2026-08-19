@@ -885,6 +885,28 @@ def api_daily_forecast():
         'last_update': state['last_update']
     })
 
+@app.route('/api/hourly')
+def api_hourly_forecast():
+    """Hour-by-hour forecast for one calendar day (default tomorrow).
+
+    ?day=N selects the day: 0 = today, 1 = tomorrow (default), max 9.
+    Served from the provider's cached time series, so the granularity is
+    whatever the provider offers — hourly for the nearest days."""
+    if smhi_client is None:
+        return jsonify({'error': 'väderklient ej initierad', 'hourly': []}), 503
+    try:
+        day = max(0, min(9, int(request.args.get('day', 1))))
+    except ValueError:
+        day = 1
+    points = smhi_client.get_hourly_forecast(day)
+    state = state_snapshot()
+    return jsonify({
+        'day': day,
+        'date': points[0]['date_time'][:10] if points else None,
+        'hourly': points,
+        'last_update': state['last_update']
+    })
+
 @app.route('/api/status')
 def api_status():
     """PHASE 2+3: API endpoint for system status with Netatmo info, WeatherEffects and UV."""
