@@ -3,6 +3,16 @@
 Alla anmärkningsvärda ändringar i detta projekt dokumenteras i denna fil.
 Formatet baseras på [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/).
 
+## [3.15.1] - 2026-10-02
+
+### Fixat
+- **UV-index gäller nu dagens datum**: cachen var giltig i 24 timmar räknat från hämtningen, och datumet togs i UTC. Hämtningen gled därför till kvällen och begärde då den dag som just tagit slut, så panelen visade gårdagens maxvärde nästan hela dagen; uppdateringen kl. 01:00 hoppades över eftersom cachen ännu inte var 24 timmar gammal. Cachen följer nu kalenderdygnet i lokal tid och hämtas om när dagen byts.
+- Dagens timmar tas ur gårdagens 00 UTC-körning med längre ledtid (lokal timme 0–23), eftersom dagens egen körning inte publiceras förrän vid middagstid. `peak_hour` är därmed lokal tid i stället för UTC.
+- Misslyckas hämtningen visas det gamla värdet och CAMS lämnas i fred i 30 minuter, i stället för ett nytt försök varje uppdateringscykel.
+
+### Tillagt
+- `/api/uv` har fältet `date`: den dag värdet gäller.
+
 ## [3.15.0] - 2026-08-19
 
 ### Tillagt
