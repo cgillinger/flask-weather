@@ -1024,6 +1024,7 @@ def api_uv():
             'available': True,
             'uv_index': uv_data.get('uv_index', 0),
             'peak_hour': uv_data.get('peak_hour'),
+            'date': uv_data.get('date'),
             'risk_level': uv_data.get('risk_level', 'low'),
             'risk_text': uv_data.get('risk_text', 'Låg UV-risk'),
             'color': uv_data.get('color', 'green'),

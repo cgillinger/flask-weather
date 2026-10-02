@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
 CAMS UV Client - Atmosphere Data Store integration (cdsapi-based)
-Fetches the UV index from CAMS via the CDS API, with 24h caching
+Fetches the UV index from CAMS via the CDS API, cached per calendar day
 
 Dataset: cams-global-atmospheric-composition-forecasts
 Variable: uv_biologically_effective_dose_clear_sky (clear sky, per SSM guidance)
 Source: Copernicus Atmosphere Data Store (ADS)
 API: cdsapi Python library
 
-STRATEGY: fetch ALL hours (0-23) and report the day's MAX UV index
+STRATEGY: fetch ALL hours (0-23) of the local calendar day and report the day's
+MAX UV index. The hours come from the previous day's 00 UTC forecast run with
+longer lead times: that run is published before the day starts, today's own run
+only around midday.
 """
 
 import cdsapi
@@ -22,13 +25,13 @@ import tempfile
 
 class CAMSUVClient:
     """
-    CAMS UV index client with 24h caching via the CDS API
+    CAMS UV index client, cached per calendar day, via the CDS API
 
     Responsibilities:
     - Fetch UV data from CAMS via the CDS API (all hours)
     - Compute the MAX UV index for the full day
     - Cache results in cache/uv_cache.json
-    - Validate cache age (24h)
+    - Validate that the cache is for today (local date)
     - Return data formatted according to the SSM scale
     """
 
@@ -57,7 +60,9 @@ class CAMSUVClient:
         self.longitude = longitude
         self.cache_dir = cache_dir
         self.cache_file = os.path.join(cache_dir, "uv_cache.json")
-        self.cache_duration = timedelta(hours=24)
+        # After a failed fetch the stale cache is served and CAMS is left alone for a while
+        self.retry_after = timedelta(minutes=30)
+        self._last_failure = None
         
         # Create the cache directory if it does not exist
         os.makedirs(cache_dir, exist_ok=True)
@@ -73,41 +78,65 @@ class CAMSUVClient:
             print("📝 Kontrollera att ~/.cdsapirc finns och är korrekt konfigurerad")
             self.client = None
     
+    @staticmethod
+    def _request_window(now_local: datetime) -> Dict:
+        """
+        What to ask CAMS for so that the answer covers the local calendar day of `now_local`
+
+        The previous day's 00 UTC run is used: it is published around 10 UTC that day,
+        so the whole of today is available from local midnight. Today's own 00 UTC run
+        is not published until about midday.
+
+        Args:
+            now_local: Timezone-aware local time
+
+        Returns:
+            Dict with target_date (local day, YYYY-MM-DD), run_date (YYYY-MM-DD) and
+            leadtime_hours (24 values: local hour 0-23 of the target day)
+        """
+        target = now_local.date()
+        offset = now_local.utcoffset() or timedelta(0)
+        offset_hours = int(round(offset.total_seconds() / 3600))
+        # Local 00:00 of the target day, counted in hours from the run (00 UTC the day before)
+        first_lead = 24 - offset_hours
+        return {
+            'target_date': target.isoformat(),
+            'run_date': (target - timedelta(days=1)).isoformat(),
+            'leadtime_hours': list(range(first_lead, first_lead + 24))
+        }
+
     def _is_cache_valid(self) -> bool:
         """
-        Check whether the cache is valid (< 24h old)
+        Check whether the cache holds today's value (local calendar day)
+
+        A cache written before the 'date' field existed is never valid: it was keyed
+        on age and could hold yesterday's value for most of the day.
 
         Returns:
             True if the cache is valid, False otherwise
         """
         if not os.path.exists(self.cache_file):
             return False
-        
+
         try:
             with open(self.cache_file, 'r') as f:
                 cache_data = json.load(f)
-            
-            cached_time_str = cache_data.get('timestamp')
-            if not cached_time_str:
-                return False
-            
-            cached_time = datetime.fromisoformat(cached_time_str)
-            age = datetime.now(timezone.utc) - cached_time
-            
-            is_valid = age < self.cache_duration
-            
+
+            today = datetime.now().astimezone().date().isoformat()
+            cached_date = cache_data.get('date')
+            is_valid = cached_date == today
+
             if is_valid:
-                hours_old = age.total_seconds() / 3600
-                print(f"✅ UV-cache giltig ({hours_old:.1f}h gammal)")
+                print(f"✅ UV-cache giltig (gäller {cached_date})")
             else:
-                print(f"⏰ UV-cache utgången ({age.total_seconds() / 3600:.1f}h gammal)")
-            
+                print(f"⏰ UV-cache gäller {cached_date or 'okänt datum'}, inte {today}")
+
             return is_valid
-            
+
         except Exception as e:
             print(f"⚠️ Fel vid cache-validering: {e}")
             return False
-    
+
     def _classify_uv_risk(self, uv_index: float) -> Dict[str, str]:
         """
         Classify a UV index according to SSM's risk levels
@@ -251,12 +280,13 @@ class CAMSUVClient:
             print("❌ CDS API-klient inte tillgänglig")
             return None
         
-        # Today's date
-        today = datetime.now(timezone.utc)
-        date_str = today.strftime("%Y-%m-%d")
+        # Today's local calendar day, taken from yesterday's 00 UTC run
+        window = self._request_window(datetime.now().astimezone())
+        date_str = window['run_date']
+        lead_hours = window['leadtime_hours']
         
         print(f"\n⏳ Hämtar UV-data från CAMS ADS...")
-        print(f"📅 Datum: {date_str}")
+        print(f"📅 Dag: {window['target_date']} (körning {date_str} 00 UTC, ledtid {lead_hours[0]}-{lead_hours[-1]} h)")
         print(f"📍 Position: {self.latitude}, {self.longitude}")
         
         # Temporary file for the NetCDF download
@@ -264,12 +294,12 @@ class CAMSUVClient:
             tmp_path = tmp_file.name
 
         try:
-            # Request ALL hours (0-23) for the MAX calculation
+            # Request all 24 hours of the local day for the MAX calculation
             request = {
                 'variable': 'uv_biologically_effective_dose_clear_sky',
                 'date': date_str,
                 'time': '00:00',
-                'leadtime_hour': [str(h) for h in range(24)],  # hours 0-23
+                'leadtime_hour': [str(h) for h in lead_hours],  # local hours 0-23 of the day
                 'type': 'forecast',
                 'area': [
                     self.latitude + 0.7,   # North
@@ -284,7 +314,7 @@ class CAMSUVClient:
             print(f"   variable: {request['variable']}")
             print(f"   date: {request['date']}")
             print(f"   time: {request['time']}")
-            print(f"   leadtime_hour: 0-23 (alla timmar)")
+            print(f"   leadtime_hour: {lead_hours[0]}-{lead_hours[-1]} (dagens alla timmar)")
             print(f"   area: [{request['area']}]")
             
             print("\n⏳ Skickar request (kan ta 60-180 sekunder för alla timmar)...")
@@ -327,6 +357,7 @@ class CAMSUVClient:
             result = {
                 'uv_index': round(max_uv_index, 1),
                 'peak_hour': peak_hour,
+                'date': window['target_date'],
                 'risk_level': risk_info['risk_level'],
                 'risk_text': risk_info['risk_text'],
                 'color': risk_info['color'],
@@ -398,7 +429,8 @@ class CAMSUVClient:
             Dict with UV data or None on error:
             {
                 'uv_index': float (MAX for the day),
-                'peak_hour': int (0-23, when the MAX occurs),
+                'peak_hour': int (0-23 local time, when the MAX occurs),
+                'date': str (YYYY-MM-DD, the local day the value is for),
                 'risk_level': str,
                 'risk_text': str,
                 'color': str,
@@ -414,14 +446,21 @@ class CAMSUVClient:
             if cached_data:
                 return cached_data
         
+        # A recent failure: serve the stale cache instead of asking CAMS every update cycle
+        now = datetime.now(timezone.utc)
+        if self._last_failure and now - self._last_failure < self.retry_after:
+            return self._load_from_cache()
+
         # Fetch fresh data from CAMS
         fresh_data = self._fetch_fresh_uv_data()
         
         if fresh_data:
+            self._last_failure = None
             self._save_to_cache(fresh_data)
             return fresh_data
         
         # Fall back to the stale cache if the API call fails
+        self._last_failure = now
         print("⚠️ API-fel, försöker använda gammal cache...")
         return self._load_from_cache()
 

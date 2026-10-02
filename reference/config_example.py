@@ -220,9 +220,9 @@ CONFIG = {
         # 📍 COORDINATES: Taken from the smhi section automatically
         # No separate coordinate configuration needed
 
-        # 💾 CACHE: UV data is cached for 24 hours
+        # 💾 CACHE: UV data is cached per calendar day (local time) and fetched again when the day changes
         'cache_dir': 'cache',            # Directory for uv_cache.json
-        'cache_duration_hours': 24,      # How long UV data is cached (recommended: 24h)
+        'cache_duration_hours': 24,      # Not used since 3.15.1 (the cache follows the calendar day); kept so old configs stay valid
 
         # ⏰ UPDATE: Daily refresh
         'update_time': '01:00',          # HH:MM - when UV data is refreshed daily
