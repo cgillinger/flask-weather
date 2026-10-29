@@ -1,3 +1,4 @@
+<!-- md optimerad 2026:10:29 -->
 # CLAUDE.md — Flask Weather Dashboard
 
 Flask app serving a 24/7 weather kiosk dashboard (runs on a Synology NAS, displayed
